@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    restart: always
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: wix
+      POSTGRES_USER: wix_user
+      POSTGRES_PASSWORD: wix@228339
+    ports:
+      - 5433:5432
+
+  meilisearch:
+    image: getmeili/meilisearch:v0.28
+    container_name: app_meilisearch_bot
+    environment:
+      - MEILI_NO_ANALYTICS=true
+      - MEILI_MASTER_KEY=masterKey
+    ports:
+      - 7701:7700
+    volumes:
+      - meilisearch-data:/meili_data
+
+volumes:
+  meilisearch-data:

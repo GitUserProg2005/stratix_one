@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+use Illuminate\Support\Facades\Storage;
+
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -19,6 +24,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'avatar',
         'email',
         'password',
     ];
@@ -44,5 +50,45 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function tracks()
+    {
+        return $this->hasManyThrough(
+            Track::class,
+            Release::class,
+            'artist_id', // foreign key в releases на artists
+            'release_id', // foreign key в tracks на releases
+            'id',        // local key в artists
+            'id'         // local key в releases
+        );
+    }
+
+    /**
+     * Генерируем url к аватару пользователя
+     */
+    public function getAvatarUrlAttribute() : ?string {
+        if (!$this->avatar) return null;
+
+        // Если путь уже является полным URL, возвращаем как есть
+        if (filter_var($this->avatar, FILTER_VALIDATE_URL)) {
+            return $this->avatar;
+        }
+
+        // Генерируем URL из S3
+        try {
+            return Storage::disk('s3')->url($this->avatar);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to get avatar URL from S3', [
+                'avatar' => $this->avatar,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    public function getTracksCountAttribute(): int
+    {
+        return $this->tracks()->count();
     }
 }

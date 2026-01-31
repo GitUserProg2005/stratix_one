@@ -24,7 +24,7 @@ const playlists = ref([
         <div 
             v-for="(playlist, i) in playlists"
             :key="i"
-            class="track rounded-r-full flex items-center px-6 py-1"
+            class="track rounded-l-2xl rounded-r-full flex items-center px-6 py-1"
         >
             <div class="flex flex-wrap h-full gap-2">
                 <img :src="playlist.preview" class="track-picture" alt="">

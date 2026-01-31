@@ -5,7 +5,8 @@ const props = defineProps({
     width: {
         type: Number,
         required: true
-    }
+    },
+    isPlaying: Boolean
 });
 
 const size = computed(() => `${props.width}px`)
@@ -16,6 +17,8 @@ const size = computed(() => `${props.width}px`)
         class="primary-rounded-btn"
         :style="{ width: size, height: size }"
     >
-        <i class="fa-solid fa-play"></i>
+        <i class="fa-solid"
+            :class="{ 'fa-play' : !isPlaying, 'fa-pause' : isPlaying }"
+        ></i>
     </button>
 </template>

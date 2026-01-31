@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 use App\Http\Controllers\IndexController;
+use App\Http\Controllers\TrackController;
 use App\Http\Controllers\GoalController;
 
-
-Route::get('/', [IndexController::class, 'index']);
-
-Route::get('/goals', [GoalController::class, 'index'])->name('goals');
+// Tracks
+Route::get('/', [TrackController::class, 'index'])->name('tracks.index');
+Route::get('/track/{trackId}', [TrackController::class, 'show'])->name('tracks.show');
 
 Route::get('/welcome', function () {
     return Inertia::render('Welcome', [

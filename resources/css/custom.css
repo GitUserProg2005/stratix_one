@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Wix+Madefor+Text:ital,wght@0,400..800;1,400..800&display=swap');
 
 * {
-    @apply box-border font-medium select-none;
+    @apply box-border font-medium;
     font-family: 'Roboto', sans-serif;
 }
 
@@ -10,7 +10,11 @@ body {
 }
 
 .content {
-    @apply bg-[#1F1F1F] rounded-2xl p-6;
+    @apply bg-[#1F1F1F] rounded-2xl p-4;
+}
+
+.content-p-0 {
+    @apply bg-[#1F1F1F];
 }
 
 .bg-content {
@@ -22,7 +26,7 @@ body {
 }
 
 .primary-btn {
-    @apply bg-[#EEEEEE] text-black font-semibold py-2 px-4 rounded-full;
+    @apply bg-[#EEEEEE] hover:bg-[#d2d1d1] text-black font-semibold py-2 px-4 rounded-full transition-all duration-300;
 }
 
 .secondary-btn {
@@ -38,7 +42,7 @@ body {
 }
 
 .primary-rounded-btn {
-    @apply flex items-center justify-center bg-white text-black text-sm rounded-full;
+    @apply flex items-center justify-center bg-white hover:bg-[#d2d1d1] text-black text-sm rounded-full transition-all duration-300;
 }
 
 .extra-title {
@@ -92,6 +96,14 @@ body {
 
 .track-picture {
     @apply w-14 object-contain rounded-xl;
+}
+
+.track-picture-card-lg {
+    @apply object-cover w-48 h-48 rounded-2xl;
+}
+
+.track-picture-card-sm {
+    @apply object-cover w-14 h-14 rounded-2xl;
 }
 
 .custom-scroll::-webkit-scrollbar {

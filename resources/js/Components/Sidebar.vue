@@ -16,7 +16,7 @@ const emit = defineEmits(['update:isOpenSidebar']);
 <template>
     <div 
         v-if="isOpenSidebar"
-        class="fixed inset-0 z-40 bg-black/40 lg:hidden"
+        class="fixed inset-0 z-[100] bg-black/40 lg:hidden"
         @click="emit('update:isOpenSidebar', false)"
     />
 
@@ -27,8 +27,11 @@ const emit = defineEmits(['update:isOpenSidebar']);
         transform transition-transform duration-300
         lg:translate-x-0 lg:relative 
         border-r border-gray-500
-        z-50
-        bg-body
+        z-[100]
+        lg:z-[50]
+        bg-transparent
+        backdrop-blur-2xl
+        lg:bg-body
         pt-4
         w-4/5 sm:w-72 lg:w-96
       "
@@ -46,10 +49,13 @@ const emit = defineEmits(['update:isOpenSidebar']);
             </button>
         </div>
 
-        <div class="flex flex-wrap justify-between items-center 
+        <div class="flex justify-between items-center 
         w-full px-4
         ">
-          <div class="flex items-center font-semibold">
+          <img src="/img/wix_logo2.png" class="hidden lg:flex w-8 object-contain" alt="">
+
+          <div class="flex items-center gap-4 font-semibold bg-content pl-3 rounded-full">
+            <i class="fa-regular fa-bell"></i>
             <Avatar name="Gony" />
           </div>
         </div>

@@ -1,20 +1,17 @@
 <script setup>
 import { ref, watch } from 'vue';
 import PlayBtn from './PlayBtn.vue';
+import { fetchTrack } from '@/utils/useFetchTrack';
 
-const tracks = ref([
-  { preview: '/img/tt.jpeg', title: 'Knock Knock', artist: 'Wolfgang Murgen', duration: '3:42' },
-  { preview: '/img/skelet.png', title: 'Night Drive', artist: 'Neon Waves', duration: '4:10' },
-  { preview: '/img/pic.jpeg', title: 'Night Drive', artist: 'Neon Waves', duration: '4:10' },
-  { preview: '/img/test.jpg', title: 'Night Drive', artist: 'Neon Waves', duration: '4:10' },
-])
+const props = defineProps({
+    tracks: Array,
+    artist_name: String
+}); 
 
-const emit = defineEmits(['on-track-selected']);
-const selectedTrack = ref(null);
+const emit = defineEmits(['trackSelected']);
 
-function selectTrack(trackId) {
-    selectedTrack.value = tracks.value[trackId];
-    emit('on-track-selected', selectedTrack.value);
+function onClickTrack(track) {
+  emit('trackSelected', track); 
 }
 </script>
 
@@ -36,7 +33,7 @@ function selectTrack(trackId) {
                     <tr
                         v-for="(track, i) in tracks"
                         :key="i"
-                        @click="selectTrack(i)"
+                        @click="onClickTrack(track)"
                         class="track group"
                     >   
                         <td class="px-4 py-3 w-12 relative">
@@ -54,12 +51,12 @@ function selectTrack(trackId) {
                                 class="absolute inset-0 flex items-center justify-center
                                     opacity-0 group-hover:opacity-100 transition"
                             >
-                                <PlayBtn :width="36" />
+                                <PlayBtn @click.stop="onClickTrack(track)" :width="36" />
                             </div>
                         </td>
 
                         <td class="px-4 py-3 flex-wrap items-center gap-4">
-                            <img :src="track.preview" class="track-picture" alt="">
+                            <img :src="track.preview_url" class="track-picture" alt="">
                             <div class="flex flex-col justify-between h-full">
                                 <span class="text-white font-medium">
                                     {{ track.title }}
@@ -68,12 +65,11 @@ function selectTrack(trackId) {
                         </td>
 
                         <td class="px-4 py-3 text-gray-300">
-                            {{ track.artist }}
+                            {{ track.artist.name }}
                         </td>
 
-
                         <td class="px-4 py-3 text-gray-300">
-                            5 часов назад
+                            {{ track.release.created_at }}
                         </td>
 
                         <td class="px-4 py-3 text-right text-gray-400">
