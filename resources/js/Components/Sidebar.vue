@@ -1,5 +1,6 @@
 <script setup>
 import Avatar from './Avatar.vue';
+import Playlists from '@/Pages/Playlist/Playlists.vue';
 
 const props = defineProps({
     isOpenSidebar: {
@@ -49,28 +50,14 @@ const emit = defineEmits(['update:isOpenSidebar']);
         w-full px-4
         ">
           <div class="flex items-center font-semibold">
-            <Avatar src="https://img.freepik.com/premium-psd/3d-illustration-man-cartoon-close-up-portrait-standing-man-with-sunglasses-mustache-pink-background-3d-avatar-ui-ux_1020-5093.jpg" />
-            <span class="ml-2 text-white">Дмитрий</span>
+            <Avatar name="Gony" />
           </div>
         </div>
 
         <div class="border-b border-gray-500
         w-full pb-4 mb-4"></div>
 
-        <section class="flex flex-col 
-          space-y-4 px-4">
-            <div class="flex flex-row items-center justify-between">
-              <h2 class="title">Плейлисты</h2>
-
-              <button class="icon-btn">
-                <i class="fa-solid fa-plus"></i>                    
-              </button>
-            </div>
-
-            <div class="">
-              
-            </div>
-        </section>
+        <Playlists />
       </div>
     </aside>
 </template>

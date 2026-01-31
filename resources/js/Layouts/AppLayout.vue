@@ -15,13 +15,19 @@ const isOpenSidebar = ref(false)
 
     <!-- Main -->
     <main class="flex-1 overflow-y-auto">
-        <div class="max-w-6xl mx-auto px-4 py-4">
-            <div class="lg:hidden mb-4">
+        <div class="lg:hidden title p-4">
+            <div class="flex items-center justify-between">
+                <!--Лого-->
+                <img src="" alt="">
+
+                <!--Sidebar-->
                 <button @click="isOpenSidebar = true">
                     <i class="fa-solid fa-bars"></i>
                 </button>
             </div>
+        </div>
 
+        <div class="w-full mx-auto">
             <slot />
         </div>
     </main>
