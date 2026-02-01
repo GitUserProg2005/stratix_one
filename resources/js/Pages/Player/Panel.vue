@@ -3,6 +3,7 @@ import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 
 import WaveVisualizer from './WaveVisualizer.vue';
 import PlayBtn from './PlayBtn.vue';
+import KaraokeLyrics from '@/Components/KaraokeLyrics.vue';
 
 const props = defineProps({
     track: {
@@ -107,15 +108,16 @@ watch(trackProgress, (val) => {
 <template>
     <section class="absolute w-full bottom-0 z-50 left-0 p-4 bg-body">
         <div class="flex items-center justify-between">
-            <div class="hidden md:flex items-center h-full gap-4">
-                <img :src="track?.preview_url" class="track-picture" alt="">
-                <div class="flex flex-col justify-between">
-                    <span class="title">{{ track?.title }}</span>
-                    <span class="context">{{ track?.artist.name }}</span>
+            <div class="flex items-center h-full gap-4">
+                <div class="hidden lg:flex flex-row items-center gap-4">
+                    <img :src="track?.preview_url" class="track-picture" alt="">
+                    <div class="flex flex-col justify-between">
+                        <span class="title">{{ track?.title }}</span>
+                        <span class="context">{{ track?.artist.name }}</span>
+                    </div>
                 </div>
-                <button>
-                    <i class="fa-solid fa-music"></i>
-                </button>
+
+                <KaraokeLyrics :audio="audio" :lyrics="track.lyrics" />
             </div>
 
             <div class="flex flex-col gap-2">
@@ -149,7 +151,7 @@ watch(trackProgress, (val) => {
                     </span>
                 </button>
 
-                <div class="flex items-center gap-2">
+                <div class="hidden lg:flex items-center gap-2">
                     <i class="fa-solid fa-volume-low"></i>
                     <input type="range"
                         min="0" max="100"

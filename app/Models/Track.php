@@ -24,7 +24,7 @@ class Track extends Model
     ];
 
     protected $casts = [
-        'lyrics' => 'json'
+        'lyrics' => 'array'
     ];
 
     public function toSearchableArray()

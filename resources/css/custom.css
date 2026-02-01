@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Wix+Madefor+Text:ital,wght@0,400..800;1,400..800&display=swap');
 
 * {
-    @apply box-border font-medium select-none;
+    @apply box-border font-medium;
     font-family: 'Roboto', sans-serif;
 }
 
@@ -159,4 +159,24 @@ body {
     background: #fff;
     border-radius: 50%;
     cursor: pointer;
+}
+
+/* Chrome, Edge, Safari */
+html::-webkit-scrollbar {
+  width: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+  background-color: #1F1F1F;
+  border-radius: 9999px;
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #1F1F1F transparent;
 }

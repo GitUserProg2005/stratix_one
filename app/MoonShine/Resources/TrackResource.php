@@ -10,7 +10,9 @@ use MoonShine\Laravel\Resources\ModelResource;
 use MoonShine\UI\Components\Layout\Box;
 use MoonShine\UI\Fields\ID;
 use MoonShine\UI\Fields\Text;
+use MoonShine\UI\Fields\Number;
 use MoonShine\UI\Fields\File;
+use MoonShine\UI\Fields\Json;
 use MoonShine\Laravel\Fields\Relationships\BelongsTo;
 use MoonShine\Laravel\Fields\Relationships\BelongsToMany;
 use MoonShine\Contracts\UI\FieldContract;
@@ -48,6 +50,21 @@ class TrackResource extends ModelResource
                     ->disk('s3')
                     ->dir('tracks_previews') // второй параметр — директория
                     ,
+                
+                Json::make('Текст для трека', 'lyrics')
+                    ->fields([
+                        Number::make('ID', 'id')->sortable(),
+                        Text::make('Время начала (сек)', 'start_time'),
+                        Text::make('Время конца', 'end_time'),
+                        Text::make('Текст', 'line')
+                    ])->default([
+                        ['id' => 1, 'start_time' => '0', 'line' => 'Первая строка'],
+                        ['id' => 2, 'start_time' => '10', 'line' => 'Вторая строка'],
+                        ['id' => 3, 'start_time' => '20', 'line' => 'Третья строка'],
+                    ])
+                    ->removable()
+                    ->creatable()
+                    ->sortable(),
 
                 // Аудиофайл
                 File::make('File', 'file')
