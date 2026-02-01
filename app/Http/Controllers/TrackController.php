@@ -49,4 +49,25 @@ class TrackController extends Controller
             'rightNow' => $data['rightNow'] ?? null,
         ]);
     }
+
+    public function search(Request $request) {
+        $data = $request->validate([
+            'search' => 'required|string|max:50',
+        ]);
+
+        $tracks = Track::search($data['search'])
+            ->query(fn ($q) =>
+                $q->with([
+                    'tags',
+                    'release:id,artist_id',
+                    'release.artist:id,name'
+                ])
+            )
+        ->get();
+
+        return response()->json([
+            'success' => true,
+            'tracks' => TrackResource::collection($tracks)
+        ]);
+    }
 }

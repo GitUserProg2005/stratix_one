@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 
+import WaveVisualizer from './WaveVisualizer.vue';
 import PlayBtn from './PlayBtn.vue';
 
 const props = defineProps({
@@ -14,6 +15,7 @@ const props = defineProps({
 const volume = ref(40);
 const trackProgress = ref(0);
 const isPlaying = ref(false);
+const isRepeating = ref(false);
 const shouldAutoplay = computed(() => Boolean(props.playRightNow));
 
 let audio = null;
@@ -33,7 +35,16 @@ watch(
 
     audio = new Audio(props.track.file);
     audio.volume = volume.value / 100;
+    audio.loop = isRepeating.value;
     trackProgress.value = 0;
+
+    audio.addEventListener('ended', () => {
+        if (!audio.loop) {
+            isPlaying.value = false;
+            clearInterval(progressInterval);
+            trackProgress.value = 100;
+        }
+    });
 
     if (rightNow) {
       audio.play();
@@ -78,6 +89,14 @@ function togglePlay() {
     isPlaying.value = !isPlaying.value;
 }
 
+function toggleRepeat() {
+    isRepeating.value = !isRepeating.value;
+
+    if (audio) {
+        audio.loop = isRepeating.value;
+    }
+}
+
 watch(trackProgress, (val) => {
     if (audio && Math.abs(audio.currentTime / audio.duration * 100 - val) > 1) {
         audio.currentTime = (val / 100) * audio.duration;
@@ -117,8 +136,17 @@ watch(trackProgress, (val) => {
             </div>
 
             <div class="flex flex-row gap-8">
-                <button>
-                    <i class="fa-solid fa-repeat"></i>
+                <button @click="toggleRepeat" class="relative">
+                    <i class="fa-solid fa-repeat"
+                        :class="isRepeating ? 'text-green-500' : 'gray-400'"
+                    ></i>
+
+                    <span 
+                        v-if="isRepeating"    
+                        class="absolute -top-1 -right-2 text-[10px] font-bold text-green-500"
+                    >
+                        1
+                    </span>
                 </button>
 
                 <div class="flex items-center gap-2">
@@ -143,6 +171,8 @@ watch(trackProgress, (val) => {
                     class="absolute h-1 bg-white rounded"
                     :style="{ width: trackProgress + '%' }"
                 ></div>
+
+                <WaveVisualizer class="absolute bottom-1" />
 
                 <!-- Драггер -->
                 <div 

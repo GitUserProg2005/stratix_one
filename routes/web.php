@@ -12,6 +12,7 @@ use App\Http\Controllers\GoalController;
 // Tracks
 Route::get('/', [TrackController::class, 'index'])->name('tracks.index');
 Route::get('/track/{trackId}', [TrackController::class, 'show'])->name('tracks.show');
+Route::get('/track-search', [TrackController::class, 'search'])->name('tracks.search');
 
 Route::get('/welcome', function () {
     return Inertia::render('Welcome', [

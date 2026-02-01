@@ -50,8 +50,8 @@ function selectTrack(selectedTrack) {
 
                     <div class="flex flex-col h-full justify-between">
                         <div class="flex flex-wrap gap-2">
-                            <span class="bg-neon-purple">ПОНРАВИЛОСЬ: 123k <i class="fa-solid fa-heart"></i></span>
-                            <span class="bg-neon-green">КОММЕНТАРИЕВ: 11k <i class="fa-solid fa-comment"></i></span>
+                            <span class="bg-neon-purple">ПОНРАВИЛОСЬ: 5k <i class="fa-solid fa-heart"></i></span>
+                            <span class="bg-neon-purple">ПРОСЛУШИВАНИЙ: 11k <i class="fa-solid fa-users"></i></span>
                         </div>
 
                         <div class="flex flex-col gap-2 mt-4 lg:mt-0">
@@ -60,7 +60,7 @@ function selectTrack(selectedTrack) {
                         </div>
 
                         <div class="flex items-center gap-2 text-md lg:text-base text-gray-400">
-                            <span>Всего: {{ track.artist.tracks_count }} треков</span>
+                            <span><i class="fa-solid fa-music mr-2"></i> Всего: {{ track.artist.tracks_count }} треков</span>
                             <span class="before:content-['•'] before:mx-2"></span>
                             <span>Продолжительность: 1,40 ч.</span>
                         </div>

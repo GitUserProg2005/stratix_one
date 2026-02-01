@@ -8,15 +8,32 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 use Illuminate\Support\Facades\Storage;
 
+use Laravel\Scout\Searchable;
+
 
 class Track extends Model
 {
+    use Searchable;
+
     protected $fillable = [
         'release_id',
         'title',
         'preview',
         'file',
+        'lyrics'
     ];
+
+    protected $casts = [
+        'lyrics' => 'json'
+    ];
+
+    public function toSearchableArray()
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+        ];
+    }
 
     /**
      * Релиз (album / ep / single)

@@ -17,6 +17,7 @@ class TrackResource extends JsonResource
             'title' => $this->title,
             'preview_url' => $this->preview_url,
             'file' => $this->file_url,
+            'lyrics' => $this->lyrics,
 
             'tags' => $this->tags->map(fn ($tag) => [
                 'id' => $tag->id,

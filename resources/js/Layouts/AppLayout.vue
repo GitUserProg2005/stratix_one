@@ -18,7 +18,7 @@ const isOpenSidebar = ref(false)
         <div class="lg:hidden title p-4">
             <div class="flex items-center justify-between">
                 <!--Лого-->
-                <img src="" alt="">
+                <img src="/img/wix_logo2.png" class="w-8 lg:hidden object-contain" alt="">
 
                 <!--Sidebar-->
                 <button @click="isOpenSidebar = true">
