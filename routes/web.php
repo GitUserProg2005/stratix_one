@@ -7,12 +7,17 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\IndexController;
 use App\Http\Controllers\TrackController;
-use App\Http\Controllers\GoalController;
+use App\Http\Controllers\PlaylistController;
 
 // Tracks
 Route::get('/', [TrackController::class, 'index'])->name('tracks.index');
 Route::get('/track/{trackId}', [TrackController::class, 'show'])->name('tracks.show');
 Route::get('/track-search', [TrackController::class, 'search'])->name('tracks.search');
+
+// Playlists
+Route::get('/my-playlists', [PlaylistController::class, 'getPlaylists'])->name('get.playlists');
+Route::middleware('auth')->post('/playlists/create', [PlaylistController::class, 'createPlaylist'])->name('create.playlists');
+Route::middleware('auth')->post('/my-playlists/{playlistId}', [PlaylistController::class, 'showPlaylist'])->name('playlist.show');
 
 Route::get('/welcome', function () {
     return Inertia::render('Welcome', [

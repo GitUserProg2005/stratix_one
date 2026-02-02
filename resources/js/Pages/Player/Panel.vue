@@ -98,6 +98,21 @@ function toggleRepeat() {
     }
 }
 
+function seekTo(time) {
+    if (!audio) return;
+
+    audio.currentTime = time;
+    
+    if (audio.paused) {
+        audio.play();
+        isPlaying.value = true;
+    }
+
+    if (audio.duration) {
+        trackProgress.value = (audio.currentTime / audio.duration) * 100;
+    }
+}
+
 watch(trackProgress, (val) => {
     if (audio && Math.abs(audio.currentTime / audio.duration * 100 - val) > 1) {
         audio.currentTime = (val / 100) * audio.duration;
@@ -117,7 +132,11 @@ watch(trackProgress, (val) => {
                     </div>
                 </div>
 
-                <KaraokeLyrics :audio="audio" :lyrics="track.lyrics" />
+                <KaraokeLyrics 
+                    :audio="audio" 
+                    :lyrics="track.lyrics" 
+                    @seek="seekTo"
+                />
             </div>
 
             <div class="flex flex-col gap-2">

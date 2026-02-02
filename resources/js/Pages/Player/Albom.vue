@@ -24,6 +24,8 @@ function onClickTrack(track) {
                         <th class="px-4 font-medium">#</th>
                         <th class="px-4 font-medium">Название</th>
                         <th class="px-4 font-medium">Исполнитель</th>
+                        <th class="px-4 font-medium">Понравилось</th>
+                        <th class="px-4 font-medium">Прослушало</th>
                         <th class="px-4 font-medium">Создано</th>
                         <th class="px-4 font-medium text-right"><i class="fa-regular fa-clock"></i></th>
                     </tr>
@@ -66,6 +68,14 @@ function onClickTrack(track) {
 
                         <td class="px-4 py-3 text-gray-300">
                             {{ track.artist.name }}
+                        </td>
+
+                        <td class="px-4 py-3 text-gray-300">
+                            11k
+                        </td>
+
+                        <td class="px-4 py-3 text-gray-300">
+                            120k
                         </td>
 
                         <td class="px-4 py-3 text-gray-300">

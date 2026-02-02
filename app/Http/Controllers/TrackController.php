@@ -35,8 +35,9 @@ class TrackController extends Controller
             'release.artist' => function ($q) {
                 $q->withCount('tracks')
                 ->with(['tracks' => function ($q) {
-                    $q->select('tracks.id','tracks.title','tracks.preview', 'tracks.file', 'tracks.release_id')
-                        ->with('tags','release.artist');
+                    $q->select('tracks.id','tracks.title','tracks.preview',
+                    'tracks.duration', 'tracks.lyrics', 'tracks.file', 'tracks.release_id')
+                        ->with('release.artist');
                 }]);
             }
         ])->findOrFail($trackId);
@@ -59,7 +60,7 @@ class TrackController extends Controller
             ->query(fn ($q) =>
                 $q->with([
                     'tags',
-                    'release:id,artist_id',
+                    'release:id,artist_id,created_at',
                     'release.artist:id,name'
                 ])
             )

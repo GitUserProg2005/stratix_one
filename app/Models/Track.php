@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 use Illuminate\Support\Facades\Storage;
-
+use getID3;
 use Laravel\Scout\Searchable;
+use App\Jobs\CalculateTrackDurationJob;
 
 
 class Track extends Model
@@ -20,7 +21,8 @@ class Track extends Model
         'title',
         'preview',
         'file',
-        'lyrics'
+        'lyrics',
+        'duration'
     ];
 
     protected $casts = [
@@ -102,5 +104,13 @@ class Track extends Model
             ]);
             return null;
         }
+    }
+
+
+    protected static function booted()
+    {
+        static::created(function (Track $track) {
+            CalculateTrackDurationJob::dispatch($track->id);
+        });
     }
 }

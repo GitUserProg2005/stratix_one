@@ -12,7 +12,6 @@ const props = defineProps({
 const emit = defineEmits(['update:isOpenSidebar']);
 </script>
 
-
 <template>
     <div 
         v-if="isOpenSidebar"
@@ -26,7 +25,6 @@ const emit = defineEmits(['update:isOpenSidebar']);
         fixed inset-y-0 left-0
         transform transition-transform duration-300
         lg:translate-x-0 lg:relative 
-        border-r border-gray-500
         z-[100]
         lg:z-[50]
         bg-transparent

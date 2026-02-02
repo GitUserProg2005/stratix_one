@@ -91,4 +91,21 @@ class User extends Authenticatable
     {
         return $this->tracks()->count();
     }
+
+    public function getTotalDurationAttribute(): ?string
+    {
+        $totalSeconds = $this->tracks->sum('duration');
+        if (!$totalSeconds) return null;
+
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+        $seconds = round($totalSeconds % 60);
+
+        // Если часов нет, возвращаем только мм:сс
+        if ($hours > 0) {
+            return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+        } else {
+            return sprintf('%02d:%02d', $minutes, $seconds);
+        }
+    }
 }

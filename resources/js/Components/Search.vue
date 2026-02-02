@@ -73,20 +73,22 @@ async function searchTracks(query) {
                         v-for="track in foundTracks"
                         @click="fetchTrack(track.id)"
                         :key="track.id"
-                        class="track flex items-center gap-4 
+                        class="track flex flex-col lg:flex-row lg:items-center gap-4 
                             cursor-pointer hover:bg-content p-2 rounded-lg"
                     >
-                        <img :src="track.preview_url" class="track-picture" alt="">
+                        <div class="flex items-center gap-2">
+                            <img :src="track.preview_url" class="track-picture" alt="">
 
-                        <div class="flex flex-col">
-                            <span class="font-medium">{{ track.title }}</span>
+                            <div class="flex flex-col">
+                                <span class="font-medium">{{ track.title }}</span>
 
-                            <span class="text-xs context">
-                                Трек • {{ track.artist.name }}
-                            </span>
+                                <span class="text-xs context">
+                                    Трек • {{ track.artist.name }}
+                                </span>
+                            </div>
                         </div>
 
-                        /
+                        <span class="hidden lg:flex">/</span>
 
                         <Tags :tags="track.tags" />
                     </div>

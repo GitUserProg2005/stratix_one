@@ -1,12 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Wix+Madefor+Text:ital,wght@0,400..800;1,400..800&display=swap');
 
+@font-face {
+    font-family: 'customFont';
+    src: url('../fonts/GrtskMega-Bold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 * {
-    @apply box-border font-medium;
+    @apply box-border font-medium select-none;
     font-family: 'Roboto', sans-serif;
 }
 
 body {
-    @apply bg-[#171717] text-white;
+    @apply bg-[#0f0f0f] text-white;
 }
 
 .content {
@@ -22,7 +29,7 @@ body {
 }
 
 .bg-body {
-    @apply bg-[#171717];
+    @apply bg-[#0f0f0f];
 }
 
 .primary-btn {
@@ -46,7 +53,7 @@ body {
 }
 
 .extra-title {
-    @apply text-4xl font-bold;
+    @apply text-4xl font-black;
 }
 
 .pre-extra-title {
@@ -55,6 +62,11 @@ body {
 
 .title {
     @apply text-lg font-semibold;
+}
+
+.long-title {
+    font-family: 'customFont', sans-serif;
+    @apply text-xs font-semibold;
 }
 
 .context {

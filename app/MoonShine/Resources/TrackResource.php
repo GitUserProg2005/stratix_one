@@ -55,16 +55,14 @@ class TrackResource extends ModelResource
                     ->fields([
                         Number::make('ID', 'id')->sortable(),
                         Text::make('Время начала (сек)', 'start_time'),
-                        Text::make('Время конца', 'end_time'),
                         Text::make('Текст', 'line')
                     ])->default([
                         ['id' => 1, 'start_time' => '0', 'line' => 'Первая строка'],
                         ['id' => 2, 'start_time' => '10', 'line' => 'Вторая строка'],
                         ['id' => 3, 'start_time' => '20', 'line' => 'Третья строка'],
-                    ])
-                    ->removable()
-                    ->creatable()
-                    ->sortable(),
+                    ])->removable()
+                        ->creatable()
+                        ->sortable(),
 
                 // Аудиофайл
                 File::make('File', 'file')

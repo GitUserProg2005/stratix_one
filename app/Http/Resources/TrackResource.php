@@ -18,6 +18,9 @@ class TrackResource extends JsonResource
             'preview_url' => $this->preview_url,
             'file' => $this->file_url,
             'lyrics' => $this->lyrics,
+            'duration' => $this->duration
+                ? sprintf('%02d:%02d', floor($this->duration / 60), round($this->duration % 60))
+                : null,
 
             'tags' => $this->tags->map(fn ($tag) => [
                 'id' => $tag->id,
@@ -28,7 +31,8 @@ class TrackResource extends JsonResource
                 'id' => $this->release->id,
                 'title' => $this->release->title,
                 'type' => $this->release->type,
-                'created_at' => optional($this->release->created_at)?->toDateString(),
+                'total_duration' => $this->release->artist->total_duration,
+                'created_at' => $this->release->created_at->format('d.m.Y'),
             ],
 
             'artist' => [
@@ -41,7 +45,10 @@ class TrackResource extends JsonResource
                     'id' => $track->id,
                     'title' => $track->title,
                     'preview_url' => $track->preview_url,
-                    // НЕ вставляем сюда 'artist' повторно
+                    'duration' => $this->duration
+                        ? sprintf('%02d:%02d', floor($this->duration / 60), round($this->duration % 60))
+                        : null,
+                    'lyrics' => $track->lyrics
                 ]),
             ],
         ];
