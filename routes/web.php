@@ -15,9 +15,28 @@ Route::get('/track/{trackId}', [TrackController::class, 'show'])->name('tracks.s
 Route::get('/track-search', [TrackController::class, 'search'])->name('tracks.search');
 
 // Playlists
-Route::get('/my-playlists', [PlaylistController::class, 'getPlaylists'])->name('get.playlists');
-Route::middleware('auth')->post('/playlists/create', [PlaylistController::class, 'createPlaylist'])->name('create.playlists');
-Route::middleware('auth')->post('/my-playlists/{playlistId}', [PlaylistController::class, 'showPlaylist'])->name('playlist.show');
+Route::prefix('playlists')->middleware('auth')->group(function () {
+
+    // Получение всех плейлистов пользователя
+    Route::get('/my-playlists', [PlaylistController::class, 'getPlaylists'])
+        ->name('get.playlists');
+
+    // Создание нового плейлиста
+    Route::post('/create', [PlaylistController::class, 'createPlaylist'])
+        ->name('create.playlists');
+
+    // Просмотр конкретного плейлиста
+    Route::get('/my-playlists/{playlistId}', [PlaylistController::class, 'showPlaylist'])
+        ->name('playlist.show');
+
+    // Добавление трека в плейлист
+    Route::post('/add-track-to-playlist/{playlistId}', [PlaylistController::class, 'addTrackToPlaylist'])
+        ->name('playlist.add.track');
+
+    // Новый метод: получение плейлистов без конкретного трека
+    Route::get('/without-track', [PlaylistController::class, 'getPlaylistsWithoutTrack'])
+        ->name('get.playlists.without.track');
+});
 
 Route::get('/welcome', function () {
     return Inertia::render('Welcome', [

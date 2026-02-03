@@ -7,6 +7,7 @@ import Albom from './Albom.vue';
 import Panel from './Panel.vue';
 import Search from '@/Components/Search.vue';
 import Tags from '@/Components/Tags.vue';
+import AddToPlaylist from '../Playlist/AddToPlaylist.vue';
 
 const props = defineProps({
     track: Array,
@@ -77,10 +78,7 @@ function selectTrack(selectedTrack) {
                     </div>
 
                 <div class="flex flex-wrap items-center gap-4">
-                    <button class="primary-btn flex items-center gap-4">
-                        Добавить в плейлист
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
+                    <AddToPlaylist :trackId="track.id" />
 
                     <button class="title">
                         <i class="fa-solid fa-shuffle"></i>
@@ -90,7 +88,7 @@ function selectTrack(selectedTrack) {
         </div>
         
         <!--Контент после баннера-->
-        <div class="max-w-6xl mx-auto p-4 space-y-8">
+        <div class="max-w-6xl mx-auto p-4 space-y-8 z-40">
             <Tags :tags="track.tags" />
 
             <div class="grid grid-cols-1 lg:grid-cols-1 gap-4">

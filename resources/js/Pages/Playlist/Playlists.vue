@@ -62,7 +62,7 @@ onMounted(() => {
                 class="track rounded-l-2xl rounded-r-full flex items-center px-6 py-1 cursor-pointer"
             >
                 <div class="flex flex-wrap h-full gap-2">
-                    <img v-if="playlist.preview" :src="playlist.preview" class="track-picture" alt="">
+                    <img v-if="playlist.preview_url" :src="playlist.preview_url" class="track-picture" alt="">
                     <img v-else src="/img/playlist_default.png" class="track-picture" alt="">
                     
                     <div class="flex flex-col justify-between">
