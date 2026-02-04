@@ -62,7 +62,7 @@ console.log(props.tracks.data.map(t => ({ title: t.title, preview: t.preview }))
             <div class="grid grid-cols-2 gap-4">
                 <div
                     v-for="track in tracks.data" :key="track.id" class="content-p-0 rounded-2xl flex items-center gap-4 cursor-pointer"
-                    @click="fetchTrack(track.id)"
+                    @click="fetchTrack(track.id, { back: route('tracks.index') })"
                 >
                     <img :src="track.preview_url" class="track-picture-card-sm" alt="">
                     <div class="flex flex-col">

@@ -9,7 +9,6 @@ use App\Http\Resources\ArtistTracksResource;
 
 use Inertia\Inertia;
 
-use App\Models\User;
 use App\Models\Track;
 use App\Models\Release;
 
@@ -27,8 +26,16 @@ class TrackController extends Controller
     public function show(Request $request, int $trackId)
     {
         $data = $request->validate([
-            'rightNow' => 'nullable|integer'
+            'rightNow' => 'nullable|integer',
+            'back' => ['nullable', 'string', function ($attr, $value, $fail) {
+                // только относительный путь без протокола (защита от open redirect)
+                if ($value !== null && $value !== '' && (!str_starts_with($value, '/') || str_contains($value, '//'))) {
+                    $fail('Недопустимый URL возврата.');
+                }
+            }],
         ]);
+
+        $backUrl = isset($data['back']) && $data['back'] !== '' ? $data['back'] : null;
 
         $track = Track::with([
             'tags',
@@ -48,6 +55,7 @@ class TrackController extends Controller
                 $track->release->artist->tracks
             ),
             'rightNow' => $data['rightNow'] ?? null,
+            'backUrl' => $backUrl,
         ]);
     }
 

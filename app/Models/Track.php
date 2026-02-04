@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use getID3;
 use Laravel\Scout\Searchable;
 use App\Jobs\CalculateTrackDurationJob;
+use App\Jobs\ConvertTrackToHlsJob;
 
 
 class Track extends Model
@@ -21,8 +22,9 @@ class Track extends Model
         'title',
         'preview',
         'file',
+        'hls_url',
         'lyrics',
-        'duration'
+        'duration',
     ];
 
     protected $casts = [
@@ -106,11 +108,30 @@ class Track extends Model
         }
     }
 
+    /**
+     * URL плейлиста HLS (если есть; иначе null)
+     */
+    public function getHlsUrlAttribute($value): ?string
+    {
+        if (! $value) {
+            return null;
+        }
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+        try {
+            return Storage::disk('s3')->url($value);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to get HLS URL from S3', ['hls_url' => $value, 'error' => $e->getMessage()]);
+            return null;
+        }
+    }
 
     protected static function booted()
     {
         static::created(function (Track $track) {
             CalculateTrackDurationJob::dispatch($track->id);
+            ConvertTrackToHlsJob::dispatch($track->id);
         });
     }
 }

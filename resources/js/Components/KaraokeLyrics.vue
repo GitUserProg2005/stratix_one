@@ -1,9 +1,12 @@
 <script setup>
-import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 import Modal from './Modal.vue'
 
 const props = defineProps({
-  audio: Object,
+  currentTime: {
+    type: Number,
+    default: 0
+  },
   lyrics: {
     type: Array,
     required: true
@@ -13,25 +16,9 @@ const props = defineProps({
 const emit = defineEmits(['seek'])
 
 const showModal = ref(false)
-const currentTime = ref(0)
-let interval = null
 
 // refs для строк текста
 const lineRefs = ref([])
-
-onMounted(() => {
-  if (!props.audio) return
-
-  interval = setInterval(() => {
-    if (!props.audio.paused) {
-      currentTime.value = props.audio.currentTime
-    }
-  }, 100)
-})
-
-onBeforeUnmount(() => {
-  clearInterval(interval)
-})
 
 function toggleModal() {
   showModal.value = !showModal.value
@@ -39,9 +26,9 @@ function toggleModal() {
 
 // вычисляем текущую строку
 const currentLineIndex = computed(() => {
-  if (!props.audio || !props.lyrics.length) return -1
+  if (!props.lyrics.length) return -1
 
-  const time = currentTime.value
+  const time = Number(props.currentTime)
 
   // ищем последнюю строку, которая уже началась
   for (let i = props.lyrics.length - 1; i >= 0; i--) {
@@ -53,17 +40,22 @@ const currentLineIndex = computed(() => {
   return -1
 })
 
-// авто-скролл к текущей строке
-watch(currentLineIndex, (index) => {
-  if (index < 0) return;
-
+function scrollToLine(index) {
+  if (index < 0) return
   const el = lineRefs.value[index]
   if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
 
-  el.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center'
-  })
+// авто-скролл к текущей строке (только когда модалка открыта)
+watch(currentLineIndex, (index) => {
+  if (index < 0 || !showModal.value) return
+  scrollToLine(index)
+})
+
+// при открытии модалки — сразу к текущей строке
+watch(showModal, (open) => {
+  if (open) nextTick(() => scrollToLine(currentLineIndex.value))
 })
 
 function lineClass(index) {
@@ -79,7 +71,10 @@ function lineClass(index) {
 }
 
 function selectLine(index) {
-  const time = Number(props.lyrics[index].start_time)
+  const line = props.lyrics[index]
+  if (!line || line.start_time == null) return
+  const time = Number(line.start_time)
+  if (!Number.isFinite(time) || time < 0) return
   emit('seek', time)
 }
 </script>
@@ -114,7 +109,7 @@ function selectLine(index) {
           transition-all duration-300 cursor-pointer
           break-words whitespace-normal"
           :class="lineClass(index)"
-          @click="selectLine(index)"
+          @click.stop="selectLine(index)"
         >
           {{ line.line }}
         </div>

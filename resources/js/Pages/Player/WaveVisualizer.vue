@@ -7,14 +7,13 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { gsap } from 'gsap';
 
 const wave1 = ref(null);
 const wave2 = ref(null);
 
 const points = 50; // количество точек на волне
 
-function generateWavePath(phase = 0, amplitude = 4) {
+function generateWavePath(phase = 0, amplitude = 2) {
   let path = `M0,10 `;
   for (let i = 0; i <= points; i++) {
     const x = (i / points) * 100;
@@ -27,7 +26,7 @@ function generateWavePath(phase = 0, amplitude = 4) {
 
 let animFrame;
 
-function animateWave(pathRef, speed = 0.02, amplitude = 4) {
+function animateWave(pathRef, speed = 0.02, amplitude = 7) {
   let phase = 0;
 
   function tick() {

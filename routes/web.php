@@ -29,6 +29,10 @@ Route::prefix('playlists')->middleware('auth')->group(function () {
     Route::get('/my-playlists/{playlistId}', [PlaylistController::class, 'showPlaylist'])
         ->name('playlist.show');
 
+    // Обновление плейлиста (название и т.д.)
+    Route::patch('/my-playlists/{playlistId}', [PlaylistController::class, 'updatePlaylist'])
+        ->name('playlist.update');
+
     // Добавление трека в плейлист
     Route::post('/add-track-to-playlist/{playlistId}', [PlaylistController::class, 'addTrackToPlaylist'])
         ->name('playlist.add.track');

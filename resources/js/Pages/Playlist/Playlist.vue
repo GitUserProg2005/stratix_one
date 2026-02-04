@@ -1,36 +1,71 @@
 <script setup>
+import { ref, onMounted } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { ref } from 'vue';
+import EditableTitle from '@/Components/EditableTitle.vue';
 import PlayBtn from '../Player/PlayBtn.vue';
+import Back from '../Player/Back.vue';
 import { fetchTrack } from '@/utils/useFetchTrack';
+
+const GRADIENTS = [
+    'linear-gradient(to bottom, #1db954 0%, #1a472a 40%, #0f0f0f 100%)', // зелёный
+    'linear-gradient(to bottom, #e67e22 0%, #c0392b 40%, #0f0f0f 100%)',  // оранжевый
+    'linear-gradient(to bottom, #ecf0f1 0%, #7f8c8d 40%, #0f0f0f 100%)', // белый/серый
+    'linear-gradient(to bottom, #e74c3c 0%, #922b21 40%, #0f0f0f 100%)',  // красный
+];
 
 const props = defineProps({
     playlist: Object
 });
+
+const playlist = ref(JSON.parse(JSON.stringify(props.playlist)));
+const headerGradient = ref(GRADIENTS[0]);
+
+onMounted(() => {
+    headerGradient.value = GRADIENTS[Math.floor(Math.random() * GRADIENTS.length)];
+});
+
+function onTitleUpdated(newTitle) {
+    playlist.value.data.title = newTitle;
+}
 </script>
 
 <template>
     <AppLayout>
-        <div class="w-full p-4">
-            <!-- Верхняя часть с превью и информацией о плейлисте -->
-            <div class="flex flex-wrap gap-4 h-full mb-6">
-                <img :src="playlist.data.preview_url || '/img/playlist_default.png'" class="track-picture-card-lg" alt="">
-                <div class="flex flex-col justify-between gap-2">
-                    <div>
-                        <h3 class="">Мой плейлист</h3>
-                        <h2 class="extra-title">{{ playlist.data.title }}</h2>
-                    </div>
+        <div class="w-full">
+            <!-- Верхняя часть: случайный градиент (зелёный / оранжевый / белый / красный) → чёрный -->
+            <div
+                class="relative pt-6 pb-8 px-4 mb-0"
+                :style="{ background: headerGradient }"
+            >
+                <div class="flex flex-row justify-between">
+                    <Back :back-url="route('tracks.index')" />
+                </div>
 
-                    <div class="flex flex-col gap-2 context">
-                        <span><i class="fa-solid fa-music mr-2"></i> {{ playlist.data.tracks_count }} треков</span>
-                        <span><i class="fa-regular fa-clock mr-2"></i> Длительность: {{ playlist.data.duration }}</span>
+                <div class="flex flex-wrap gap-4 h-full mt-4">
+                    <img :src="playlist.data.preview_url || '/img/playlist_default.png'" class="track-picture-card-lg shadow-2xl" alt="">
+                    <div class="flex flex-col justify-between gap-2">
+                        <div>
+                            <h3 class="text-white/90 text-sm font-medium uppercase tracking-wider">Мой плейлист</h3>
+                            <EditableTitle
+                                :model-value="playlist.data.title"
+                                :playlist-id="playlist.data.id"
+                                :max-length="20"
+                                @update:model-value="onTitleUpdated"
+                            />
+                        </div>
+
+                        <div class="flex flex-col gap-2 context text-white/80">
+                            <span>{{ playlist.data.artists_names }}</span>
+                            <span><i class="fa-solid fa-music mr-2"></i> {{ playlist.data.tracks_count }} треков</span>
+                            <span><i class="fa-regular fa-clock mr-2"></i> Длительность: {{ playlist.data.duration }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Таблица треков -->
-            <div class="w-full overflow-x-auto">
-                <div class="max-h-[360px] overflow-y-auto pr-2 custom-scroll">
+            <div class="w-full overflow-x-auto p-4 pt-2">
+                <div class="overflow-y-auto pr-2 custom-scroll">
                     <table class="w-full border-separate border-spacing-y-2">
                         <thead>
                             <tr class="text-left context">
@@ -45,7 +80,7 @@ const props = defineProps({
                             <tr
                                 v-for="(track, i) in playlist.data.tracks"
                                 :key="track.id"
-                                @click="fetchTrack(track.id)"
+                                @click="fetchTrack(track.id, { back: route('playlist.show', playlist.data.id) })"
                                 class="track group cursor-pointer hover:bg-gray-800 transition-all"
                             >
                                 <td class="px-4 py-3 w-12 relative">
@@ -63,7 +98,7 @@ const props = defineProps({
                                         class="absolute inset-0 flex items-center justify-center
                                                opacity-0 group-hover:opacity-100 transition"
                                     >
-                                        <PlayBtn @click.stop="onClickTrack(track)" :width="36" />
+                                        <PlayBtn @click.stop="fetchTrack(track.id, { back: route('playlist.show', playlist.data.id) })" :width="36" />
                                     </div>
                                 </td>
 

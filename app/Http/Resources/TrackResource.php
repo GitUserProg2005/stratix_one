@@ -17,6 +17,7 @@ class TrackResource extends JsonResource
             'title' => $this->title,
             'preview_url' => $this->preview_url,
             'file' => $this->file_url,
+            'hls_url' => $this->hls_url,
             'lyrics' => $this->lyrics,
             'duration' => $this->duration
                 ? sprintf('%02d:%02d', floor($this->duration / 60), round($this->duration % 60))

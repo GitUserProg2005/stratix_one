@@ -50,7 +50,7 @@ const emit = defineEmits(['update:isOpenSidebar']);
         <div class="flex justify-between items-center 
         w-full px-4
         ">
-          <img src="/img/wix_logo2.png" class="hidden lg:flex w-8 object-contain" alt="">
+          <img src="/img/wix_logo1.png" class="hidden lg:flex w-32 object-contain" alt="">
 
           <div class="flex items-center gap-4 font-semibold bg-content pl-3 rounded-full">
             <i class="fa-regular fa-bell"></i>
@@ -60,6 +60,23 @@ const emit = defineEmits(['update:isOpenSidebar']);
 
         <div class="border-b border-gray-500
         w-full pb-4 mb-4"></div>
+
+        <!-- Премиум -->
+        <div class="px-4 mb-4">
+          <div class="bg-content p-4 rounded-2xl w-full space-y-2">
+            <h3 class="title-2">Приобрести премиум</h3>
+            <p class="context">
+              Без рекламы и высокое качество звука
+            </p>
+            <button
+              type="button"
+              class="primary-btn mt-2 inline-flex items-center gap-2"
+            >
+              Оформить подписку
+              <i class="fa-solid fa-crown text-xs" />
+            </button>
+          </div>
+        </div>
 
         <Playlists />
       </div>

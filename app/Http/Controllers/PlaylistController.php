@@ -35,9 +35,25 @@ class PlaylistController extends Controller
             ->where('owner_id', auth()->id())
             ->findOrFail($playlistId);
 
-        // Возвращаем через ресурс, можно для Inertia сразу
         return Inertia::render('Playlist/Playlist', [
             'playlist' => new PlaylistResource($playlist),
+        ]);
+    }
+
+    public function updatePlaylist(Request $request, int $playlistId)
+    {
+        $playlist = Playlist::where('owner_id', auth()->id())
+            ->findOrFail($playlistId);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:20',
+        ]);
+
+        $playlist->update(['title' => $data['title']]);
+
+        return response()->json([
+            'success' => true,
+            'playlist' => new PlaylistResource($playlist->fresh('tracks.release')),
         ]);
     }
 
@@ -112,6 +128,26 @@ class PlaylistController extends Controller
         return response()->json([
             'success' => true,
             'playlists' => $playlists
-        ]); 
+        ]);
+    }
+
+    /**
+     * Форматирует длительность из секунд в 0:00 или H:MM:SS
+     */
+    private function formatDuration($totalSeconds): string
+    {
+        if (!$totalSeconds) {
+            return '0:00';
+        }
+
+        $hours = (int) floor($totalSeconds / 3600);
+        $minutes = (int) floor(($totalSeconds % 3600) / 60);
+        $seconds = (int) round($totalSeconds % 60);
+
+        if ($hours > 0) {
+            return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+        }
+
+        return sprintf('%02d:%02d', $minutes, $seconds);
     }
 }

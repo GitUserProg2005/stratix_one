@@ -85,7 +85,17 @@ function toggleMenu() {
       class="absolute right-0 bottom-[60px] w-48 z-50 bg-body rounded-2xl p-4"
       v-if="isOpened"
     >
-      <span class="context">Выберите плейлист</span>
+      <div class="flex items-center justify-between mb-1">
+        <span class="context">Выберите плейлист</span>
+        <button
+          type="button"
+          @click="isOpened = false"
+          class="text-gray-400 hover:text-white transition p-1 -m-1"
+          aria-label="Закрыть"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
 
       <div class="flex flex-col space-y-2 mt-2 overflow-y-auto h-auto">
         <div v-if="isLoading">Загрузка...</div>

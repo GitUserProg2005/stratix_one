@@ -1,9 +1,9 @@
 <script setup>
-import { ref, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Albom from './Albom.vue';
+import Back from './Back.vue';
 import Panel from './Panel.vue';
 import Search from '@/Components/Search.vue';
 import Tags from '@/Components/Tags.vue';
@@ -12,7 +12,12 @@ import AddToPlaylist from '../Playlist/AddToPlaylist.vue';
 const props = defineProps({
     track: Array,
     artist_tracks: Object,
-    rightNow: Number
+    rightNow: Number,
+    /** URL для кнопки «Назад» (с главной или со страницы плейлиста) */
+    backUrl: {
+        type: String,
+        default: null
+    }
 });
 
 const track = ref(props.track.data);
@@ -37,8 +42,7 @@ function selectTrack(selectedTrack) {
             
             <div class="relative z-10 max-w-6xl mx-auto space-y-8 p-4">
                 <div class="flex flex-row gap-2">
-                    <button @click="() => router.get(route('tracks.index'))"><i class="fa-solid fa-arrow-left"></i></button>
-
+                    <Back :back-url="backUrl" />
                     <Search />
                 </div>
 
@@ -54,8 +58,8 @@ function selectTrack(selectedTrack) {
                             </span>
 
                             <div class="lg:hidden absolute top-4 left-2 flex flex-col gap-2 text-xs">
-                                <span class="bg-white text-black px-4 py-2 rounded-full font-semibold">ПОНРАВИЛОСЬ: 5k <i class="fa-solid fa-heart"></i></span>
-                                <span class="bg-white text-black px-4 py-2 rounded-full font-semibold">ПРОСЛУШИВАНИЙ: 11k <i class="fa-solid fa-users"></i></span>
+                                <span class="bg-white text-center text-black px-4 py-2 rounded-full font-semibold">ПОНРАВИЛОСЬ: 5k <i class="fa-solid fa-heart"></i></span>
+                                <span class="bg-white text-center text-black px-4 py-2 rounded-full font-semibold">ПРОСЛУШИВАНИЙ: 11k <i class="fa-solid fa-users"></i></span>
                             </div>
                         </div>
                         <div class="flex flex-col h-full justify-between">
