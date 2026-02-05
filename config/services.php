@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'transcribe' => [
+        'url' => env('TRANSCRIBE_SERVICE_URL', 'http://127.0.0.1:8001'),
+    ],
+
 ];

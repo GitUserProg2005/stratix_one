@@ -62,13 +62,17 @@ function cleanupMedia() {
         hlsInstance.destroy();
         hlsInstance = null;
     }
+    
     const el = audioRef.value;
+
     if (el) {
         el.pause();
         el.removeAttribute('src');
         el.load();
     }
+
     stopProgressInterval();
+
     isPlaying.value = false;
     trackProgress.value = 0;
     currentTimeSeconds.value = 0;

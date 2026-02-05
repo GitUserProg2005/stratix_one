@@ -1,5 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { router } from '@inertiajs/vue3';
+import axios from 'axios';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import EditableTitle from '@/Components/EditableTitle.vue';
 import PlayBtn from '../Player/PlayBtn.vue';
@@ -27,6 +29,49 @@ onMounted(() => {
 function onTitleUpdated(newTitle) {
     playlist.value.data.title = newTitle;
 }
+
+function formatDuration(totalSeconds) {
+    if (!totalSeconds) return '0:00';
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.round(totalSeconds % 60);
+    if (hours > 0) {
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+async function removeTrack(trackId, e) {
+    e.stopPropagation();
+    try {
+        const url = route('playlist.remove.track', { playlistId: playlist.value.data.id, trackId });
+        const response = await axios.delete(url);
+        if (response.data.success) {
+            const idx = playlist.value.data.tracks.findIndex(t => t.id === trackId);
+            if (idx !== -1) {
+                playlist.value.data.tracks.splice(idx, 1);
+                playlist.value.data.tracks_count = playlist.value.data.tracks.length;
+                const totalSeconds = playlist.value.data.tracks.reduce((sum, t) => sum + (Number(t.duration) || 0), 0);
+                playlist.value.data.duration = formatDuration(totalSeconds);
+            }
+        }
+    } catch (err) {
+        console.error('Remove track error:', err);
+    }
+}
+
+async function deletePlaylist() {
+    if (!confirm('Удалить плейлист? Это действие нельзя отменить.')) return;
+    try {
+        const url = route('playlist.destroy', playlist.value.data.id);
+        const response = await axios.delete(url);
+        if (response.data.success) {
+            router.visit(route('tracks.index'));
+        }
+    } catch (err) {
+        console.error('Delete playlist error:', err);
+    }
+}
 </script>
 
 <template>
@@ -37,8 +82,16 @@ function onTitleUpdated(newTitle) {
                 class="relative pt-6 pb-8 px-4 mb-0"
                 :style="{ background: headerGradient }"
             >
-                <div class="flex flex-row justify-between">
+                <div class="flex flex-row justify-between items-center">
                     <Back :back-url="route('tracks.index')" />
+                    <button
+                        type="button"
+                        class="icon-btn flex text-black items-center justify-center hover:text-white transition"
+                        title="Удалить плейлист"
+                        @click="deletePlaylist"
+                    >
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </div>
 
                 <div class="flex flex-wrap gap-4 h-full mt-4">
@@ -73,6 +126,7 @@ function onTitleUpdated(newTitle) {
                                 <th class="px-4 font-medium">Название</th>
                                 <th class="px-4 font-medium">Исполнитель</th>
                                 <th class="px-4 font-medium text-right"><i class="fa-regular fa-clock"></i></th>
+                                <th class="w-12"></th>
                             </tr>
                         </thead>
 
@@ -115,6 +169,17 @@ function onTitleUpdated(newTitle) {
 
                                 <td class="px-4 py-3 text-right text-gray-400">
                                     {{ track.duration || '0:00' }}
+                                </td>
+
+                                <td class="px-4 py-3 text-right">
+                                    <button
+                                        type="button"
+                                        class="icon-btn flex items-center justify-center opacity-0 group-hover:opacity-100 transition hover:bg-red-500 hover:border-red-500 hover:text-white"
+                                        title="Удалить из плейлиста"
+                                        @click="removeTrack(track.id, $event)"
+                                    >
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>

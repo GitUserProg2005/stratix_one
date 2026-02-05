@@ -11,6 +11,7 @@ use getID3;
 use Laravel\Scout\Searchable;
 use App\Jobs\CalculateTrackDurationJob;
 use App\Jobs\ConvertTrackToHlsJob;
+use App\Jobs\TranscribeTrackJob;
 
 
 class Track extends Model
@@ -132,6 +133,7 @@ class Track extends Model
         static::created(function (Track $track) {
             CalculateTrackDurationJob::dispatch($track->id);
             ConvertTrackToHlsJob::dispatch($track->id);
+            TranscribeTrackJob::dispatch($track->id);
         });
     }
 }

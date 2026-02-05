@@ -1,21 +1,15 @@
 <script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import '../../css/custom.css';
 import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <div
-        class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0"
-    >
-        <div>
-            <Link href="/">
-                <ApplicationLogo class="h-20 w-20 fill-current text-gray-500" />
-            </Link>
-        </div>
+    <div class="min-h-screen bg-body flex flex-col items-center justify-center px-4">
+        <Link href="/" class="mb-8 focus:outline-none focus:ring-0">
+            <img src="/img/wix_logo3.png" alt="Logo" class="h-12 w-auto object-contain" />
+        </Link>
 
-        <div
-            class="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg"
-        >
+        <div class="w-full max-w-md bg-content rounded-2xl p-6 sm:p-8 shadow-xl">
             <slot />
         </div>
     </div>

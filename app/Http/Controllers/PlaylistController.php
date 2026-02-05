@@ -57,6 +57,19 @@ class PlaylistController extends Controller
         ]);
     }
 
+    public function destroyPlaylist(int $playlistId)
+    {
+        $playlist = Playlist::where('owner_id', auth()->id())
+            ->findOrFail($playlistId);
+
+        $playlist->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Плейлист удалён',
+        ]);
+    }
+
     public function addTrackToPlaylist(Request $request, int $playlistId)
     {
         // Валидация входных данных
@@ -88,6 +101,26 @@ class PlaylistController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Трек успешно добавлен в плейлист',
+        ]);
+    }
+
+    public function removeTrackFromPlaylist(Request $request, int $playlistId, int $trackId)
+    {
+        $playlist = Playlist::where('owner_id', auth()->id())
+            ->findOrFail($playlistId);
+
+        if (!$playlist->tracks()->where('track_id', $trackId)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Трек не найден в плейлисте',
+            ], 404);
+        }
+
+        $playlist->tracks()->detach($trackId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Трек удалён из плейлиста',
         ]);
     }
 

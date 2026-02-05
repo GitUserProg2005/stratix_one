@@ -28,7 +28,7 @@ const isOpenSidebar = ref(false)
     <main class="overflow-y-auto">
       <div class="lg:hidden title p-4">
         <div class="flex items-center justify-between">
-          <img src="/img/wix_logo1.png" class="w-24 object-contain" />
+          <img src="/img/wix_logo3.png" class="w-8 object-contain" />
           <button @click="isOpenSidebar = true">
             <i class="fa-solid fa-bars"></i>
           </button>

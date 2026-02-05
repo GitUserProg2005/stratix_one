@@ -105,13 +105,13 @@ function selectLine(index) {
           v-for="(line, index) in lyrics"
           :key="index"
           :ref="el => lineRefs[index] = el"
-          class="h-8 max-w-full px-2 flex items-center justify-center text-center
+          class="min-h-8 py-2 px-3 max-w-full flex items-center justify-center text-center
           transition-all duration-300 cursor-pointer
-          break-words whitespace-normal"
+          break-words overflow-wrap-anywhere leading-relaxed"
           :class="lineClass(index)"
           @click.stop="selectLine(index)"
         >
-          {{ line.line }}
+          {{ line.line || line.text }}
         </div>
 
       </div>

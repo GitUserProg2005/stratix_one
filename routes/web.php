@@ -33,9 +33,17 @@ Route::prefix('playlists')->middleware('auth')->group(function () {
     Route::patch('/my-playlists/{playlistId}', [PlaylistController::class, 'updatePlaylist'])
         ->name('playlist.update');
 
+    // Удаление плейлиста
+    Route::delete('/my-playlists/{playlistId}', [PlaylistController::class, 'destroyPlaylist'])
+        ->name('playlist.destroy');
+
     // Добавление трека в плейлист
     Route::post('/add-track-to-playlist/{playlistId}', [PlaylistController::class, 'addTrackToPlaylist'])
         ->name('playlist.add.track');
+
+    // Удаление трека из плейлиста
+    Route::delete('/my-playlists/{playlistId}/tracks/{trackId}', [PlaylistController::class, 'removeTrackFromPlaylist'])
+        ->name('playlist.remove.track');
 
     // Новый метод: получение плейлистов без конкретного трека
     Route::get('/without-track', [PlaylistController::class, 'getPlaylistsWithoutTrack'])
