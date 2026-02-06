@@ -1,13 +1,16 @@
 <script setup>
 import { ref } from 'vue';
+import { router } from '@inertiajs/vue3';
 
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Albom from './Albom.vue';
 import Back from './Back.vue';
+import LikeButton from './LikeButton.vue';
 import Panel from './Panel.vue';
 import Search from '@/Components/Search.vue';
 import Tags from '@/Components/Tags.vue';
 import AddToPlaylist from '../Playlist/AddToPlaylist.vue';
+import { stopListen } from '@/utils/stopListen.js';
 
 const props = defineProps({
     track: Array,
@@ -22,10 +25,28 @@ const props = defineProps({
 
 const track = ref(props.track.data);
 const playRightNow = ref(!!props.rightNow);
+const isLiked = ref(false);
+const panelRef = ref(null);
+
+function onBack() {
+    const state = panelRef.value?.getListenState?.();
+    if (state) {
+        stopListen('back', state.listenTime, state.duration, track.value.id);
+    }
+    if (props.backUrl) {
+        router.visit(props.backUrl);
+    } else {
+        router.get(route('tracks.index'));
+    }
+}
 
 function selectTrack(selectedTrack) {
   track.value = selectedTrack;
   playRightNow.value = true;
+}
+
+function toggleLike() {
+  isLiked.value = !isLiked.value;
 }
 </script>
 
@@ -42,7 +63,7 @@ function selectTrack(selectedTrack) {
             
             <div class="relative z-10 max-w-6xl mx-auto space-y-8 p-4">
                 <div class="flex flex-row gap-2">
-                    <Back :back-url="backUrl" />
+                    <Back :back-url="backUrl" @back="onBack" />
                     <Search />
                 </div>
 
@@ -57,17 +78,11 @@ function selectTrack(selectedTrack) {
                                 2026
                             </span>
 
-                            <div class="lg:hidden absolute top-4 left-2 flex flex-col gap-2 text-xs">
-                                <span class="bg-white text-center text-black px-4 py-2 rounded-full font-semibold">ПОНРАВИЛОСЬ: 5k <i class="fa-solid fa-heart"></i></span>
-                                <span class="bg-white text-center text-black px-4 py-2 rounded-full font-semibold">ПРОСЛУШИВАНИЙ: 11k <i class="fa-solid fa-users"></i></span>
+                            <div class="lg:hidden">
+                                <LikeButton :absolute="true" :is-liked="isLiked" @toggle="toggleLike" />
                             </div>
                         </div>
                         <div class="flex flex-col h-full justify-between">
-                            <div class="hidden lg:flex wlex-wrap gap-2">
-                                <span class="bg-white text-black px-4 py-2 rounded-full font-semibold">ПОНРАВИЛОСЬ: 5k <i class="fa-solid fa-heart"></i></span>
-                                <span class="bg-white text-black px-4 py-2 rounded-full font-semibold">ПРОСЛУШИВАНИЙ: 11k <i class="fa-solid fa-users"></i></span>
-                            </div>
-
                             <div class="flex flex-col gap-2">
                                 <span class="extra-title black">{{ track.title }}</span>
                                 <span class=""><span class="text-md text-gray-400 lg:text-base">Сделано</span> {{ track.artist.name }}</span>
@@ -83,6 +98,10 @@ function selectTrack(selectedTrack) {
 
                 <div class="flex flex-wrap items-center gap-4">
                     <AddToPlaylist :trackId="track.id" />
+
+                    <div class="hidden lg:block">
+                        <LikeButton :absolute="false" :is-liked="isLiked" @toggle="toggleLike" />
+                    </div>
 
                     <button class="title">
                         <i class="fa-solid fa-shuffle"></i>
@@ -108,6 +127,6 @@ function selectTrack(selectedTrack) {
         </div>
 
         <!--Плеер-->
-        <Panel v-if="track" :track="track" :playRightNow="playRightNow" />
+        <Panel ref="panelRef" v-if="track" :track="track" :playRightNow="playRightNow" />
     </AppLayout>
 </template>

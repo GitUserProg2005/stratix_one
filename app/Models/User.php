@@ -52,6 +52,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function listens(): HasMany
+    {
+        return $this->hasMany(UserListen::class);
+    }
+
     public function tracks()
     {
         return $this->hasManyThrough(

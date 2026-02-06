@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 use getID3;
 use Laravel\Scout\Searchable;
-use App\Jobs\CalculateTrackDurationJob;
+use App\Jobs\CalculateTrackAudioParametersJob;
 use App\Jobs\ConvertTrackToHlsJob;
 use App\Jobs\TranscribeTrackJob;
 
@@ -26,10 +26,12 @@ class Track extends Model
         'hls_url',
         'lyrics',
         'duration',
+        'parameters',
     ];
 
     protected $casts = [
-        'lyrics' => 'array'
+        'lyrics' => 'array',
+        'parameters' => 'array',
     ];
 
     public function toSearchableArray()
@@ -46,6 +48,14 @@ class Track extends Model
     public function release(): BelongsTo
     {
         return $this->belongsTo(Release::class);
+    }
+
+    /**
+     * Записи прослушиваний трека пользователями
+     */
+    public function userListens(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserListen::class);
     }
 
     /**
@@ -131,7 +141,7 @@ class Track extends Model
     protected static function booted()
     {
         static::created(function (Track $track) {
-            CalculateTrackDurationJob::dispatch($track->id);
+            CalculateTrackAudioParametersJob::dispatch($track->id);
             ConvertTrackToHlsJob::dispatch($track->id);
             TranscribeTrackJob::dispatch($track->id);
         });

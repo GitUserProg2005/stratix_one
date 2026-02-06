@@ -72,6 +72,14 @@ async function deletePlaylist() {
         console.error('Delete playlist error:', err);
     }
 }
+
+function onBack() {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        router.visit(route('tracks.index'));
+    }
+}
 </script>
 
 <template>
@@ -83,7 +91,7 @@ async function deletePlaylist() {
                 :style="{ background: headerGradient }"
             >
                 <div class="flex flex-row justify-between items-center">
-                    <Back :back-url="route('tracks.index')" />
+                    <Back :back-url="route('tracks.index')" @back="onBack" />
                     <button
                         type="button"
                         class="icon-btn flex text-black items-center justify-center hover:text-white transition"

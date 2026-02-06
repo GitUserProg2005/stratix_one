@@ -13,6 +13,7 @@ use App\Http\Controllers\PlaylistController;
 Route::get('/', [TrackController::class, 'index'])->name('tracks.index');
 Route::get('/track/{trackId}', [TrackController::class, 'show'])->name('tracks.show');
 Route::get('/track-search', [TrackController::class, 'search'])->name('tracks.search');
+Route::post('/track/{trackId}/stop', [TrackController::class, 'stop'])->name('tracks.stop')->middleware('auth');
 
 // Playlists
 Route::prefix('playlists')->middleware('auth')->group(function () {

@@ -5,6 +5,7 @@ import Hls from 'hls.js';
 import WaveVisualizer from './WaveVisualizer.vue';
 import PlayBtn from './PlayBtn.vue';
 import KaraokeLyrics from '@/Components/KaraokeLyrics.vue';
+import { stopListen } from '@/utils/stopListen.js';
 
 const props = defineProps({
     track: { type: Object, default: null },
@@ -103,6 +104,10 @@ function initSource() {
 
     el.addEventListener('ended', () => {
         if (!el.loop) {
+            const dur = el.duration;
+            if (Number.isFinite(dur) && props.track?.id) {
+                stopListen('ended', el.currentTime, dur, props.track.id);
+            }
             isPlaying.value = false;
             stopProgressInterval();
             trackProgress.value = 100;
@@ -184,6 +189,17 @@ function onProgressInput() {
         updateTimeDisplay();
     }
 }
+
+/** Для кнопки «Назад»: текущее время и длительность трека. */
+function getListenState() {
+    const el = audioRef.value;
+    if (!el || !props.track?.id) return null;
+    const dur = el.duration;
+    if (!Number.isFinite(dur)) return null;
+    return { listenTime: currentTimeSeconds.value, duration: dur };
+}
+
+defineExpose({ getListenState });
 </script>
 
 <template>

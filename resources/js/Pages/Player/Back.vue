@@ -1,7 +1,7 @@
 <script setup>
-import { router } from '@inertiajs/vue3';
+const emit = defineEmits(['back']);
 
-const props = defineProps({
+defineProps({
     /** Предыдущий URL (route) для возврата. Если не передан — переход на главную. */
     backUrl: {
         type: String,
@@ -10,11 +10,7 @@ const props = defineProps({
 });
 
 function goBack() {
-    if (props.backUrl) {
-        router.visit(props.backUrl);
-    } else {
-        router.get(route('tracks.index'));
-    }
+    emit('back');
 }
 </script>
 

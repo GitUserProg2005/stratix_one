@@ -39,4 +39,9 @@ return [
         'url' => env('TRANSCRIBE_SERVICE_URL', 'http://127.0.0.1:8001'),
     ],
 
+    'audio_analysis' => [
+        'url' => env('AUDIO_ANALYSIS_SERVICE_URL', 'http://127.0.0.1:8002'),
+        'file_field' => env('AUDIO_ANALYSIS_FILE_FIELD', 'file'),
+    ],
+
 ];
