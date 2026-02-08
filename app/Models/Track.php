@@ -11,6 +11,7 @@ use getID3;
 use Laravel\Scout\Searchable;
 use App\Jobs\CalculateTrackAudioParametersJob;
 use App\Jobs\ConvertTrackToHlsJob;
+use App\Jobs\CreateSnippetFromTrackJob;
 use App\Jobs\TranscribeTrackJob;
 
 
@@ -27,11 +28,13 @@ class Track extends Model
         'lyrics',
         'duration',
         'parameters',
+        'snippet_parameters',
     ];
 
     protected $casts = [
         'lyrics' => 'array',
         'parameters' => 'array',
+        'snippet_parameters' => 'array',
     ];
 
     public function toSearchableArray()
@@ -65,6 +68,14 @@ class Track extends Model
     {
         return $this->belongsToMany(Tag::class, 'tag_track', 'track_id', 'tag_id')
                     ->withTimestamps();
+    }
+
+    /**
+     * Сниппеты (reels) трека
+     */
+    public function snippets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Snippet::class);
     }
     
     /**
@@ -144,6 +155,7 @@ class Track extends Model
             CalculateTrackAudioParametersJob::dispatch($track->id);
             ConvertTrackToHlsJob::dispatch($track->id);
             TranscribeTrackJob::dispatch($track->id);
+            CreateSnippetFromTrackJob::dispatch($track->id);
         });
     }
 }

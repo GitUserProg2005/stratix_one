@@ -106,6 +106,7 @@ function initSource() {
         if (!el.loop) {
             const dur = el.duration;
             if (Number.isFinite(dur) && props.track?.id) {
+                // Сигнал на метрику 
                 stopListen('ended', el.currentTime, dur, props.track.id);
             }
             isPlaying.value = false;

@@ -45,12 +45,16 @@ class TrackResource extends ModelResource
                 BelongsToMany::make('Теги', 'tags', fn ($item) => "$item->name")
                     ->searchable()->creatable(),
 
-                // Превью на S3
                 File::make('Preview', 'preview')
                     ->disk('s3')
-                    ->dir('tracks_previews') // второй параметр — директория
-                    ,
-                
+                    ->dir('tracks_previews'),
+
+                File::make('File', 'file')
+                    ->disk('s3')
+                    ->dir('tracks_files'),
+            ]),
+
+            Box::make('Lyrics (текст трека)', [
                 Json::make('Текст для трека', 'lyrics')
                     ->fields([
                         Number::make('ID', 'id')->sortable(),
@@ -63,11 +67,18 @@ class TrackResource extends ModelResource
                     ])->removable()
                         ->creatable()
                         ->sortable(),
+            ]),
 
-                // Аудиофайл
-                File::make('File', 'file')
-                    ->disk('s3') 
-                    ->dir('tracks_files')
+            Box::make('Сниппет (Reels) — обрезка аудио', [
+                Json::make('Старт и длительность сниппета (сек)', 'snippet_parameters')
+                    ->fields([
+                        Number::make('Старт', 'start_time'),
+                        Number::make('Длительность', 'duration'),
+                    ])->default([
+                        ['start_time' => 0, 'duration' => 0],
+                    ])->removable()
+                        ->creatable()
+                        ->sortable(),
             ]),
         ];
     }

@@ -8,6 +8,10 @@ use Inertia\Inertia;
 use App\Http\Controllers\IndexController;
 use App\Http\Controllers\TrackController;
 use App\Http\Controllers\PlaylistController;
+use App\Http\Controllers\ReelsController;
+
+// Reels
+Route::get('/reels', [ReelsController::class, 'index'])->name('reels.index');
 
 // Tracks
 Route::get('/', [TrackController::class, 'index'])->name('tracks.index');
