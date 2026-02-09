@@ -21,7 +21,6 @@ Route::post('/track/{trackId}/stop', [TrackController::class, 'stop'])->name('tr
 
 // Playlists
 Route::prefix('playlists')->middleware('auth')->group(function () {
-
     // Получение всех плейлистов пользователя
     Route::get('/my-playlists', [PlaylistController::class, 'getPlaylists'])
         ->name('get.playlists');
