@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
+use App\Models\User;
+
+
 class Snippet extends Model
 {
     protected $fillable = [
@@ -19,6 +22,22 @@ class Snippet extends Model
     public function track(): BelongsTo
     {
         return $this->belongsTo(Track::class);
+    }
+
+    public function likedBy()
+    {
+        return $this->belongsToMany(User::class, 'liked_snippets')
+                    ->withTimestamps();
+    }
+
+    public function isLikedBy(User $user) {
+        if (!$user) return false;
+        
+        return $this->likedBy()->where('user_id', $user->id)->exists();
+    }
+
+    public function likesCount() {
+        return $this->likedBy()->count();
     }
 
     /**

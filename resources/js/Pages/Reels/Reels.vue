@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onBeforeUnmount } from 'vue';
+import { ref, reactive, watch, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Mousewheel, Pagination } from 'swiper/modules';
@@ -10,6 +10,9 @@ import 'swiper/css/mousewheel';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Avatar from '@/Components/Avatar.vue';
 import VinylDisc from './VinylDisc.vue';
+import Like from './Like.vue';
+import Search from '@/Components/Search.vue';
+import Back from '../Player/Back.vue';
 
 const props = defineProps({
   snippets: {
@@ -23,6 +26,31 @@ const audioRef = ref(null);
 const currentIndex = ref(0);
 const swiperRef = ref(null);
 const isPlaying = ref(false);
+const heartRefs = reactive({});
+const slideRef = ref(null);
+let tapTimeout = null;
+
+function setHeartRef(id, el) {
+  if (el) {
+    heartRefs[id] = el;
+  }
+}
+
+function onSlideTap(event, id) {
+  if (tapTimeout) {
+    clearTimeout(tapTimeout);
+    tapTimeout = null;
+
+    console.log('NO TAP HEART');
+
+    return;
+  }
+
+  tapTimeout = setTimeout(() => {
+    togglePlay();
+    tapTimeout = null;
+  }, 250);
+}
 
 function playSnippet(index) {
   if (!props.snippets[index] || !audioRef.value) return;
@@ -56,6 +84,10 @@ function onSwiper(swiper) {
   swiperRef.value = swiper;
 }
 
+function onBack() {
+  window.history.back();
+}
+
 watch(() => props.snippets, (list) => {
   if (list?.length) {
     playSnippet(0);
@@ -72,7 +104,7 @@ onBeforeUnmount(() => {
 
 <template>
   <AppLayout>
-    <div class="w-full min-h-[calc(100vh-64px)] 
+    <div class="w-full min-h-[calc(100vh-44px)] 
       flex justify-center pt-4"
     >
       <div
@@ -82,8 +114,16 @@ onBeforeUnmount(() => {
           sm:max-w-[480px]
           md:max-w-[540px]
           h-[calc(100vh-64px)]
+          relative
         "
       >
+      <div class="z-50 w-full absolute top-0 left-0 right-0 p-4">
+        <div class="flex items-center gap-2">
+          <Back @back="onBack" backUrl="tracks.index" />
+          <Search />
+        </div>
+      </div>
+
         <Swiper
           :modules="modules"
           direction="vertical"
@@ -98,8 +138,10 @@ onBeforeUnmount(() => {
             :key="snippet.id"
             class="h-full"
           >
-              <div class="relative h-full
-                p-4 overflow-hidden rounded-2xl shadow-lg"
+              <div class="relative h-full reel-slide
+                p-4 overflow-hidden rounded-2xl"
+                ref="slideRef"
+                @click="togglePlay"
               >
                 <div
                   class="
@@ -109,9 +151,7 @@ onBeforeUnmount(() => {
                   "
                 >
                   <div class="absolute inset-0
-                    overflow-hidden
-                    
-                  ">
+                    overflow-hidden">
                     <img
                       v-if="snippet.track?.preview_url"
                       :src="snippet.track.preview_url"
@@ -126,7 +166,7 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div class="relative z-40 h-full">
-                  <div @click="togglePlay" class="h-full flex flex-1 justify-center items-center">
+                  <div class="h-full flex flex-1 justify-center items-center">
                     <VinylDisc :src="snippet.track.preview_url" :is-playing="isPlaying" />
 
                     <Transition class="fade-scale"> 
@@ -147,10 +187,16 @@ onBeforeUnmount(() => {
                       <Avatar name="Wix" />
                     </button>
 
-                    <button class="flex flex-col items-center gap-1">
+                    <Like
+                      :snippet-id="snippet.id"
+                      :initial-liked="snippet.is_liked"
+                      :initial-likes-count="snippet.likes_count"
+                    />
+
+                    <!--<button class="flex flex-col items-center gap-1">
                       <i class="fa-regular fa-heart text-2xl"></i>
                       <span class="text-xs">11 тыс.</span>
-                    </button>
+                    </button>-->
                     <button class="flex flex-col items-center gap-1">
                       <i class="fa-solid fa-comment"></i>
                       <span class="text-xs">2 тыс.</span>
@@ -189,7 +235,7 @@ onBeforeUnmount(() => {
   </AppLayout>
 </template>
 
-<style scoed>
+<style scoped>
 .fade-scale-enter-active,
 .fade-scale-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;

@@ -13,6 +13,11 @@ use App\Http\Controllers\ReelsController;
 // Reels
 Route::get('/reels', [ReelsController::class, 'index'])->name('reels.index');
 
+Route::middleware(['auth'])->group(function() {
+    Route::post('/snippets/{snippet}/like', [ReelsController::class, 'likeToggle'])
+         ->name('snippets.like');
+});
+
 // Tracks
 Route::get('/', [TrackController::class, 'index'])->name('tracks.index');
 Route::get('/track/{trackId}', [TrackController::class, 'show'])->name('tracks.show');
