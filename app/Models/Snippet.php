@@ -5,16 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Scout\Searchable;
 
 use App\Models\User;
 
 
 class Snippet extends Model
 {
+    use Searchable;
+
     protected $fillable = [
         'track_id',
         'audio',
     ];
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->track ? $this->track->title : null, // берём title из track
+            'audio' => $this->audio ? true : false,
+            'track_id' => $this->track_id,
+        ];
+    }
 
     /**
      * Трек, из которого вырезан сниппет

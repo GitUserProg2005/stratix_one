@@ -6,7 +6,7 @@ import 'swiper/css';
 import 'swiper/css/free-mode';
 
 import AppLayout from '@/Layouts/AppLayout.vue';
-import Search from '@/Components/Search.vue';
+import TrackSearch from '@/Components/Search/Instances/TrackSearch.vue';
 import { fetchTrack } from '@/utils/useFetchTrack';
 
 const props = defineProps({
@@ -43,7 +43,7 @@ function openTrack(trackId) {
 <template>
   <AppLayout>
     <div class="p-4 pb-24 space-y-10">
-      <Search class="mb-6" />
+      <TrackSearch class="mb-6" />
 
       <!-- Вы недавно слушали -->
       <section v-if="recentlyList.length" class="space-y-4">

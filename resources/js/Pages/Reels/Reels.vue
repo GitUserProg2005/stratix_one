@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, watch, onBeforeUnmount } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Mousewheel, Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -11,7 +11,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import Avatar from '@/Components/Avatar.vue';
 import VinylDisc from './VinylDisc.vue';
 import Like from './Like.vue';
-import Search from '@/Components/Search.vue';
+import SnippetSearch from '@/Components/Search/Instances/SnippetSearch.vue';
 import Back from '../Player/Back.vue';
 
 const props = defineProps({
@@ -85,7 +85,7 @@ function onSwiper(swiper) {
 }
 
 function onBack() {
-  window.history.back();
+  router.visit(route('tracks.index'));
 }
 
 watch(() => props.snippets, (list) => {
@@ -120,7 +120,7 @@ onBeforeUnmount(() => {
       <div class="z-50 w-full absolute top-0 left-0 right-0 p-4">
         <div class="flex items-center gap-2">
           <Back @back="onBack" backUrl="tracks.index" />
-          <Search />
+          <SnippetSearch />
         </div>
       </div>
 
