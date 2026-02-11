@@ -7,7 +7,7 @@ import Albom from './Albom.vue';
 import Back from './Back.vue';
 import LikeButton from './LikeButton.vue';
 import Panel from './Panel.vue';
-import Search from '@/Components/Search.vue';
+import TrackSearch from '@/Components/Search/Instances/TrackSearch.vue';
 import Tags from '@/Components/Tags.vue';
 import AddToPlaylist from '../Playlist/AddToPlaylist.vue';
 import { stopListen } from '@/utils/stopListen.js';
@@ -64,7 +64,7 @@ function toggleLike() {
             <div class="relative z-10 max-w-6xl mx-auto space-y-8 p-4">
                 <div class="flex flex-row gap-2">
                     <Back :back-url="backUrl" @back="onBack" />
-                    <Search />
+                    <TrackSearch />
                 </div>
 
                 <!--Карточка трека-->
