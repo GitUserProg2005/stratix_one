@@ -14,6 +14,8 @@ use App\Http\Controllers\ReelsController;
 Route::get('/reels', [ReelsController::class, 'index'])->name('reels.index');
 Route::get('/snippets/search', [ReelsController::class, 'search'])
     ->name('snippets.search');
+Route::post('/snippet/{snippetId}/stop', [ReelsController::class, 'stop'])
+    ->name('snippets.stop')->middleware('auth');
 
 Route::middleware(['auth'])->group(function() {
     Route::post('/snippets/{snippet}/like', [ReelsController::class, 'likeToggle'])

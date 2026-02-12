@@ -12,6 +12,7 @@ class UserListen extends Model
     protected $fillable = [
         'user_id',
         'track_id',
+        'snippet_id',
         'reason',
         'listen_time',
         'duration',

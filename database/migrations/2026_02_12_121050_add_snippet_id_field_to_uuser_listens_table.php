@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('snippets', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('track_id')
-                ->nullable()
+        Schema::table('user_listens', function (Blueprint $table) {
+            $table->foreignId('snippet_id')->nullable()
                 ->constrained()->onDelete('cascade');
-            $table->string('audio')->nullable()->comment('S3 path: snippets/{id}/snippet.mp3');
-            $table->timestamps();
         });
     }
 
@@ -26,6 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('snippets');
+        Schema::table('user_listens', function (Blueprint $table) {
+            $table->dropForeign(['snippet_id']);
+            $table->dropColumn('snippet_id');
+        });
     }
 };

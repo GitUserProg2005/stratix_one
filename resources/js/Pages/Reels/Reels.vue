@@ -13,6 +13,7 @@ import VinylDisc from './VinylDisc.vue';
 import Like from './Like.vue';
 import SnippetSearch from '@/Components/Search/Instances/SnippetSearch.vue';
 import Back from '../Player/Back.vue';
+import { stopListen } from '@/utils/stopListen';
 
 const props = defineProps({
   snippets: {
@@ -26,6 +27,9 @@ const audioRef = ref(null);
 const currentIndex = ref(0);
 const swiperRef = ref(null);
 const isPlaying = ref(false);
+const currentSnippetId = ref(null);
+const audioCurrentTime = ref(0);
+
 const heartRefs = reactive({});
 const slideRef = ref(null);
 let tapTimeout = null;
@@ -55,10 +59,48 @@ function onSlideTap(event, id) {
 function playSnippet(index) {
   if (!props.snippets[index] || !audioRef.value) return;
 
-  const snippet = props.snippets[index];
   const audioEl = audioRef.value;
+  const newSnippet = props.snippets[index];
 
-  audioEl.src = snippet.audio_url;
+  // Если переключаемся на другой сниппет
+  if (currentSnippetId.value && currentSnippetId.value !== newSnippet.id) {
+    const dur = audioEl.duration;
+    if (Number.isFinite(dur)) {
+      stopListen(
+        'back',
+        audioEl.currentTime,
+        dur,
+        'snippet',
+        currentSnippetId.value
+      );
+    }
+  }
+
+  currentSnippetId.value = newSnippet.id;
+  audioEl.src = newSnippet.audio_url;
+
+  // Снимаем старый обработчик
+  audioEl.onended = null;
+
+  // Собственный loop + фиксация окончания
+  audioEl.onended = () => {
+    const dur = audioEl.duration;
+
+    if (Number.isFinite(dur)) {
+      stopListen(
+        'ended',
+        dur,
+        dur,
+        'snippet',
+        currentSnippetId.value
+      );
+    }
+
+    // вручную перезапускаем
+    audioEl.currentTime = 0;
+    audioEl.play().catch(() => {});
+  };
+
   audioEl.play().catch(() => {});
   isPlaying.value = true;
 }
@@ -95,11 +137,25 @@ watch(() => props.snippets, (list) => {
 }, { immediate: true });
 
 onBeforeUnmount(() => {
-  if (audioRef.value) {
-    audioRef.value.pause();
-    audioRef.value.src = '';
+  const audioEl = audioRef.value;
+
+  if (audioEl && currentSnippetId.value) {
+    const dur = audioEl.duration;
+    if (Number.isFinite(dur)) {
+      stopListen(
+        'back',
+        audioEl.currentTime,
+        dur,
+        'snippet',
+        currentSnippetId.value
+      );
+    }
+
+    audioEl.pause();
+    audioEl.src = '';
   }
 });
+
 </script>
 
 <template>
@@ -229,7 +285,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <audio ref="audioRef" loop class="hidden" 
+    <audio ref="audioRef" class="hidden" 
       crossorigin="anonymous" 
     />
   </AppLayout>

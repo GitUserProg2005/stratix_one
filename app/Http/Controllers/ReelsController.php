@@ -110,4 +110,21 @@ class ReelsController extends Controller
             'snippets' => $snippets,
         ]);
     }
+
+    public function stop(Request $request, int $snippetId) {
+        $data = $request->validate([
+            'reason' => 'required|string|in:back,ended',
+            'listen_time' => 'required|numeric|min:0',
+            'duration' => 'required|numeric|min:0',
+        ]);
+
+        $request->user()->listens()->create([
+            'snippet_id' => $snippetId,
+            'reason' => $data['reason'],
+            'listen_time' => (float) $data['listen_time'],
+            'duration' => (float) $data['duration'],
+        ]);
+
+        return response()->json(['success' => true]);
+    }
 }
