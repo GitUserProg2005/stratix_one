@@ -8,31 +8,13 @@ use App\Services\Home\Recommendation\ParametersVectorBuilder;
 use App\Services\Home\Recommendation\UserPreferenceBuilder;
 use App\Services\Home\Recommendation\InstanceVectorBuilder;
 use App\Services\Home\Recommendation\TagVectorBuilder;
+use App\Services\Home\Recommendation\TrackStatistics;
 
 class HotRecommendation
 {
     protected int $userId;
     protected string $relation;
     protected int $limit;
-
-    protected array $relationToModel = [
-        'track' => [
-            'with' => 'track.tags',
-            'relation' => 'track',
-            'model' => \App\Models\Track::class,
-            'id_path' => 'track_id',
-            'tags_path' => fn($item) => $item->track->tags,
-            'parameters_path' => fn($item, $param) => $item->track->parameters[$param] ?? 0,
-        ],
-        'snippet' => [
-            'with' => 'snippet.track.tags',
-            'relation' => 'snippet.track',
-            'model' => \App\Models\Track::class, // кандидатами всё равно треки
-            'id_path' => 'snippet_id',
-            'tags_path' => fn($item) => $item->snippet->track->tags,
-            'parameters_path' => fn($item, $param) => $item->snippet->track->parameters[$param] ?? 0,
-        ],
-    ];
 
     public function __construct(int $userId, string $relation, int $limit = 10) {
         $this->userId = $userId;
@@ -41,7 +23,15 @@ class HotRecommendation
     }
 
     public function getHotRecommendation() : array {
-        $config = $this->relationToModel[$this->relation];    
+        $configs = $this->relationToModel();
+
+        if (!isset($configs[$this->relation])) {
+                throw new \InvalidArgumentException("Unknown relation: {$this->relation}");
+            }
+
+        $config = $configs[$this->relation];
+
+        $globalStats = TrackStatistics::calculate(['energy', 'centroid']);
 
         // Формируем профиль интересов юзера
         $preferenceBuilder = new UserPreferenceBuilder($this->userId);
@@ -54,16 +44,9 @@ class HotRecommendation
         $userListens = $userData['listens'];
         $allTagIds = $userData['tag_ids'];
 
-        // Исключение проосмотренного контента
-        $modelClass = $config['model'] ?? null;
-
-        if (!$modelClass) {
-            throw new \Exception("Unknown relation: {$this->relation}");
-        }
-
         $excludeIds = $userListens->pluck($config['id_path'])->toArray();
 
-        $candidates = $config['model']::with('tags')
+        $candidates = $config['model']::with($config['with'])
             ->whereNotIn('id', $excludeIds)
             ->get();
 
@@ -85,22 +68,37 @@ class HotRecommendation
             ['energy', 'centroid'],
             fn ($item) => $item->procent_listen,
             $config['parameters_path'],
+            $globalStats
         );
 
-        $userVector = array_merge($userDiscreteVector, $userContinueVector);
+        $userVector = [
+            ...array_values($userDiscreteVector),
+            ...array_values($userContinueVector)
+        ];
+
+        $scores = [];
 
         foreach ($candidates as $candidate) {
-            $trackDiscreteVector = InstanceVectorBuilder::build(
+            $instanceVector = InstanceVectorBuilder::build(
                 $candidate,
                 $allTagIds,
                 ['energy', 'centroid'],
                 $config['tags_path'],
-                $config['parameters_path'],
-                
+                $config['instance_params_path'],
+                $globalStats
             );
+
+            $similarity = $this->cosineSimilarity(
+                $userVector,
+                $instanceVector
+            );
+
+            $scores[$candidate->id] = $similarity;
         }
 
-        return [];
+        arsort($scores);
+
+        return array_slice(array_keys($scores), 0, $this->limit);
     }
 
     protected function cosineSimilarity(array $a, array $b) : float {
@@ -119,5 +117,28 @@ class HotRecommendation
         }
 
         return $dot / (sqrt($normA) * sqrt($normB));
+    }
+
+    protected function relationToModel(): array {
+        return [
+            'track' => [
+                'with' => 'tags', // Track реально имеет tags
+                'relation' => 'track',
+                'model' => \App\Models\Track::class,
+                'id_path' => 'track_id',
+                'tags_path' => fn($item) => $item->track?->tags ?? collect(),
+                'parameters_path' => fn($item, $param) => $item->track->parameters[$param] ?? 0,
+                'instance_params_path' => fn($item, $param) => $item->parameters[$param] ?? 0,
+            ],
+            'snippet' => [
+                'with' => 'track.tags', // Snippet реально имеет track, а track имеет tags
+                'relation' => 'snippet.track',
+                'model' => \App\Models\Snippet::class,
+                'id_path' => 'snippet_id',
+                'tags_path' => fn($item) => $item->snippet?->track?->tags ?? collect(),
+                'parameters_path' => fn($item, $param) => $item->snippet?->track->parameters[$param] ?? 0,
+                'instance_params_path' => fn($item, $param) => $item->track->parameters[$param] ?? 0,
+            ],
+        ];
     }
 }

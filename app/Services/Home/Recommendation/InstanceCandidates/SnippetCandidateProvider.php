@@ -11,7 +11,7 @@ class SnippetCandidateProvider implements CandidateProvider {
     public function getCandidates(array $excludeIds): Collection
     {
         return Snippet::with('track.tags')
-            ->whereNotIn('snippet_id', $excludeIds)
+            ->whereNotIn('id', $excludeIds)
             ->get();
     }
 }

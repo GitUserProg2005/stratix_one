@@ -10,7 +10,7 @@ class InstanceVectorBuilder {
         $parameters,
         callable $tagResolver,
         callable $parameterResolver,
-        array $globalMinMax
+        array $globalStats
     ): array {
         $vector = [];
         
@@ -26,11 +26,11 @@ class InstanceVectorBuilder {
         foreach ($parameters as $param) {
             $value = $parameterResolver($instance, $param);
 
-            $min = $globalMinMax[$param]['min'];
-            $max = $globalMinMax[$param]['max'];
+            $mean = $globalStats[$param]['mean'] ?? 0;
+            $std  = $globalStats[$param]['std'] ?? 0;
 
-            $vector[] = ($max - $min) != 0
-                ? ($value - $min) / ($max - $min)
+            $vector[] = $std != 0
+                ? ($value - $mean) / $std
                 : 0;
         }
 

@@ -1,21 +1,29 @@
 import axios from 'axios';
 
 /**
- * Отправляет данные о завершении прослушивания трека.
+ * Универсальный stopListen для любых "инстансов" (трек, сниппет и т.д.)
  * @param {'back'|'ended'} reason - причина остановки
- * @param {number} listen_time - на каком времени (сек) пользователь перестал слушать
- * @param {number} duration - полная длительность трека (сек)
- * @param {number} trackId - id трека
+ * @param {number} listenTime - сколько секунд пользователь слушал
+ * @param {number} duration - полная длительность (сек)
+ * @param {string} instance - тип инстанса, например 'track', 'snippet'
+ * @param {number} instanceId - id инстанса
+ * @param {string} [urlRoute] - если маршрут отличается от стандартного `/instance/:id/stop`
  */
-export function stopListen(reason, listen_time, duration, trackId) {
-    if (!['back', 'ended'].includes(reason) || trackId == null) return;
+export function stopListen(
+        reason, listen_time, duration, instance,
+        instanceId, urlRoute=null
+
+    ) {
+    if (!['back', 'ended'].includes(reason) || instanceId == null) return;
     const listenTime = Number(listen_time);
     const dur = Number(duration);
     if (!Number.isFinite(listenTime) || !Number.isFinite(dur)) return;
 
-    console.log('stopListen', reason, listen_time, duration, trackId);
+    const url = urlRoute ?? `/${instance}/${instanceId}/stop`;
 
-    axios.post(`/track/${trackId}/stop`, {
+    console.log(`stopListen: ${instance}#${instanceId}`, reason, listenTime, dur);
+
+    axios.post(url, {
         reason,
         listen_time: listenTime,
         duration: dur,

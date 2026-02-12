@@ -31,7 +31,10 @@ const panelRef = ref(null);
 function onBack() {
     const state = panelRef.value?.getListenState?.();
     if (state) {
-        stopListen('back', state.listenTime, state.duration, track.value.id);
+        stopListen('back', 
+            state.listenTime, state.duration, 
+            'track',
+            track.value.id);
     }
     if (props.backUrl) {
         router.visit(props.backUrl);

@@ -13,7 +13,7 @@ use App\Models\Tag;
 use App\Models\Track;
 use App\Models\Release;
 use App\Models\UserListen;
-use App\Services\Home\RecommendationTracks;
+use App\Services\Home\HotRecommendation;
 use App\Services\Home\RecentViewedTracks;
 use App\Services\Home\TracksByTag;
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +46,7 @@ class TrackController extends Controller
         }
 
         if (Auth::check()) {
-            $recommendedIds = (new RecommendationTracks(Auth::id(), 10))->getRecommendedTracks();
+            $recommendedIds = (new HotRecommendation(Auth::id(), 'track', 10))->getHotRecommendation();
             if (!empty($recommendedIds)) {
                 $recommendedTracks = Track::whereIn('id', $recommendedIds)
                     ->with('release.artist')

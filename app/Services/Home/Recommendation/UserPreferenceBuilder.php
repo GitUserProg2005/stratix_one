@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Home\Recommendations;
+namespace App\Services\Home\Recommendation;
 
 use App\Models\Track;
 use App\Models\Snippet;
@@ -18,7 +18,7 @@ class UserPreferenceBuilder {
     }
     
     public function build(string $relation) {
-        $userListens = UserListen::with("$relation.tags")
+        $userListens = UserListen::with($relation . '.tags')
             ->where('user_id', $this->userId)
             ->whereNotNull("{$relation}_id")
             ->get();
@@ -36,8 +36,10 @@ class UserPreferenceBuilder {
             ->toArray();
 
         foreach ($userListens as $listen) {
+            $duration = data_get($listen, $relation.'duration');
+
             $listen->procent_listen = min(
-                $listen->listen_time / max($listen->track->duration, 1),
+                $listen->listen_time / max($duration, 1),
                 1
             );   
         }

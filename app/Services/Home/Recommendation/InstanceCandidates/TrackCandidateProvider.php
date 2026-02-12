@@ -11,7 +11,7 @@ class TrackCandidateProvider implements CandidateProvider {
     public function getCandidates(array $excludeIds): Collection
     {
         return Track::with('tags')
-            ->whereNotIn('track_id', $excludeIds)
+            ->whereNotIn('id', $excludeIds)
             ->get();
     }
 }

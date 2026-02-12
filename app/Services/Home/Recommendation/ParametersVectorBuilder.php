@@ -10,7 +10,8 @@ class ParametersVectorBuilder {
         Collection $items,
         array $parameters,
         callable $weightResolver,
-        callable $parameterResolver
+        callable $parameterResolver,
+        array $globalStats
     ): array {
         $vector = [];
 
@@ -29,35 +30,31 @@ class ParametersVectorBuilder {
               return $value * $weight;
             });
             
-            $mean = $totalWeight > 0 
+            $meanValue = $totalWeight > 0 
                 ? $weightedSum / $totalWeight : 0;
-
-            // Min-max-scaling
-            $values = $items->map(
-                fn($item) => $parameterResolver($item, $param)
-            )->filter(fn ($v) => $v !== null)->values();
-
-            $vector[$param] = self::minMaxScale($mean, $values);
+            
+            $globalMean = $globalStats[$param]['mean'] ?? 0;
+            $globalStd = $globalStats[$param]['std'] ?? 0;
+            
+            $vector[$param] = self::zScore(
+                $meanValue,
+                $globalMean,
+                $globalStd
+            );
         }
 
         return $vector;
     }
 
-    protected static function minMaxScale(
-            float $value,
-            Collection|array $values, 
-        ): float { 
-            if ($values->isEmpty()) {
-                return 0;
-            }
+    protected static function zScore(
+        float $value,
+        float $mean,
+        float $std
+    ): float {
+        if ($std == 0) {
+            return 0;
+        }
 
-            $min = $values->min();
-            $max = $values->max();
-            
-            if ($max - $min == 0) {
-                return 0;
-            }
-
-            return ($value - $min) / ($max - $min);
-    } 
+        return ($value - $mean) / $std;
+    }
 }

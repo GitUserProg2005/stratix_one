@@ -107,7 +107,10 @@ function initSource() {
             const dur = el.duration;
             if (Number.isFinite(dur) && props.track?.id) {
                 // Сигнал на метрику 
-                stopListen('ended', el.currentTime, dur, props.track.id);
+                stopListen('ended',
+                    el.currentTime, dur, 
+                    'track',
+                    props.track.id);
             }
             isPlaying.value = false;
             stopProgressInterval();
