@@ -9,6 +9,8 @@ class UserListen extends Model
 {
     public const REASONS = ['ended', 'back'];
 
+    protected $table = 'user_listens';
+
     protected $fillable = [
         'user_id',
         'track_id',
@@ -42,6 +44,11 @@ class UserListen extends Model
 
     public function track(): BelongsTo
     {
-        return $this->belongsTo(Track::class);
+        return $this->belongsTo(Track::class, 'track_id');
+    }
+
+    public function snippet(): BelongsTo
+    {
+        return $this->belongsTo(Snippet::class, 'snippet_id');
     }
 }

@@ -37,6 +37,10 @@ class Snippet extends Model
         return $this->belongsTo(Track::class);
     }
 
+    public function tags() {
+        return $this->track->tags(); 
+    }
+
     public function likedBy()
     {
         return $this->belongsToMany(User::class, 'liked_snippets')

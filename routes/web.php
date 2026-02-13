@@ -12,6 +12,7 @@ use App\Http\Controllers\ReelsController;
 
 // Reels
 Route::get('/reels', [ReelsController::class, 'index'])->name('reels.index');
+Route::get('/get-more-reels', [ReelsController::class, 'getReels'])->name('reels.get');
 Route::get('/snippets/search', [ReelsController::class, 'search'])
     ->name('snippets.search');
 Route::post('/snippet/{snippetId}/stop', [ReelsController::class, 'stop'])

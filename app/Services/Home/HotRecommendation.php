@@ -23,83 +23,109 @@ class HotRecommendation
     }
 
     public function getHotRecommendation() : array {
-        $configs = $this->relationToModel();
+    $configs = $this->relationToModel();
+    \Log::info("HotRecommendation: relation configs", ['relation' => $this->relation, 'configs' => $configs]);
 
-        if (!isset($configs[$this->relation])) {
-                throw new \InvalidArgumentException("Unknown relation: {$this->relation}");
-            }
+    if (!isset($configs[$this->relation])) {
+        \Log::warning("HotRecommendation: Unknown relation", ['relation' => $this->relation]);
+        throw new \InvalidArgumentException("Unknown relation: {$this->relation}");
+    }
 
-        $config = $configs[$this->relation];
+    $config = $configs[$this->relation];
 
-        $globalStats = TrackStatistics::calculate(['energy', 'centroid']);
+    // 1️⃣ Получаем глобальные статистики треков
+    $globalStats = TrackStatistics::calculate(['energy', 'centroid']);
+    \Log::info("HotRecommendation: globalStats calculated", ['globalStats' => $globalStats]);
 
-        // Формируем профиль интересов юзера
-        $preferenceBuilder = new UserPreferenceBuilder($this->userId);
-        $userData = $preferenceBuilder->build($config['relation']);
+    // 2️⃣ Формируем профиль интересов пользователя
+    $preferenceBuilder = new UserPreferenceBuilder($this->userId);
+    $userData = $preferenceBuilder->build($config['relation']);
+    \Log::info("HotRecommendation: userData built", ['userData' => $userData]);
 
-        if (!$userData) {
-            return [];
-        }
+    if (!$userData) {
+        \Log::info("HotRecommendation: no userData found, returning empty array");
+        return [];
+    }
 
-        $userListens = $userData['listens'];
-        $allTagIds = $userData['tag_ids'];
+    $userListens = $userData['listens'];
+    $allTagIds = $userData['tag_ids'];
+    \Log::info("HotRecommendation: userListens and tagIds", [
+        'listens_count' => $userListens->count(),
+        'tag_ids' => $allTagIds
+    ]);
 
-        $excludeIds = $userListens->pluck($config['id_path'])->toArray();
+    // 3️⃣ Выбираем исключаемые ID, которые пользователь уже слушал
+    $excludeIds = $userListens->pluck($config['id_path'])->toArray();
+    \Log::info("HotRecommendation: excludeIds for candidates", ['excludeIds' => $excludeIds]);
 
-        $candidates = $config['model']::with($config['with'])
-            ->whereNotIn('id', $excludeIds)
-            ->get();
+    // 4️⃣ Загружаем кандидатов для рекомендаций
+    $candidates = $config['model']::with($config['with'])
+        ->whereNotIn('id', $excludeIds)
+        ->get();
+    \Log::info("HotRecommendation: candidates loaded", [
+        'count' => $candidates->count(),
+        'candidate_ids' => $candidates->pluck('id')->toArray()
+    ]);
 
-        // Формируем дискретный вектор тегов для юзера
-        $userDiscreteVector = TagVectorBuilder::build(
-            $userListens,
+    // 5️⃣ Дискретный вектор тегов для пользователя
+    $userDiscreteVector = TagVectorBuilder::build(
+        $userListens,
+        $allTagIds,
+        $config['tags_path'],
+        fn ($item) => $item->procent_listen,
+    );
+    \Log::info("HotRecommendation: userDiscreteVector built", ['vector' => $userDiscreteVector]);
+
+    if (!$userDiscreteVector) {
+        \Log::info("HotRecommendation: userDiscreteVector is empty, returning []");
+        return [];
+    }
+
+    // 6️⃣ Непрерывный вектор параметров пользователя
+    $userContinueVector = ParametersVectorBuilder::build(
+        $userListens,
+        ['energy', 'centroid'],
+        fn ($item) => $item->procent_listen,
+        $config['parameters_path'],
+        $globalStats
+    );
+    \Log::info("HotRecommendation: userContinueVector built", ['vector' => $userContinueVector]);
+
+    $userVector = [
+        ...array_values($userDiscreteVector),
+        ...array_values($userContinueVector)
+    ];
+    \Log::info("HotRecommendation: combined userVector", ['userVector' => $userVector]);
+
+    // 7️⃣ Вычисляем косинусную схожесть кандидатов с пользователем
+    $scores = [];
+    foreach ($candidates as $candidate) {
+        $instanceVector = InstanceVectorBuilder::build(
+            $candidate,
             $allTagIds,
-            $config['tags_path'],
-            fn ($item) => $item->procent_listen,
-        );
-
-        if (!$userDiscreteVector) {
-            return [];
-        }
-
-        // Формируем непрерывный вектор параметров юзера
-        $userContinueVector = ParametersVectorBuilder::build(
-            $userListens,
             ['energy', 'centroid'],
-            fn ($item) => $item->procent_listen,
-            $config['parameters_path'],
+            $config['tags_path'],
+            $config['instance_params_path'],
             $globalStats
         );
 
-        $userVector = [
-            ...array_values($userDiscreteVector),
-            ...array_values($userContinueVector)
-        ];
+        $similarity = $this->cosineSimilarity($userVector, $instanceVector);
+        $scores[$candidate->id] = $similarity;
 
-        $scores = [];
-
-        foreach ($candidates as $candidate) {
-            $instanceVector = InstanceVectorBuilder::build(
-                $candidate,
-                $allTagIds,
-                ['energy', 'centroid'],
-                $config['tags_path'],
-                $config['instance_params_path'],
-                $globalStats
-            );
-
-            $similarity = $this->cosineSimilarity(
-                $userVector,
-                $instanceVector
-            );
-
-            $scores[$candidate->id] = $similarity;
-        }
-
-        arsort($scores);
-
-        return array_slice(array_keys($scores), 0, $this->limit);
+        \Log::info("HotRecommendation: candidate similarity", [
+            'candidate_id' => $candidate->id,
+            'similarity' => $similarity
+        ]);
     }
+
+    // 8️⃣ Сортировка и выбор топ-N
+    arsort($scores);
+    $topIds = array_slice(array_keys($scores), 0, $this->limit);
+    \Log::info("HotRecommendation: top recommended IDs", ['topIds' => $topIds]);
+
+    return $topIds;
+}
+
 
     protected function cosineSimilarity(array $a, array $b) : float {
         $dot = 0;
@@ -131,13 +157,16 @@ class HotRecommendation
                 'instance_params_path' => fn($item, $param) => $item->parameters[$param] ?? 0,
             ],
             'snippet' => [
-                'with' => 'track.tags', // Snippet реально имеет track, а track имеет tags
-                'relation' => 'snippet.track',
+                'with' => 'track.tags',
+                'relation' => 'snippet.track', // для UserListen
                 'model' => \App\Models\Snippet::class,
-                'id_path' => 'snippet_id',
+                'id_path' => 'snippet_id', // в UserListen есть snippet_id
+                // Для UserListen: получить теги
                 'tags_path' => fn($item) => $item->snippet?->track?->tags ?? collect(),
+                // Для UserListen: параметры snippet через track
                 'parameters_path' => fn($item, $param) => $item->snippet?->track->parameters[$param] ?? 0,
-                'instance_params_path' => fn($item, $param) => $item->track->parameters[$param] ?? 0,
+                // Для Candidate Snippet: объект Snippet сам по себе
+                'instance_params_path' => fn($item, $param) => $item->track?->parameters[$param] ?? 0,
             ],
         ];
     }
