@@ -21,6 +21,10 @@ Route::post('/snippet/{snippetId}/stop', [ReelsController::class, 'stop'])
 Route::middleware(['auth'])->group(function() {
     Route::post('/snippets/{snippet}/like', [ReelsController::class, 'likeToggle'])
          ->name('snippets.like');
+    Route::get('/snippets/{snippet}/comments', [ReelsController::class, 'getComments'])
+         ->name('snippets.comments');
+    Route::post('/snippets/{snippet}/comments', [ReelsController::class, 'createComment'])
+         ->name('snippets.comments.create');
 });
 
 // Tracks

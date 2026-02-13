@@ -58,6 +58,14 @@ class Snippet extends Model
     }
 
     /**
+     * Комментарии к сниппету
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
      * URL аудио сниппета из S3
      */
     public function getAudioUrlAttribute(): ?string

@@ -1,6 +1,6 @@
 <script setup>
-import { ref, reactive, watch, onBeforeUnmount } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { ref, reactive, watch, onBeforeUnmount, TransitionGroup, computed } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Mousewheel, Pagination } from 'swiper/modules';
 import axios from 'axios';
@@ -13,9 +13,13 @@ import Avatar from '@/Components/Avatar.vue';
 import VinylDisc from './VinylDisc.vue';
 import Like from './Like.vue';
 import Comments from './Comments.vue';
+import Share from './Share.vue';
 import SnippetSearch from '@/Components/Search/Instances/SnippetSearch.vue';
 import Back from '../Player/Back.vue';
 import { stopListen } from '@/utils/stopListen';
+
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user || null);
 
 const props = defineProps({
   snippets: {
@@ -40,8 +44,74 @@ const heartRefs = reactive({});
 const slideRef = ref(null);
 let tapTimeout = null;
 
+// Логика множественных тапов с сердечками
+const lastTapTime = ref(0);
+const hearts = ref([]);
+let pauseTimeout = null;
+
 function setHeartRef(id, el) {
   if (el) heartRefs[id] = el;
+}
+
+function handleTap(e) {
+  // Игнорируем клики по кнопкам и интерактивным элементам
+  if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.comments-panel')) {
+    return;
+  }
+
+  const currentTime = Date.now();
+  const timeSinceLastTap = currentTime - lastTapTime.value;
+
+  // Получаем координаты относительно слайда
+  const slideElement = e.currentTarget;
+  const rect = slideElement.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  // Если прошло меньше 300 мс - показываем сердечко
+  if (timeSinceLastTap < 300 && lastTapTime.value > 0) {
+    showHeart(x, y);
+    lastTapTime.value = currentTime;
+    
+    // Отменяем таймер паузы
+    if (pauseTimeout) {
+      clearTimeout(pauseTimeout);
+      pauseTimeout = null;
+    }
+  } else {
+    // Если прошло больше 300 мс - делаем паузу
+    if (pauseTimeout) {
+      clearTimeout(pauseTimeout);
+    }
+    
+    pauseTimeout = setTimeout(() => {
+      togglePlay();
+    }, 300);
+    
+    lastTapTime.value = currentTime;
+  }
+}
+
+function showHeart(x, y) {
+  const heartId = Date.now() + Math.random();
+  // Случайный наклон от -15 до 15 градусов
+  const rotation = (Math.random() - 0.5) * 30;
+  const heart = {
+    id: heartId,
+    x,
+    y,
+    rotation,
+  };
+  
+  hearts.value.push(heart);
+  
+  // Удаляем сердечко после анимации
+  setTimeout(() => {
+    const index = hearts.value.findIndex(h => h.id === heartId);
+    if (index > -1) {
+      hearts.value.splice(index, 1);
+    }
+  }, 1000);
 }
 
 function togglePlay() {
@@ -109,6 +179,14 @@ async function loadMoreSnippets() {
 function onSlideChange(swiper) {
   currentIndex.value = swiper.activeIndex;
   playSnippet(currentIndex.value);
+  
+  // Очищаем сердечки при смене слайда
+  hearts.value = [];
+  lastTapTime.value = 0;
+  if (pauseTimeout) {
+    clearTimeout(pauseTimeout);
+    pauseTimeout = null;
+  }
 
   // Если дошли до последнего слайда — подгружаем новые
   if (currentIndex.value === snippetsList.value.length - 1) loadMoreSnippets();
@@ -137,6 +215,14 @@ onBeforeUnmount(() => {
     audioEl.pause();
     audioEl.src = '';
   }
+  
+  // Очищаем таймеры
+  if (pauseTimeout) {
+    clearTimeout(pauseTimeout);
+  }
+  if (tapTimeout) {
+    clearTimeout(tapTimeout);
+  }
 });
 </script>
 
@@ -160,7 +246,7 @@ onBeforeUnmount(() => {
           class="h-full"
         >
           <SwiperSlide v-for="snippet in snippetsList" :key="snippet.id" class="h-full">
-            <div class="relative h-full reel-slide p-4 overflow-hidden rounded-2xl" ref="slideRef" @click="togglePlay">
+            <div class="relative h-full reel-slide p-4 overflow-hidden rounded-2xl" ref="slideRef" @click="handleTap">
               <!-- фон -->
               <div class="absolute inset-0 bg-black flex items-center justify-center">
                 <div class="absolute inset-0 overflow-hidden">
@@ -181,14 +267,36 @@ onBeforeUnmount(() => {
                   </Transition>
                 </div>
 
+                <!-- Анимированные сердечки -->
+                <div class="absolute inset-0 pointer-events-none z-50">
+                  <TransitionGroup name="heart">
+                    <div
+                      v-for="heart in hearts"
+                      :key="heart.id"
+                      class="heart-animation absolute"
+                      :style="{ 
+                        left: heart.x + 'px', 
+                        top: heart.y + 'px',
+                        '--heart-rotation': heart.rotation + 'deg'
+                      }"
+                    >
+                      <i class="fa-solid fa-heart text-red-500"></i>
+                    </div>
+                  </TransitionGroup>
+                </div>
+
                 <div class="absolute right-1 bottom-1/3 flex flex-col items-center gap-6">
-                  <button class="flex flex-col items-center gap-1"><Avatar name="Wix" /></button>
-                  <Like :snippet-id="snippet.id" :initial-liked="snippet.is_liked" :initial-likes-count="snippet.likes_count" />
-                  <Comments />
                   <button class="flex flex-col items-center gap-1">
-                    <i class="fa-solid fa-reply"></i>
-                    <span class="text-xs">577</span>
+                    <Avatar 
+                      v-if="currentUser" 
+                      :name="currentUser.name" 
+                      :src="currentUser.avatar_url" 
+                    />
+                    <Avatar v-else name="Wix" />
                   </button>
+                  <Like :snippet-id="snippet.id" :initial-liked="snippet.is_liked" :initial-likes-count="snippet.likes_count" />
+                  <Comments :snippet-id="snippet.id" :initial-comments-count="snippet.comments_count || 0" />
+                  <Share :snippet-id="snippet.id" />
                 </div>
 
                 <div class="absolute lg:left-4 bottom-4 lg:bottom-2 flex flex-col gap-1">
@@ -225,5 +333,51 @@ onBeforeUnmount(() => {
 .fade-scale-leave-from {
   opacity: 1;
   transform: scale(1);
+}
+
+/* Анимация сердечек */
+.heart-animation {
+  transform-origin: center center;
+  animation: heart-pop 1s ease-out forwards;
+  font-size: 2rem;
+}
+
+.heart-enter-active {
+  transition: all 0.3s ease;
+}
+
+.heart-leave-active {
+  transition: all 0.3s ease;
+}
+
+.heart-enter-from {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0) rotate(var(--heart-rotation, 0deg));
+}
+
+.heart-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5) rotate(var(--heart-rotation, 0deg));
+}
+
+@keyframes heart-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(var(--heart-rotation, 0deg));
+    opacity: 1;
+  }
+  15% {
+    transform: translate(-50%, -50%) scale(1.2) rotate(var(--heart-rotation, 0deg));
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1) rotate(var(--heart-rotation, 0deg));
+  }
+  50% {
+    transform: translate(-50%, -70%) scale(1) rotate(var(--heart-rotation, 0deg));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -100%) scale(0.8) rotate(var(--heart-rotation, 0deg));
+    opacity: 0;
+  }
 }
 </style>

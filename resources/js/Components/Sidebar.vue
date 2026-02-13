@@ -1,6 +1,11 @@
 <script setup>
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
 import Playlists from '@/Pages/Playlist/Playlists.vue';
+
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user || null);
 
 const props = defineProps({
     isOpenSidebar: {
@@ -54,7 +59,12 @@ const emit = defineEmits(['update:isOpenSidebar']);
 
           <div class="flex items-center gap-4 font-semibold bg-content pl-3 rounded-full">
             <i class="fa-regular fa-bell"></i>
-            <Avatar name="Gony" />
+            <Avatar 
+              v-if="currentUser" 
+              :name="currentUser.name" 
+              :src="currentUser.avatar_url" 
+            />
+            <Avatar v-else name="Guest" />
           </div>
         </div>
 

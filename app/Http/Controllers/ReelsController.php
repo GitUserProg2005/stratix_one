@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Snippet;
+use App\Models\Comment;
 
 use App\Services\Home\HotRecommendation;
 
@@ -24,7 +25,7 @@ class ReelsController extends Controller
         $query = Snippet::query()
         ->with('track:id,title,preview')
         ->whereNotNull('audio')
-        ->withCount('likedBy')
+        ->withCount(['likedBy', 'comments'])
         ->withExists([
             'likedBy as is_liked' => fn ($q) =>
                 $q->where('user_id', auth()->id())
@@ -52,6 +53,7 @@ class ReelsController extends Controller
             'audio_url' => $s->audio_url,
             'is_liked' => $s->is_liked,
             'likes_count' => $s->liked_by_count,
+            'comments_count' => $s->comments_count,
             'track' => $s->track ? [
                 'id' => $s->track->id,
                 'title' => $s->track->title,
@@ -78,7 +80,7 @@ class ReelsController extends Controller
         $snippets = Snippet::query()
             ->with('track:id,title,preview')
             ->whereNotNull('audio')
-            ->withCount('likedBy')
+            ->withCount(['likedBy', 'comments'])
             ->withExists([
                 'likedBy as is_liked' => fn ($q) =>
                     $q->where('user_id', auth()->id())
@@ -92,6 +94,7 @@ class ReelsController extends Controller
                 'audio_url' => $s->audio_url,
                 'is_liked' => $s->is_liked,
                 'likes_count' => $s->liked_by_count,
+                'comments_count' => $s->comments_count,
                 'track' => $s->track ? [
                     'id' => $s->track->id,
                     'title' => $s->track->title,
@@ -170,5 +173,58 @@ class ReelsController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function getComments(Snippet $snippet)
+    {
+        $comments = $snippet->comments()
+            ->with('user:id,name,avatar')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn (Comment $comment) => [
+                'id' => $comment->id,
+                'content' => $comment->content,
+                'created_at' => $comment->created_at->diffForHumans(),
+                'user' => [
+                    'id' => $comment->user->id,
+                    'name' => $comment->user->name,
+                    'avatar_url' => $comment->user->avatar_url ?? null,
+                ],
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'comments' => $comments,
+            'comments_count' => $snippet->comments()->count(),
+        ]);
+    }
+
+    public function createComment(Request $request, Snippet $snippet)
+    {
+        $data = $request->validate([
+            'content' => 'required|string|max:500',
+        ]);
+
+        $comment = $snippet->comments()->create([
+            'user_id' => auth()->id(),
+            'content' => $data['content'],
+        ]);
+
+        $comment->load('user:id,name,avatar');
+
+        return response()->json([
+            'success' => true,
+            'comment' => [
+                'id' => $comment->id,
+                'content' => $comment->content,
+                'created_at' => $comment->created_at->diffForHumans(),
+                'user' => [
+                    'id' => $comment->user->id,
+                    'name' => $comment->user->name,
+                    'avatar_url' => $comment->user->avatar_url ?? null,
+                ],
+            ],
+            'comments_count' => $snippet->comments()->count(),
+        ]);
     }
 }
