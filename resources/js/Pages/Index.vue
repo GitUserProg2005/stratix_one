@@ -7,6 +7,7 @@ import 'swiper/css/free-mode';
 
 import AppLayout from '@/Layouts/AppLayout.vue';
 import TrackSearch from '@/Components/Search/Instances/TrackSearch.vue';
+import TryReels from '@/Components/TryReels.vue';
 import { fetchTrack } from '@/utils/useFetchTrack';
 
 const props = defineProps({
@@ -44,6 +45,8 @@ function openTrack(trackId) {
   <AppLayout>
     <div class="p-4 pb-24 space-y-10">
       <TrackSearch class="mb-6" />
+
+      <TryReels />
 
       <!-- Вы недавно слушали -->
       <section v-if="recentlyList.length" class="space-y-4">

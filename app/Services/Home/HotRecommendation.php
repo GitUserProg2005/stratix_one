@@ -95,6 +95,7 @@ class HotRecommendation
         ...array_values($userDiscreteVector),
         ...array_values($userContinueVector)
     ];
+    
     \Log::info("HotRecommendation: combined userVector", ['userVector' => $userVector]);
 
     // 7️⃣ Вычисляем косинусную схожесть кандидатов с пользователем
