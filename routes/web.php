@@ -9,6 +9,7 @@ use App\Http\Controllers\IndexController;
 use App\Http\Controllers\TrackController;
 use App\Http\Controllers\PlaylistController;
 use App\Http\Controllers\ReelsController;
+use App\Http\Controllers\FriendShipController;
 
 // Reels
 Route::get('/reels', [ReelsController::class, 'index'])->name('reels.index');
@@ -25,9 +26,16 @@ Route::middleware(['auth'])->group(function() {
          ->name('snippets.comments');
     Route::post('/snippets/{snippet}/comments', [ReelsController::class, 'createComment'])
          ->name('snippets.comments.create');
-        
+
     Route::get('/profile/{user}', [ProfileController::class, 'profile'])
         ->name('user.profile');
+
+    // Друзья и заявки
+    Route::get('/friends', [FriendShipController::class, 'friends'])->name('friends.index');
+    Route::get('/friends/requests', [FriendShipController::class, 'pendingRequests'])->name('friends.requests');
+    Route::post('/friends/request/{user}', [FriendShipController::class, 'sendRequest'])->name('friends.send');
+    Route::post('/friends/accept/{friendship}', [FriendShipController::class, 'accept'])->name('friends.accept');
+    Route::post('/friends/reject/{friendship}', [FriendShipController::class, 'reject'])->name('friends.reject');
 });
 
 // Tracks

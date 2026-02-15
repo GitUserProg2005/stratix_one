@@ -12,14 +12,53 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 use App\Models\User;
+use App\Models\Friendship;
 
 
 class ProfileController extends Controller
 {
     public function profile(User $user)
     {
+        $authId = auth()->id();
+        $friendshipStatus = null;
+        $friendshipId = null;
+
+        if ($authId && $authId !== $user->id) {
+            $friendship = Friendship::where(function ($q) use ($authId, $user) {
+                $q->where('sender_id', $authId)->where('receiver_id', $user->id);
+            })->orWhere(function ($q) use ($authId, $user) {
+                $q->where('sender_id', $user->id)->where('receiver_id', $authId);
+            })->first();
+
+            if ($friendship) {
+                $friendshipStatus = $friendship->status;
+                $friendshipId = $friendship->id;
+                if ($friendshipStatus === 'pending') {
+                    $friendshipStatus = $friendship->sender_id === $authId ? 'pending_sent' : 'pending_received';
+                }
+            }
+        }
+
+        $likedSnippets = $user->likedSnippets()
+            ->with('track:id,title,preview')
+            ->whereNotNull('audio')
+            ->orderByDesc('liked_snippets.created_at')
+            ->limit(24)
+            ->get()
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'track' => $s->track ? [
+                    'id' => $s->track->id,
+                    'title' => $s->track->title,
+                    'preview_url' => $s->track->preview_url,
+                ] : null,
+            ]);
+
         return Inertia::render('Auth/Profile', [
-            'user' => $user
+            'user' => $user,
+            'friendshipStatus' => $friendshipStatus,
+            'friendshipId' => $friendshipId,
+            'likedSnippets' => $likedSnippets,
         ]);
     }
 

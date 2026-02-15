@@ -14,19 +14,27 @@ class FriendShipController extends Controller
     {
         $userId = auth()->id();
 
-        $friends = User::where(function ($q) use ($userId) {
-            $q->whereHas('sentFriendRequests', function ($q) use ($userId) {
-                $q->where('sender_id', $userId)
-                  ->where('status', 'accepted');
-            });
-        })->orWhere(function ($q) use ($userId) {
-            $q->whereHas('receivedFriendRequests', function ($q) use ($userId) {
-                $q->where('receiver_id', $userId)
-                  ->where('status', 'accepted');
-            });
-        })->get();
-        
+        $friends = User::whereHas('receivedFriendRequests', function ($q) use ($userId) {
+            $q->where('sender_id', $userId)->where('status', 'accepted');
+        })
+        ->orWhereHas('sentFriendRequests', function ($q) use ($userId) {
+            $q->where('receiver_id', $userId)->where('status', 'accepted');
+        })
+        ->get();
+
         return response()->json($friends);
+    }
+
+    /** Список входящих заявок в друзья (pending) */
+    public function pendingRequests()
+    {
+        $requests = Friendship::with('sender')
+            ->where('receiver_id', auth()->id())
+            ->where('status', 'pending')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json($requests);
     }
 
     public function sendRequest(User $user)
