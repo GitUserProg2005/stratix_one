@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\MessageSent;
 use App\Models\Chat;
-use App\Models\Message;
 use App\Models\Snippet;
+use App\Services\Chat\CreateMessage;
 use Illuminate\Http\Request;
 
 class ShareController extends Controller
@@ -26,32 +25,22 @@ class ShareController extends Controller
         $snippet = Snippet::findOrFail($request->snippet_id);
         $chatIds = array_unique($request->chat_ids);
 
-        $userChatIds = Chat::whereHas('users', fn ($q) => $q->where('user_id', $user->id))
+        $chats = Chat::whereHas('users', fn ($q) => $q->where('user_id', $user->id))
             ->whereIn('id', $chatIds)
-            ->pluck('id')
-            ->all();
+            ->get();
 
-        if (empty($userChatIds)) {
+        if ($chats->isEmpty()) {
             return response()->json(['error' => 'Нет доступных чатов'], 422);
         }
 
-        $created = [];
-        foreach ($userChatIds as $chatId) {
-            $message = Message::create([
-                'chat_id' => $chatId,
-                'user_id' => $user->id,
-                'body' => '',
-                'shareable_id' => $snippet->id,
-                'shareable_type' => get_class($snippet),
-            ]);
-            $message->load(['user:id,name,avatar', 'shareable']);
-            event(new MessageSent($message));
-            $created[] = $message;
+        $createMessage = app(CreateMessage::class);
+        foreach ($chats as $chat) {
+            $createMessage->create($chat, $user->id, '', $snippet->id, get_class($snippet));
         }
 
         return response()->json([
             'success' => true,
-            'shared_count' => count($created),
+            'shared_count' => $chats->count(),
         ]);
     }
 }

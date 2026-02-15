@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-use App\Models\User;
+use App\Models\Chat;
 use App\Models\Friendship;
-
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class FriendShipController extends Controller
 {
@@ -22,7 +21,17 @@ class FriendShipController extends Controller
         })
         ->get();
 
-        return response()->json($friends);
+        return response()->json($friends->map(function (User $friend) use ($userId) {
+            $chat = Chat::whereHas('users', fn ($q) => $q->where('user_id', $userId))
+                ->whereHas('users', fn ($q) => $q->where('user_id', $friend->id))
+                ->with('streak')
+                ->first();
+            $streak = $chat?->streak ? [
+                'active' => $chat->streak->active,
+                'days' => $chat->streak->days,
+            ] : null;
+            return array_merge($friend->toArray(), ['streak' => $streak]);
+        })->all());
     }
 
     /** Список входящих заявок в друзья (pending) */

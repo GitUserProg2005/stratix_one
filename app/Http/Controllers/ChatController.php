@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\MessageSent;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\Chat\CreateMessage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,6 +58,10 @@ class ChatController extends Controller
         $initialMessages = $chat
             ? $chat->messages()->with(['user:id,name,avatar', 'shareable'])->get()->map(fn (Message $m) => $this->formatMessage($m))
             : [];
+        $streak = $chat?->streak ? [
+            'active' => $chat->streak->active,
+            'days' => $chat->streak->days,
+        ] : null;
 
         return Inertia::render('Chat/Show', [
             'chat' => $chat ? [
@@ -69,6 +73,7 @@ class ChatController extends Controller
                 'avatar_url' => $user->avatar_url,
             ],
             'initialMessages' => $initialMessages,
+            'streak' => $streak,
         ]);
     }
 
@@ -94,17 +99,17 @@ class ChatController extends Controller
         }
 
         $chat = $this->getOrCreateChatBetween($authUser->id, $recipientId);
-        $message = $chat->messages()->create([
-            'user_id' => $authUser->id,
-            'body' => $request->body,
-        ]);
-        $message->load('user:id,name,avatar');
+        $message = app(CreateMessage::class)->create($chat, $authUser->id, $request->body);
 
-        event(new MessageSent($message));
+        $streak = $chat->streak ? [
+            'active' => $chat->streak->active,
+            'days' => $chat->streak->days,
+        ] : null;
 
         return response()->json([
             'message' => $this->formatMessage($message),
             'chat' => ['id' => $chat->id],
+            'streak' => $streak,
         ]);
     }
 

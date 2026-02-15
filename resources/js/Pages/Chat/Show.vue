@@ -5,11 +5,14 @@ import { usePage, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import Avatar from '@/Components/Avatar.vue';
 import Back from '@/Pages/Player/Back.vue';
+import StreakFlame from '@/Components/StreakFlame.vue';
 
 const props = defineProps({
     chat: { type: Object, default: null },
     otherUser: { type: Object, required: true },
     initialMessages: { type: Array, default: () => [] },
+    /** { active: boolean, days: number } | null */
+    streak: { type: Object, default: null },
 });
 
 const page = usePage();
@@ -17,8 +20,10 @@ const currentUser = computed(() => page.props.auth?.user ?? null);
 
 const messages = ref([...props.initialMessages]);
 const localChat = ref(props.chat);
+const localStreak = ref(props.streak ?? null);
 const newMessage = ref('');
 const isSubmitting = ref(false);
+const chatBodyRef = ref(null);
 let echoChannel = null;
 
 function goBack() {
@@ -66,6 +71,9 @@ async function sendMessage() {
             localChat.value = data.chat;
             subscribeToChat();
         }
+        if (data.streak != null) {
+            localStreak.value = data.streak;
+        }
     } catch (err) {
         const msg = err.response?.data?.error || 'Не удалось отправить сообщение';
         alert(msg);
@@ -112,7 +120,12 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto custom-scroll px-4 py-4">
+            <div ref="chatBodyRef" class="flex-1 overflow-y-auto custom-scroll px-4 py-4 relative min-h-0">
+                <StreakFlame
+                    v-if="localStreak?.active"
+                    :streak="localStreak"
+                    :container-ref="chatBodyRef"
+                />
                 <div v-if="messages.length === 0" class="flex flex-col items-center justify-center py-12 context">
                     <i class="fa-solid fa-comments text-4xl mb-3 opacity-50"></i>
                     <p>Нет сообщений. Напишите первым.</p>
@@ -146,7 +159,7 @@ onBeforeUnmount(() => {
                                 <a
                                     v-if="msg.shareable.type === 'Snippet' && msg.shareable.snippet"
                                     :href="route('reels.index', { snippetId: msg.shareable.snippet.id })"
-                                    class="flex flex-col gap-2 p-2 hover:bg-black/20 rounded-xl transition-colors mb-1"
+                                    class="flex flex-col gap-2 p-2 transition-colors mb-1"
                                 >
                                     <img
                                         v-if="msg.shareable.snippet.track?.preview_url"
@@ -181,14 +194,22 @@ onBeforeUnmount(() => {
                         v-model="newMessage"
                         type="text"
                         placeholder="Сообщение..."
-                        class="flex-1 search-input text-white placeholder-gray-500"
+                        class="flex-1 search-input text-white placeholder-gray-500 min-w-0"
                         :disabled="isSubmitting"
                         maxlength="5000"
                     />
+                    <div v-if="!newMessage.trim()" class="flex flex-row items-center gap-2">
+                        <button type="button" class="icon-btn shrink-0" aria-label="Прикрепить файл">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
+                        <button type="button" class="icon-btn shrink-0" aria-label="Фото">
+                            <i class="fa-solid fa-image"></i>
+                        </button>
+                    </div>
                     <button
                         v-if="newMessage.trim()"
                         type="submit"
-                        class="icon-btn"
+                        class="icon-btn shrink-0"
                         :disabled="!newMessage.trim() || isSubmitting"
                         aria-label="Отправить"
                     >

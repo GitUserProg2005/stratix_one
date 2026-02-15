@@ -71,11 +71,8 @@ const emit = defineEmits(['update:isOpenSidebar']);
           </div>
         </div>
 
-        <div class="border-b border-gray-500
-        w-full pb-4 mb-4"></div>
-
         <!-- Премиум -->
-        <div class="px-4 mb-4">
+        <div class="px-4 mb-4 mt-4">
           <div class="bg-content p-4 rounded-2xl w-full space-y-2">
             <h3 class="title-2">Приобрести премиум</h3>
             <p class="context">
