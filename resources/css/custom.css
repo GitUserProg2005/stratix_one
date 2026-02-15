@@ -32,6 +32,14 @@ body {
     @apply bg-[#0f0f0f];
 }
 
+.bg-primary {
+    @apply bg-[#15c1c1];
+}
+
+.bg-positive {
+    @apply bg-green-600;
+}
+
 .primary-btn {
     @apply bg-[#EEEEEE] hover:bg-[#d2d1d1] text-black font-semibold py-2 px-4 rounded-full transition-all duration-300;
 }

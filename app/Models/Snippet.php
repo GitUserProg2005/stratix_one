@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Scout\Searchable;
 
@@ -55,6 +57,22 @@ class Snippet extends Model
 
     public function likesCount() {
         return $this->likedBy()->count();
+    }
+
+    /**
+     * Сообщения в чатах, в которых поделились этим сниппетом
+     */
+    public function sharedInMessages(): MorphMany
+    {
+        return $this->morphMany(Message::class, 'shareable');
+    }
+
+    /**
+     * Пользователи, которые репостнули этот сниппет.
+     */
+    public function repostedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'reposted_snippets')->withTimestamps();
     }
 
     /**

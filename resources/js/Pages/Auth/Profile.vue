@@ -30,8 +30,7 @@ function goBack() {
 }
 
 function goToChat() {
-    // Заглушка: позже — переход в чат
-    alert('Чат будет доступен в следующей версии.');
+    router.visit(route('chat.with', props.user.id));
 }
 
 const sendRequest = async () => {
@@ -138,14 +137,14 @@ function openReel(snippetId) {
                             </template>
                             <template v-else-if="status === 'accepted'">
                                 <span class="text-green-500 font-medium">В друзьях</span>
+                                <button
+                                    class="primary-btn !rounded-full !py-2 !px-4"
+                                    type="button"
+                                    @click="goToChat"
+                                >
+                                    Перейти в чат
+                                </button>
                             </template>
-                            <button
-                                class="primary-btn !rounded-full !py-2 !px-4"
-                                type="button"
-                                @click="goToChat"
-                            >
-                                Перейти в чат
-                            </button>
                         </template>
                     </div>
                 </div>
@@ -159,13 +158,13 @@ function openReel(snippetId) {
                 </div>
                 <div
                     v-else
-                    class="grid grid-cols-3 gap-1 sm:gap-2"
+                    class="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2"
                 >
                     <button
                         v-for="snippet in likedSnippets"
                         :key="snippet.id"
                         type="button"
-                        class="aspect-[9/16] relative rounded-lg overflow-hidden bg-black/50 group"
+                        class="aspect-[3/4] relative rounded-lg overflow-hidden bg-black/50 group w-full"
                         @click="openReel(snippet.id)"
                     >
                         <img

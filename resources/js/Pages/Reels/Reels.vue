@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, watch, onBeforeUnmount, TransitionGroup, computed } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Mousewheel, Pagination } from 'swiper/modules';
 import axios from 'axios';
@@ -14,6 +14,7 @@ import VinylDisc from './VinylDisc.vue';
 import Like from './Like.vue';
 import Comments from './Comments.vue';
 import Share from './Share.vue';
+import Repost from './Repost.vue';
 import SnippetSearch from '@/Components/Search/Instances/SnippetSearch.vue';
 import Back from '../Player/Back.vue';
 import { stopListen } from '@/utils/stopListen';
@@ -200,6 +201,13 @@ function onBack() {
   router.visit(route('tracks.index'));
 }
 
+function onRepostUpdate(snippetId, payload) {
+  const idx = snippetsList.value.findIndex((s) => s.id === snippetId);
+  if (idx !== -1) {
+    snippetsList.value[idx] = { ...snippetsList.value[idx], ...payload };
+  }
+}
+
 // стартуем первый сниппет сразу
 watch(snippetsList, (list) => {
   if (list?.length && !currentSnippetId.value) playSnippet(0);
@@ -285,7 +293,7 @@ onBeforeUnmount(() => {
                   </TransitionGroup>
                 </div>
 
-                <div class="absolute right-1 bottom-1/3 flex flex-col items-center gap-6">
+                <div class="absolute right-1 bottom-4 flex flex-col items-center gap-6">
                   <button class="flex flex-col items-center gap-1">
                     <Avatar 
                       v-if="currentUser" 
@@ -298,9 +306,44 @@ onBeforeUnmount(() => {
                   <Like :snippet-id="snippet.id" :initial-liked="snippet.is_liked" :initial-likes-count="snippet.likes_count" />
                   <Comments :snippet-id="snippet.id" :initial-comments-count="snippet.comments_count || 0" />
                   <Share :snippet-id="snippet.id" />
+                  <Repost
+                    v-if="currentUser"
+                    :snippet-id="snippet.id"
+                    :initial-reposted="snippet.is_reposted"
+                    :initial-reposted-by-friends="snippet.reposted_by_friends || []"
+                    @update="(payload) => onRepostUpdate(snippet.id, payload)"
+                  />
                 </div>
 
                 <div class="absolute lg:left-4 bottom-4 lg:bottom-2 flex flex-col gap-1">
+                  <div v-if="(snippet.reposted_by_friends || []).length" class="flex items-center gap-2 mb-1">
+                    <span class="context text-xs">Репостнули:</span>
+                    <div class="flex -space-x-2">
+                      <Link
+                        v-for="friend in (snippet.reposted_by_friends || []).slice(0, 5)"
+                        :key="friend.id"
+                        :href="route('user.profile', friend.id)"
+                        class="inline-block ring-2 ring-[#0f0f0f] rounded-full overflow-hidden hover:opacity-90"
+                        @click.stop
+                      >
+                        <img
+                          v-if="friend.avatar_url"
+                          :src="friend.avatar_url"
+                          :alt="friend.name"
+                          class="w-6 h-6 object-cover"
+                        />
+                        <span
+                          v-else
+                          class="w-6 h-6 bg-content flex items-center justify-center text-xs font-semibold"
+                        >
+                          {{ (friend.name || '')[0] }}
+                        </span>
+                      </Link>
+                    </div>
+                    <span class="context text-xs truncate max-w-[120px]">
+                      {{ (snippet.reposted_by_friends || []).map((f) => f.name).join(', ') }}
+                    </span>
+                  </div>
                   <div class="flex flex-row gap-2 context">
                     <span>$Waxho</span>
                     <span class="w-2 h-2 rounded-full bg-green-500 mt-1"></span>

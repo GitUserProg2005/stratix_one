@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -10,6 +11,8 @@ use App\Http\Controllers\TrackController;
 use App\Http\Controllers\PlaylistController;
 use App\Http\Controllers\ReelsController;
 use App\Http\Controllers\FriendShipController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ShareController;
 
 // Reels
 Route::get('/reels', [ReelsController::class, 'index'])->name('reels.index');
@@ -20,8 +23,12 @@ Route::post('/snippet/{snippetId}/stop', [ReelsController::class, 'stop'])
     ->name('snippets.stop')->middleware('auth');
 
 Route::middleware(['auth'])->group(function() {
+    Broadcast::routes();
+
     Route::post('/snippets/{snippet}/like', [ReelsController::class, 'likeToggle'])
          ->name('snippets.like');
+    Route::post('/snippets/{snippet}/repost', [ReelsController::class, 'repostToggle'])
+         ->name('snippets.repost');
     Route::get('/snippets/{snippet}/comments', [ReelsController::class, 'getComments'])
          ->name('snippets.comments');
     Route::post('/snippets/{snippet}/comments', [ReelsController::class, 'createComment'])
@@ -36,6 +43,14 @@ Route::middleware(['auth'])->group(function() {
     Route::post('/friends/request/{user}', [FriendShipController::class, 'sendRequest'])->name('friends.send');
     Route::post('/friends/accept/{friendship}', [FriendShipController::class, 'accept'])->name('friends.accept');
     Route::post('/friends/reject/{friendship}', [FriendShipController::class, 'reject'])->name('friends.reject');
+
+    // Чат с другом (чат создаётся при первом сообщении)
+    Route::get('/chat/with/{user}', [ChatController::class, 'showWithUser'])->name('chat.with');
+    Route::get('/chat/list', [ChatController::class, 'listChats'])->name('chat.list');
+    Route::post('/chat/messages', [ChatController::class, 'storeMessage'])->name('chat.messages.store');
+
+    // Поделиться сниппетом в чаты
+    Route::post('/share/snippet', [ShareController::class, 'share'])->name('share.snippet');
 });
 
 // Tracks

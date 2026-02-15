@@ -1,5 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import axios from 'axios';
+import Avatar from '@/Components/Avatar.vue';
 
 const props = defineProps({
   snippetId: { type: Number, required: true },
@@ -9,6 +11,10 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 const isOpen = ref(false);
+const chats = ref([]);
+const chatsLoading = ref(false);
+const selectedChatIds = ref([]);
+const shareToChatSubmitting = ref(false);
 
 const shareOptions = [
   {
@@ -37,8 +43,52 @@ const shareOptions = [
   },
 ];
 
+async function loadChats() {
+  chatsLoading.value = true;
+  try {
+    const { data } = await axios.get(route('chat.list'));
+    chats.value = data;
+  } catch {
+    chats.value = [];
+  } finally {
+    chatsLoading.value = false;
+  }
+}
+
+function toggleChat(chatId) {
+  const idx = selectedChatIds.value.indexOf(chatId);
+  if (idx === -1) {
+    selectedChatIds.value = [...selectedChatIds.value, chatId];
+  } else {
+    selectedChatIds.value = selectedChatIds.value.filter((id) => id !== chatId);
+  }
+}
+
+function isChatSelected(chatId) {
+  return selectedChatIds.value.includes(chatId);
+}
+
+async function shareToChats() {
+  if (selectedChatIds.value.length === 0 || shareToChatSubmitting.value) return;
+  shareToChatSubmitting.value = true;
+  try {
+    await axios.post(route('share.snippet'), {
+      chat_ids: selectedChatIds.value,
+      snippet_id: props.snippetId,
+    });
+    selectedChatIds.value = [];
+    close();
+  } catch (err) {
+    const msg = err.response?.data?.error || 'Не удалось отправить';
+    alert(msg);
+  } finally {
+    shareToChatSubmitting.value = false;
+  }
+}
+
 function open() {
   isOpen.value = true;
+  loadChats();
 }
 
 function close() {
@@ -148,11 +198,53 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- Список опций -->
-          <div class="comments-panel-body">
+          <div class="comments-panel-body overflow-y-auto max-h-[50vh]">
+            <p class="comments-panel-count text-xs mb-2">В чат с друзьями</p>
+            <div v-if="chatsLoading" class="flex justify-center py-4">
+              <i class="fa-solid fa-spinner fa-spin text-black/50"></i>
+            </div>
+            <div v-else-if="chats.length === 0" class="text-black/50 text-sm py-2">
+              Нет чатов. Напишите другу — чат появится здесь.
+            </div>
+            <ul v-else class="space-y-1 mb-4">
+              <li
+                v-for="chat in chats"
+                :key="chat.id"
+                class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                @click="(e) => { if (!e.target.closest('input')) toggleChat(chat.id); }"
+              >
+                <input
+                  type="checkbox"
+                  :checked="isChatSelected(chat.id)"
+                  class="rounded border-gray-300"
+                  @click.stop
+                  @change="toggleChat(chat.id)"
+                />
+                <Avatar
+                  :name="chat.other_user?.name"
+                  :src="chat.other_user?.avatar_url"
+                  :userId="chat.other_user?.id"
+                  no-link
+                />
+                <span class="text-sm font-semibold text-black truncate">{{ chat.other_user?.name }}</span>
+              </li>
+            </ul>
+            <button
+              v-if="chats.length > 0 && selectedChatIds.length > 0"
+              type="button"
+              class="w-full py-2 rounded-full bg-black text-white text-sm font-semibold disabled:opacity-50"
+              :disabled="shareToChatSubmitting"
+              @click="shareToChats"
+            >
+              {{ shareToChatSubmitting ? 'Отправка...' : `Отправить в ${selectedChatIds.length}` }}
+            </button>
+
+            <p class="comments-panel-count text-xs mt-4 mb-2">Соцсети и ссылка</p>
             <div class="grid grid-cols-2 gap-4">
               <button
                 v-for="option in shareOptions"
                 :key="option.id"
+                type="button"
                 @click="handleShare(option.action)"
                 class="flex flex-col items-center justify-center gap-3 p-6 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
               >

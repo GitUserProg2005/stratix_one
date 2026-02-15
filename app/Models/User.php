@@ -95,6 +95,40 @@ class User extends Authenticatable
         return $this->hasMany(Friendship::class, 'receiver_id');
     }
 
+    public function chats(): BelongsToMany
+    {
+        return $this->belongsToMany(Chat::class, 'chat_user')->withTimestamps();
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    /**
+     * ID друзей (взаимно принятые заявки).
+     */
+    public function friendIds(): array
+    {
+        return (array) \App\Models\Friendship::where('status', 'accepted')
+            ->where(function ($q) {
+                $q->where('sender_id', $this->id)->orWhere('receiver_id', $this->id);
+            })
+            ->get()
+            ->map(fn (Friendship $f) => $f->sender_id === $this->id ? $f->receiver_id : $f->sender_id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Сниппеты, которые пользователь репостнул.
+     */
+    public function repostedSnippets(): BelongsToMany
+    {
+        return $this->belongsToMany(Snippet::class, 'reposted_snippets')->withTimestamps();
+    }
+
     /**
      * Генерируем url к аватару пользователя
      */

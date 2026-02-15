@@ -22,14 +22,22 @@ class ReelsController extends Controller
             'otherSnippetIds.*' => 'integer|exists:snippets,id',
         ]);
 
+        $friendIds = auth()->check() ? auth()->user()->friendIds() : [];
+
         $query = Snippet::query()
             ->with('track:id,title,preview')
+            ->with([
+                'repostedBy' => fn ($q) => $friendIds ? $q->whereIn('users.id', $friendIds)->select('users.id', 'users.name', 'users.avatar') : $q->whereRaw('1 = 0'),
+            ])
             ->whereNotNull('audio')
             ->withCount(['likedBy', 'comments'])
             ->withExists([
                 'likedBy as is_liked' => fn ($q) =>
                     $q->where('user_id', auth()->id())
-            ]); 
+            ])
+            ->withExists([
+                'repostedBy as is_reposted' => fn ($q) => $q->where('user_id', auth()->id()),
+            ]);
 
         if (!empty($data['snippetId']) || !empty($data['otherSnippetIds'])) {
 
@@ -48,18 +56,7 @@ class ReelsController extends Controller
             ->orderBy('id')
             ->limit(2)
             ->get()
-            ->map(fn (Snippet $s) => [
-                'id' => $s->id,
-                'audio_url' => $s->audio_url,
-                'is_liked' => $s->is_liked,
-                'likes_count' => $s->liked_by_count,
-                'comments_count' => $s->comments_count,
-                'track' => $s->track ? [
-                    'id' => $s->track->id,
-                    'title' => $s->track->title,
-                    'preview_url' => $s->track->preview_url,
-                ] : null,
-            ]);
+            ->map(fn (Snippet $s) => $this->mapSnippetForReel($s));
 
         return Inertia::render('Reels/Reels', [
             'snippets' => $snippets,
@@ -79,30 +76,27 @@ class ReelsController extends Controller
             'ids' => $recommendedIds 
         ]);
 
+        $friendIds = auth()->check() ? auth()->user()->friendIds() : [];
+
         $snippets = Snippet::query()
             ->with('track:id,title,preview')
+            ->with([
+                'repostedBy' => fn ($q) => $friendIds ? $q->whereIn('users.id', $friendIds)->select('users.id', 'users.name', 'users.avatar') : $q->whereRaw('1 = 0'),
+            ])
             ->whereNotNull('audio')
             ->withCount(['likedBy', 'comments'])
             ->withExists([
                 'likedBy as is_liked' => fn ($q) =>
                     $q->where('user_id', auth()->id())
             ])
+            ->withExists([
+                'repostedBy as is_reposted' => fn ($q) => $q->where('user_id', auth()->id()),
+            ])
             ->whereIn('id', $recommendedIds)
             ->orderBy('id')
             ->limit(2)
             ->get()
-            ->map(fn (Snippet $s) => [
-                'id' => $s->id,
-                'audio_url' => $s->audio_url,
-                'is_liked' => $s->is_liked,
-                'likes_count' => $s->liked_by_count,
-                'comments_count' => $s->comments_count,
-                'track' => $s->track ? [
-                    'id' => $s->track->id,
-                    'title' => $s->track->title,
-                    'preview_url' => $s->track->preview_url,
-                ] : null,
-            ]);
+            ->map(fn (Snippet $s) => $this->mapSnippetForReel($s));
 
         return response()->json([
             'snippets' => $snippets,
@@ -228,5 +222,56 @@ class ReelsController extends Controller
             ],
             'comments_count' => $snippet->comments()->count(),
         ]);
+    }
+
+    public function repostToggle(Snippet $snippet)
+    {
+        $user = auth()->user();
+        $reposted = $snippet->repostedBy()->where('user_id', $user->id)->exists();
+        if ($reposted) {
+            $snippet->repostedBy()->detach($user->id);
+        } else {
+            $snippet->repostedBy()->attach($user->id);
+        }
+        $friendIds = $user->friendIds();
+        $repostedByFriends = $snippet->repostedBy()
+            ->whereIn('users.id', $friendIds)
+            ->get(['users.id', 'users.name', 'users.avatar'])
+            ->map(fn ($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'avatar_url' => $u->avatar_url,
+            ])
+            ->values()
+            ->all();
+        return response()->json([
+            'is_reposted' => !$reposted,
+            'reposted_by_friends' => $repostedByFriends,
+        ]);
+    }
+
+    private function mapSnippetForReel(Snippet $s): array
+    {
+        $repostedByFriends = $s->relationLoaded('repostedBy')
+            ? $s->repostedBy->map(fn ($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'avatar_url' => $u->avatar_url ?? null,
+            ])->values()->all()
+            : [];
+        return [
+            'id' => $s->id,
+            'audio_url' => $s->audio_url,
+            'is_liked' => $s->is_liked,
+            'likes_count' => $s->liked_by_count,
+            'comments_count' => $s->comments_count,
+            'is_reposted' => $s->is_reposted ?? false,
+            'reposted_by_friends' => $repostedByFriends,
+            'track' => $s->track ? [
+                'id' => $s->track->id,
+                'title' => $s->track->title,
+                'preview_url' => $s->track->preview_url,
+            ] : null,
+        ];
     }
 }
