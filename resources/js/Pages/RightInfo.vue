@@ -1,6 +1,3 @@
-<script setup>
-</script>
-
 <template>
   <aside class="h-full flex flex-col bg-body p-4">
     <!-- Верхняя часть — пустое пространство -->

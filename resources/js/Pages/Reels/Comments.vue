@@ -160,7 +160,10 @@ watch(() => props.snippetId, () => {
               >
                 <!-- Аватар -->
                 <div class="flex-shrink-0">
-                  <Avatar :name="comment.user.name" :src="comment.user.avatar_url" />
+                  <Avatar :name="comment.user.name" 
+                    :src="comment.user.avatar_url" 
+                    :userId="comment.user.id"
+                  />
                 </div>
 
                 <!-- Контент комментария -->
@@ -178,7 +181,11 @@ watch(() => props.snippetId, () => {
           <!-- Форма добавления комментария -->
           <div class="comments-panel-form">
             <form @submit.prevent="submitComment" class="flex items-center gap-2">
-              <Avatar v-if="currentUser" :name="currentUser.name" :src="currentUser.avatar_url" />
+              <Avatar 
+                v-if="currentUser" :name="currentUser.name" 
+                :src="currentUser.avatar_url" 
+                :userId="currentUser.id"
+              />
               <input
                 v-model="newComment"
                 type="text"

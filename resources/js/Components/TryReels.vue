@@ -3,7 +3,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 </script>
 
 <template>
-    <div class="w-full p-6 rounded-2xl bg-gradient-to-b from-[#1F1F1F] to-[#0f0f0f] text-white">
+    <div class="w-full p-6 rounded-2xl bg-gradient-to-b from-red-700 to-[#0f0f0f] text-white">
       <div class="flex flex-col md:flex-row items-center justify-between gap-6">
         
         <!-- Текстовая часть -->

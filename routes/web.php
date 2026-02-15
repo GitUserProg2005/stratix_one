@@ -25,6 +25,9 @@ Route::middleware(['auth'])->group(function() {
          ->name('snippets.comments');
     Route::post('/snippets/{snippet}/comments', [ReelsController::class, 'createComment'])
          ->name('snippets.comments.create');
+        
+    Route::get('/profile/{user}', [ProfileController::class, 'profile'])
+        ->name('user.profile');
 });
 
 // Tracks

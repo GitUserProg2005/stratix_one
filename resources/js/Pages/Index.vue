@@ -46,8 +46,6 @@ function openTrack(trackId) {
     <div class="p-4 pb-24 space-y-10">
       <TrackSearch class="mb-6" />
 
-      <TryReels />
-
       <!-- Вы недавно слушали -->
       <section v-if="recentlyList.length" class="space-y-4">
         <h2 class="text-2xl font-bold tracking-tight">Вы недавно слушали</h2>

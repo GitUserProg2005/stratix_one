@@ -23,13 +23,13 @@ class ReelsController extends Controller
         ]);
 
         $query = Snippet::query()
-        ->with('track:id,title,preview')
-        ->whereNotNull('audio')
-        ->withCount(['likedBy', 'comments'])
-        ->withExists([
-            'likedBy as is_liked' => fn ($q) =>
-                $q->where('user_id', auth()->id())
-        ]); 
+            ->with('track:id,title,preview')
+            ->whereNotNull('audio')
+            ->withCount(['likedBy', 'comments'])
+            ->withExists([
+                'likedBy as is_liked' => fn ($q) =>
+                    $q->where('user_id', auth()->id())
+            ]); 
 
         if (!empty($data['snippetId']) || !empty($data['otherSnippetIds'])) {
 
@@ -45,21 +45,21 @@ class ReelsController extends Controller
         }
 
         $snippets = $query
-        ->orderBy('id')
-        ->limit(2)
-        ->get()
-        ->map(fn (Snippet $s) => [
-            'id' => $s->id,
-            'audio_url' => $s->audio_url,
-            'is_liked' => $s->is_liked,
-            'likes_count' => $s->liked_by_count,
-            'comments_count' => $s->comments_count,
-            'track' => $s->track ? [
-                'id' => $s->track->id,
-                'title' => $s->track->title,
-                'preview_url' => $s->track->preview_url,
-            ] : null,
-        ]);
+            ->orderBy('id')
+            ->limit(2)
+            ->get()
+            ->map(fn (Snippet $s) => [
+                'id' => $s->id,
+                'audio_url' => $s->audio_url,
+                'is_liked' => $s->is_liked,
+                'likes_count' => $s->liked_by_count,
+                'comments_count' => $s->comments_count,
+                'track' => $s->track ? [
+                    'id' => $s->track->id,
+                    'title' => $s->track->title,
+                    'preview_url' => $s->track->preview_url,
+                ] : null,
+            ]);
 
         return Inertia::render('Reels/Reels', [
             'snippets' => $snippets,
@@ -74,9 +74,11 @@ class ReelsController extends Controller
 
         $hotRecommendation = new HotRecommendation(Auth::id(), 'snippet', 2);
         $recommendedIds = $hotRecommendation->getHotRecommendation();
+
         \Log::info('RECOMMENDED IDS: ',  [
             'ids' => $recommendedIds 
         ]);
+
         $snippets = Snippet::query()
             ->with('track:id,title,preview')
             ->whereNotNull('audio')

@@ -11,8 +11,19 @@ use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
 
+use App\Models\User;
+
+
 class ProfileController extends Controller
 {
+    public function profile(User $user)
+    {
+        return Inertia::render('Auth/Profile', [
+            'user' => $user
+        ]);
+    }
+
+
     /**
      * Display the user's profile form.
      */

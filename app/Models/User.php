@@ -68,11 +68,22 @@ class User extends Authenticatable
         return $this->hasManyThrough(
             Track::class,
             Release::class,
-            'artist_id', // foreign key в releases на artists
-            'release_id', // foreign key в tracks на releases
-            'id',        // local key в artists
-            'id'         // local key в releases
+            'artist_id', 
+            'release_id',
+            'id',        
+            'id'       
         );
+    }
+
+    // Заявки в друзья
+    public function sentFriendRequests()
+    {
+        return $this->hasMany(Friendship::class, 'sender_id');
+    }
+
+    public function receivedFriendRequests()
+    {
+        return $this->hasMany(Friendship::class, 'receiver_id');
     }
 
     /**

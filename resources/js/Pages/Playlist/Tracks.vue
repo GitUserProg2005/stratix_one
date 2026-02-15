@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import PlayBtn from './PlayBtn.vue';
+import PlayBtn from '../Player/PlayBtn.vue';
 
 const props = defineProps({
     playlist: Object // ожидаем PlaylistResource

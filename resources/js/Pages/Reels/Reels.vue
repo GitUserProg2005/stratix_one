@@ -291,6 +291,7 @@ onBeforeUnmount(() => {
                       v-if="currentUser" 
                       :name="currentUser.name" 
                       :src="currentUser.avatar_url" 
+                      :userId="currentUser.id"
                     />
                     <Avatar v-else name="Wix" />
                   </button>

@@ -58,11 +58,13 @@ const emit = defineEmits(['update:isOpenSidebar']);
           <img src="/img/wix_logo4.png" class="hidden lg:flex w-8 object-contain" alt="">
 
           <div class="flex items-center gap-4 font-semibold bg-content pl-3 rounded-full">
+            <i class="fa-solid fa-user-group"></i>
             <i class="fa-regular fa-bell"></i>
             <Avatar 
               v-if="currentUser" 
               :name="currentUser.name" 
-              :src="currentUser.avatar_url" 
+              :src="currentUser.avatar_url"
+              :userId="currentUser.id" 
             />
             <Avatar v-else name="Guest" />
           </div>
