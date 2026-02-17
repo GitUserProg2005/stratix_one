@@ -75,7 +75,12 @@ async function sendMessage() {
             localStreak.value = data.streak;
         }
     } catch (err) {
-        const msg = err.response?.data?.error || 'Не удалось отправить сообщение';
+        const data = err.response?.data;
+        const msg =
+            (typeof data?.error === 'string' && data.error) ||
+            (data?.message) ||
+            (err.response?.status === 500 ? 'Ошибка сервера. Проверьте логи (Reverb и приложение).' : null) ||
+            'Не удалось отправить сообщение';
         alert(msg);
     } finally {
         isSubmitting.value = false;
