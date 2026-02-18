@@ -1,32 +1,38 @@
 # Laravel Todo
 
-Laravel 12, Inertia, Vue 3, Laravel Reverb (WebSocket), PostgreSQL, Redis, Meilisearch.
+Laravel 12, Inertia, Vue 3, Laravel Reverb (WebSocket), PostgreSQL, Redis, Meilisearch. Админка MoonShine, очереди (Redis), загрузка файлов в S3.
 
 ---
 
 ## Запуск через Docker
 
-**На хосте нужны только Docker, Docker Compose и Nginx.** PHP, Composer и Node не требуются — зависимости и сборка фронта выполняются внутри образа. Заполняете только `.env`.
+На хосте нужны только **Docker**, **Docker Compose** и **Nginx**. PHP, Composer и Node не требуются — всё выполняется в образе. Вы заполняете только `.env` в каталоге проекта на хосте; файла `.env` внутри контейнера нет — переменные передаются через `env_file` при запуске.
 
 ### Требования
 
-- **Docker** и **Docker Compose**
-- **Nginx** на хосте — отдаёт статику из каталога `public` проекта и проксирует PHP и WebSocket в контейнеры
+- Docker и Docker Compose
+- Nginx на хосте (статика + прокси на PHP-FPM и Reverb)
 
-### 1. Клонирование и .env
+---
+
+### 1. Клонирование и каталог проекта
 
 ```bash
-git clone <repo> todo && cd todo
+git clone <repo> rus_spotify && cd rus_spotify
 cp .env.example .env
 ```
 
-Заполните `.env` под Docker. Переменные из `.env` используются при сборке образа (для Vite) и при запуске контейнеров.
+Все команды `docker compose` выполняйте **из этого каталога** — по нему Compose ищет `.env`.
 
-**Обязательно:**
+---
+
+### 2. Заполнение .env (порядок)
+
+Редактируйте **только** файл `.env` на хосте (рядом с `docker-compose.yml`).
+
+**Шаг 2.1 — база и Redis (обязательно):**
 
 ```env
-APP_KEY=base64:...   # см. ниже
-
 DB_CONNECTION=pgsql
 DB_HOST=db
 DB_PORT=5432
@@ -40,8 +46,27 @@ REDIS_PASSWORD=null
 REDIS_PORT=6379
 
 QUEUE_CONNECTION=redis
+```
 
+**Шаг 2.2 — ключ приложения (обязательно):**
+
+Сгенерируйте ключ и вставьте в `.env`:
+
+```bash
+docker compose run --rm app php artisan key:generate --show
+```
+
+В выводе будет строка вида `base64:...`. В `.env` добавьте или замените:
+
+```env
+APP_KEY=base64:скопируйте_сюда_вывод_команды
+```
+
+**Шаг 2.3 — Reverb (чат, WebSocket):**
+
+```env
 BROADCAST_DRIVER=reverb
+
 REVERB_APP_ID=885140
 REVERB_APP_KEY=ваш_ключ
 REVERB_APP_SECRET=ваш_секрет
@@ -55,17 +80,27 @@ VITE_REVERB_PORT="${REVERB_PORT}"
 VITE_REVERB_SCHEME="${REVERB_SCHEME}"
 ```
 
-**Сгенерировать `APP_KEY`** (один раз, через контейнер):
+Ключи Reverb можно задать вручную (любые строки) или сгенерировать: `docker compose run --rm app php artisan reverb:install`.
 
-```bash
-docker compose run --rm app php artisan key:generate --show
+**Шаг 2.4 — S3 (для загрузки треков/превью в админке):**
+
+Если используете S3 (или совместимое хранилище), заполните **до сборки образа** и перед запуском:
+
+```env
+AWS_ACCESS_KEY_ID=ваш_ключ
+AWS_SECRET_ACCESS_KEY=ваш_секрет
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=имя_бакета
 ```
 
-Скопируйте вывод в `.env` в переменную `APP_KEY=`.
+Для S3-совместимого сервиса (MinIO, DigitalOcean Spaces и т.п.) добавьте при необходимости:
 
-Ключи Reverb можно задать вручную или сгенерировать: `docker compose run --rm app php artisan reverb:install` (если нужен вывод в консоль).
+```env
+AWS_ENDPOINT=https://...
+AWS_USE_PATH_STYLE_ENDPOINT=true
+```
 
-**Опционально — поиск (Meilisearch):**
+**Шаг 2.5 — опционально (поиск Meilisearch):**
 
 ```env
 SCOUT_DRIVER=meilisearch
@@ -73,25 +108,26 @@ MEILISEARCH_HOST=http://meilisearch:7700
 MEILISEARCH_KEY=masterKey
 ```
 
-### 2. Сборка образа
+Проверка, что переменные попадают в контейнер (после первого `up`):
 
-Composer, npm и сборка фронта выполняются внутри Docker:
+```bash
+docker compose exec app printenv APP_KEY
+docker compose exec app printenv AWS_BUCKET
+```
+
+Пустой вывод — значит в `.env` в каталоге запуска нет этой переменной или она пустая.
+
+---
+
+### 3. Сборка образа
+
+Composer, npm и сборка фронта выполняются внутри Docker. Переменные `VITE_REVERB_*` и `APP_NAME` подставляются из `.env` при сборке.
 
 ```bash
 docker compose build app
 ```
 
-При сборке в образ подставляются переменные из вашего `.env` (в т.ч. `VITE_REVERB_*` для фронта). Убедитесь, что `.env` заполнен до сборки.
-
-### 3. Копирование public на хост (для Nginx)
-
-Nginx на хосте отдаёт статику из каталога `public` проекта. Скопируйте содержимое `public` из образа в каталог проекта на хосте (один раз после первой сборки и после каждого пересборки образа):
-
-```bash
-docker compose run --rm -v "$(pwd)/public:/host/public" app sh -c "cp -r /var/www/wix/todo/public/. /host/public/"
-```
-
-В результате в `./public` появятся `build/`, `index.php` и остальные файлы из образа.
+---
 
 ### 4. Запуск контейнеров
 
@@ -99,18 +135,20 @@ docker compose run --rm -v "$(pwd)/public:/host/public" app sh -c "cp -r /var/ww
 docker compose up -d
 ```
 
-Сервисы:
+| Сервис      | Порт   | Назначение        |
+|-------------|--------|--------------------|
+| app         | 9000   | PHP-FPM            |
+| reverb      | 8081   | WebSocket (чат)    |
+| queue       | —      | Очередь (Redis)    |
+| db          | 5433   | PostgreSQL         |
+| redis       | 6380   | Redis              |
+| meilisearch | 7701   | Поиск              |
 
-| Сервис      | Порт на хосте | Назначение              |
-|-------------|----------------|-------------------------|
-| app         | 9000           | PHP-FPM                 |
-| reverb      | 8081           | WebSocket (чат)         |
-| queue       | —              | Очередь задач (Redis)   |
-| db          | 5433           | PostgreSQL              |
-| redis       | 6380           | Redis                   |
-| meilisearch | 7701           | Поиск                   |
+---
 
-Миграции (при первом запуске):
+### 5. Миграции (обязательно перед использованием)
+
+Без миграций будут ошибки вида «relation "sessions" does not exist» / «relation "cache" does not exist». Выполните один раз:
 
 ```bash
 docker compose exec app php artisan migrate --force
@@ -123,11 +161,37 @@ docker compose exec app php artisan db:seed --force
 docker compose exec app php artisan scout:import "App\Models\Track"
 ```
 
-### 5. Nginx на хосте
+---
 
-- **root** — путь к каталогу **public** проекта на хосте (например `/home/user/projects/todo/public`).
-- PHP — `fastcgi_pass 127.0.0.1:9000`.
-- WebSocket — `location /app` → `proxy_pass http://127.0.0.1:8081`.
+### 6. Права на storage и bootstrap/cache
+
+Логи, кэш и загрузки пишутся в тома `wix-storage` и `wix-cache`. PHP-FPM работает от пользователя `www-data` — каталоги должны быть ему доступны на запись. Если появляется «Permission denied» при записи в `storage/logs` или при сохранении файлов, выполните один раз:
+
+```bash
+docker compose exec app chown -R www-data:www-data /var/www/wix/todo/storage /var/www/wix/todo/bootstrap/cache
+docker compose exec app chmod -R 775 /var/www/wix/todo/storage /var/www/wix/todo/bootstrap/cache
+```
+
+---
+
+### 7. Копирование public на хост (для Nginx)
+
+Статику (CSS, JS, `build/`) отдаёт Nginx с хоста из каталога `public` проекта. Скопируйте содержимое `public` из образа в каталог проекта на хосте (один раз после первой сборки и после каждого пересборки образа):
+
+```bash
+docker compose run --rm -v "$(pwd)/public:/host/public" app sh -c "cp -r /var/www/wix/todo/public/. /host/public/"
+```
+
+В `./public` появятся `build/`, `index.php` и остальные файлы.
+
+---
+
+### 8. Nginx на хосте
+
+- **root** — путь к каталогу **public** проекта **на хосте** (например `/var/www/rus_spotify/public`). По этому пути Nginx отдаёт статику.
+- PHP обрабатывается в контейнере; путь к скрипту **внутри контейнера** всегда `/var/www/wix/todo/public/index.php` — его нужно явно передать в FastCGI.
+
+**Важно:** используйте в `location ~ \.php$` именно `fastcgi_param SCRIPT_FILENAME /var/www/wix/todo/public/index.php;` (путь в контейнере), а не `$document_root$fastcgi_script_name` (иначе будет 404).
 
 Пример конфига:
 
@@ -137,12 +201,9 @@ server {
     listen [::]:80 default_server;
 
     server_name localhost;
-    root /путь/к/проекту/todo/public;
+    root /var/www/rus_spotify/public;   # путь к public на хосте
     index index.php;
-
-    location ^~ /build/ {
-        try_files $uri =404;
-    }
+    client_max_body_size 50M;
 
     location / {
         try_files $uri $uri/ /index.php?$query_string;
@@ -150,7 +211,7 @@ server {
 
     location ~ \.php$ {
         fastcgi_pass 127.0.0.1:9000;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME /var/www/wix/todo/public/index.php;
         include fastcgi_params;
     }
 
@@ -171,27 +232,47 @@ server {
 }
 ```
 
-Перезагрузка Nginx: `sudo nginx -t && sudo systemctl reload nginx`.
+Перезагрузка Nginx:
 
-Если `root` указывает на симлинк в домашний каталог, может понадобиться: `sudo chmod o+x /home/username`.
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
 
-### 6. Проверка
+Если `root` указывает на каталог по симлинку из домашней папки, Nginx может не видеть файлы (404 на статику). Тогда на хосте выполните: `sudo chmod o+x /home/ваш_пользователь`.
+
+---
+
+### 9. Проверка
 
 - Сайт: `http://localhost` (или ваш `server_name`).
-- Логи: `docker compose logs -f reverb` (и при необходимости `app`, `queue`).
+- Логи: `docker compose logs -f app`, `docker compose logs -f reverb`, `docker compose logs -f queue`.
+
+---
+
+## Краткий порядок запуска (чек-лист)
+
+1. Клонировать репозиторий, `cp .env.example .env`.
+2. Заполнить `.env`: DB_*, REDIS_*, QUEUE_CONNECTION, BROADCAST_DRIVER, REVERB_*, VITE_REVERB_*, при необходимости AWS_*, SCOUT_*.
+3. Сгенерировать и прописать `APP_KEY`: `docker compose run --rm app php artisan key:generate --show`.
+4. Собрать образ: `docker compose build app`.
+5. Запустить контейнеры: `docker compose up -d`.
+6. Выполнить миграции: `docker compose exec app php artisan migrate --force`.
+7. При необходимости поправить права: `docker compose exec app chown -R www-data:www-data /var/www/wix/todo/storage /var/www/wix/todo/bootstrap/cache`.
+8. Скопировать public на хост: `docker compose run --rm -v "$(pwd)/public:/host/public" app sh -c "cp -r /var/www/wix/todo/public/. /host/public/"`.
+9. Настроить Nginx (root на public хоста, SCRIPT_FILENAME на путь в контейнере, proxy на 8081 для `/app`).
 
 ---
 
 ## Полезные команды
 
-Пересборка образа (после изменений кода, `_Docker/Dockerfile` или `_Docker/php.ini`):
+Пересборка образа и перезапуск:
 
 ```bash
 docker compose build app
 docker compose up -d app reverb queue
 ```
 
-После пересборки снова скопируйте public на хост (шаг 3).
+После пересборки снова скопировать public на хост (шаг 7).
 
 Логи:
 
@@ -213,7 +294,18 @@ docker compose exec app php artisan migrate --force
 docker compose down
 ```
 
-Данные приложения (логи, кэш, загрузки) хранятся в томах Docker (`wix-storage`, `wix-cache`). При `docker compose down -v` тома удаляются.
+Данные приложения хранятся в томах `wix-storage` и `wix-cache`. При `docker compose down -v` тома удаляются.
+
+---
+
+## Что есть в образе
+
+- PHP 8.2-FPM, расширения: pdo_pgsql, mbstring, zip, opcache, pcntl, redis.
+- Composer-зависимости (`composer install --no-dev`).
+- Сборка фронта (npm ci, npm run build) и `public/build` в образе.
+- Кастомный php.ini: `upload_max_filesize` / `post_max_size` 50M, `memory_limit` 256M, `max_execution_time` 120.
+- ffmpeg (для конвертации в HLS и создания сниппетов).
+- Entrypoint при старте удаляет закэшированные `packages.php` и `services.php` из bootstrap/cache, чтобы не подтягивались dev-пакеты (например Pail), которых нет в образе.
 
 ---
 
