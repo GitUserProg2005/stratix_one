@@ -34,10 +34,10 @@ services:
       context: .
       dockerfile: _Docker/Dockerfile
       args:
-        VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-}
-        VITE_REVERB_HOST: ${REVERB_HOST:-localhost}
-        VITE_REVERB_PORT: ${REVERB_PORT:-8081}
-        VITE_REVERB_SCHEME: ${REVERB_SCHEME:-http}
+        VITE_REVERB_APP_KEY: ${VITE_REVERB_APP_KEY}
+        VITE_REVERB_HOST: ${VITE_REVERB_HOST}
+        VITE_REVERB_PORT: ${VITE_REVERB_PORT}
+        VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME}
         VITE_APP_NAME: ${APP_NAME:-Laravel}
     image: wix-app:latest
     container_name: wix-app
@@ -45,8 +45,6 @@ services:
     environment:
       DB_HOST: db
       REDIS_HOST: redis
-      REVERB_HOST: reverb
-      REVERB_PORT: "8081"
     volumes:
       - wix-storage:/var/www/wix/todo/storage
       - wix-cache:/var/www/wix/todo/bootstrap/cache
