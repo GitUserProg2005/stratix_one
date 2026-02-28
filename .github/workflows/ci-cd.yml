@@ -26,6 +26,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Имя репозитория в lowercase (Docker/GHCR требуют только нижний регистр)
+      - name: Set repository name lowercase
+        id: repo
+        run: echo "lowercase=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       # 2. Войти в GitHub Container Registry
       - name: Login to GitHub Container Registry
@@ -42,8 +46,8 @@ jobs:
             --build-arg VITE_REVERB_PORT="${{ secrets.VITE_REVERB_PORT || '8081' }}" \
             --build-arg VITE_REVERB_SCHEME="${{ secrets.VITE_REVERB_SCHEME || 'https' }}" \
             --build-arg VITE_APP_NAME="${{ secrets.VITE_APP_NAME || 'Laravel' }}" \
-            -t $REGISTRY/${{ github.repository }}/app:latest \
-            -t $REGISTRY/${{ github.repository }}/app:${{ github.sha }} \
+            -t $REGISTRY/${{ steps.repo.outputs.lowercase }}/app:latest \
+            -t $REGISTRY/${{ steps.repo.outputs.lowercase }}/app:${{ github.sha }} \
             .
 
 
@@ -52,7 +56,7 @@ jobs:
         run: |
           docker run -d --name test_container \
             -p 9000:9000 \
-            $REGISTRY/${{ github.repository }}/app:latest
+            $REGISTRY/${{ steps.repo.outputs.lowercase }}/app:latest
 
           sleep 5
 
@@ -66,8 +70,8 @@ jobs:
       # 5. Push image в registry
       - name: Push Docker image
         run: |
-          docker push $REGISTRY/${{ github.repository }}/app:latest
-          docker push $REGISTRY/${{ github.repository }}/app:${{ github.sha }}
+          docker push $REGISTRY/${{ steps.repo.outputs.lowercase }}/app:latest
+          docker push $REGISTRY/${{ steps.repo.outputs.lowercase }}/app:${{ github.sha }}
 
 
       # 6. Deploy на сервер
@@ -83,8 +87,8 @@ jobs:
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             echo "Pull new image from GHCR"
-            docker pull ${{ env.REGISTRY }}/${{ github.repository }}/app:latest
-            docker tag ${{ env.REGISTRY }}/${{ github.repository }}/app:latest wix-app:latest
+            docker pull ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest
+            docker tag ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest wix-app:latest
 
             echo "Restart containers"
             docker compose up -d --remove-orphans
