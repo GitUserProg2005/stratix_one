@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: wix_user
       POSTGRES_PASSWORD: wix@228339
     ports:
-      - 5433:5432
+      - 5432:5432
 
   meilisearch:
     image: getmeili/meilisearch:v0.28
@@ -18,7 +18,7 @@ services:
       - MEILI_NO_ANALYTICS=true
       - MEILI_MASTER_KEY=masterKey
     ports:
-      - 7701:7700
+      - 7700:7700
     volumes:
       - meilisearch-data:/meili_data
 
@@ -26,7 +26,7 @@ services:
     image: redis:7-alpine
     container_name: redis-messenger
     ports: 
-      - "6380:6379"
+      - "6379:6379"
     restart: unless-stopped 
 
   app:
