@@ -31,7 +31,7 @@ onMounted(async () => {
 
     <!-- Друзья (только для авторизованных) -->
     <div v-if="currentUser" class="mb-4 shrink-0">
-      <h3 class="title-2 mb-3">Мои друзья</h3>
+      <h3 class="title-2 mb-3">Мои друзья 111</h3>
       <div v-if="friendsLoading" class="text-gray-400 text-sm">Загрузка...</div>
       <div v-else-if="friends.length === 0" class="text-gray-400 text-sm">
         Пока никого нет. Добавляйте друзей из профилей.
