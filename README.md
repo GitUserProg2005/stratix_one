@@ -249,6 +249,48 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ---
 
+### 10. Бэкапы (S3) и хостовый cron
+
+Бэкапы делаются пакетом [spatie/laravel-backup](https://github.com/spatie/laravel-backup): дамп БД и файлы приложения упаковываются и отправляются на диск `s3` (настройки в `config/backup.php`). Запуск по расписанию вынесен на **локальный cron** на хосте — без отдельного контейнера.
+
+**Требования:**
+
+- В `.env` заполнены переменные S3 (см. шаг 2.4): `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `AWS_BUCKET`.
+- На сервере установлен и запущен **cron** (обычно уже есть: `systemctl status cron`).
+
+**Ручной запуск (проверка):**
+
+```bash
+cd /var/www/rus_spotify
+docker compose exec app php /var/www/wix/todo/artisan backup:run
+```
+
+Успешный запуск создаёт архив на S3. Ошибки выводятся в консоль.
+
+**Настройка cron на хосте:**
+
+1. Откройте crontab пользователя, под которым крутится проект (или root):
+   ```bash
+   crontab -e
+   ```
+2. Добавьте строку. Пример — раз в день в 03:00, с записью лога и статуса:
+   ```cron
+   0 3 * * * cd /var/www/rus_spotify && docker compose exec -T app php /var/www/wix/todo/artisan backup:run >> /var/www/rus_spotify/backup.log 2>&1; echo "$(date -Iseconds) exit=$?" >> /var/www/rus_spotify/backup-status.log
+   ```
+   Путь `/var/www/rus_spotify` замените на фактический каталог проекта на хосте. Флаг `-T` нужен для запуска из cron (без TTY).
+
+3. Сохраните и выйдите. Задача будет выполняться по расписанию.
+
+Другие варианты расписания и отслеживания успеха/провала — в файле **`_Docker/cron-host.example`** (письма от Laravel, MAILTO, только лог без статуса и т.д.).
+
+**Отслеживание результата:**
+
+- **backup.log** — полный вывод команды (ошибки Laravel/S3 видны здесь).
+- **backup-status.log** — после каждого запуска строка вида `2025-03-04T03:00:00+00:00 exit=0`; `exit=0` — успех, иначе ошибка. Просмотр: `tail -5 /var/www/rus_spotify/backup-status.log`.
+- **Почта:** в `config/backup.php` включены уведомления при успехе и при ошибке. Настройте в `.env` отправку почты и укажите свой адрес в `config/backup.php` → `notifications.mail.to`, чтобы получать письма о результате бэкапа.
+
+---
+
 ## Краткий порядок запуска (чек-лист)
 
 1. Клонировать репозиторий, `cp .env.example .env`.
@@ -260,6 +302,7 @@ sudo nginx -t && sudo systemctl reload nginx
 7. При необходимости поправить права: `docker compose exec app chown -R www-data:www-data /var/www/wix/todo/storage /var/www/wix/todo/bootstrap/cache`.
 8. Скопировать public на хост: `docker compose run --rm -v "$(pwd)/public:/host/public" app sh -c "cp -r /var/www/wix/todo/public/. /host/public/"`.
 9. Настроить Nginx (root на public хоста, SCRIPT_FILENAME на путь в контейнере, proxy на 8081 для `/app`).
+10. (Опционально) Настроить бэкапы в S3 и хостовый cron — см. раздел «Бэкапы (S3) и хостовый cron»; примеры в `_Docker/cron-host.example`.
 
 ---
 
@@ -288,6 +331,12 @@ docker compose logs -f queue
 docker compose exec app php artisan migrate --force
 ```
 
+Ручной запуск бэкапа (в S3):
+
+```bash
+docker compose exec app php /var/www/wix/todo/artisan backup:run
+```
+
 Остановка:
 
 ```bash
@@ -300,7 +349,7 @@ docker compose down
 
 ## Что есть в образе
 
-- PHP 8.2-FPM, расширения: pdo_pgsql, mbstring, zip, opcache, pcntl, redis.
+- PHP 8.4-FPM, расширения: pdo_pgsql, pgsql, mbstring, zip, opcache, pcntl, redis.
 - Composer-зависимости (`composer install --no-dev`).
 - Сборка фронта (npm ci, npm run build) и `public/build` в образе.
 - Кастомный php.ini: `upload_max_filesize` / `post_max_size` 50M, `memory_limit` 256M, `max_execution_time` 120.
