@@ -5,9 +5,14 @@
 ############################
 FROM php:8.4-fpm-bookworm AS base
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# PostgreSQL 16 client (pg_dump) — мажорная версия должна совпадать с сервером
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg curl \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
     libpq-dev \
-    postgresql-client \
+    postgresql-client-16 \
     libzip-dev \
     libonig-dev \
     unzip \
