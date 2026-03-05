@@ -15,6 +15,7 @@ use App\MoonShine\Resources\UserResource;
 use App\MoonShine\Resources\ReleaseResource;
 use App\MoonShine\Resources\TrackResource;
 use App\MoonShine\Resources\TagResource;
+use App\MoonShine\Resources\RateResource;
 
 class MoonShineServiceProvider extends ServiceProvider
 {
@@ -33,6 +34,7 @@ class MoonShineServiceProvider extends ServiceProvider
                 ReleaseResource::class,
                 TrackResource::class,
                 TagResource::class,
+                RateResource::class,
             ])
             ->pages([
                 ...$config->getPages(),

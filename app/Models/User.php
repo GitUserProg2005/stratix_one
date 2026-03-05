@@ -28,6 +28,7 @@ class User extends Authenticatable
         'avatar',
         'email',
         'password',
+        'rate_id',
     ];
 
     /**
@@ -103,6 +104,11 @@ class User extends Authenticatable
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function rate(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Rate::class);
     }
 
     /**

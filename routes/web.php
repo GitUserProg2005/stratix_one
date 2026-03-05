@@ -13,6 +13,7 @@ use App\Http\Controllers\ReelsController;
 use App\Http\Controllers\FriendShipController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ShareController;
+use App\Http\Controllers\PaymentController;
 
 // Reels
 Route::get('/reels', [ReelsController::class, 'index'])->name('reels.index');
@@ -58,6 +59,13 @@ Route::get('/', [TrackController::class, 'index'])->name('tracks.index');
 Route::get('/track/{trackId}', [TrackController::class, 'show'])->name('tracks.show');
 Route::get('/track-search', [TrackController::class, 'search'])->name('tracks.search');
 Route::post('/track/{trackId}/stop', [TrackController::class, 'stop'])->name('tracks.stop')->middleware('auth');
+
+// Subscription / Payment (YooKassa)
+Route::get('/rates', [PaymentController::class, 'rates'])->name('rates');
+Route::post('/payment/purchase', [PaymentController::class, 'handlePurchase'])->name('payment.purchase')->middleware('auth');
+Route::get('/payment/callback', [PaymentController::class, 'callbackPayment'])->name('callback.payment');
+Route::post('/payment/callback', [PaymentController::class, 'callbackPayment'])->name('callback.payment.post');
+Route::get('/payment/status/{paymentId}', [PaymentController::class, 'paymentStatus'])->name('payment.status')->middleware('auth');
 
 // Playlists
 Route::prefix('playlists')->middleware('auth')->group(function () {

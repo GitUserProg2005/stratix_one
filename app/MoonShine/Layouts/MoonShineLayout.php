@@ -35,6 +35,7 @@ use MoonShine\MenuManager\MenuItem;
 use App\MoonShine\Resources\ReleaseResource;
 use App\MoonShine\Resources\TrackResource;
 use App\MoonShine\Resources\TagResource;
+use App\MoonShine\Resources\RateResource;
 
 final class MoonShineLayout extends CompactLayout
 {
@@ -53,6 +54,7 @@ final class MoonShineLayout extends CompactLayout
             MenuItem::make('Releases', ReleaseResource::class),
             MenuItem::make('Tracks', TrackResource::class),
             MenuItem::make('Tags', TagResource::class),
+            MenuItem::make('Rates', RateResource::class),
         ];
     }
 

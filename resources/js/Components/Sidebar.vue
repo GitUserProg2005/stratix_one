@@ -78,13 +78,13 @@ const emit = defineEmits(['update:isOpenSidebar']);
             <p class="context">
               Без рекламы и высокое качество звука
             </p>
-            <button
-              type="button"
+            <a
+              :href="route('rates')"
               class="primary-btn mt-2 inline-flex items-center gap-2"
             >
               Оформить подписку
               <i class="fa-solid fa-crown text-xs" />
-            </button>
+            </a>
           </div>
         </div>
 
