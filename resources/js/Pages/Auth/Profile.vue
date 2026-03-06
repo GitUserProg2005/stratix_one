@@ -5,7 +5,7 @@ import { usePage, router } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import Avatar from '@/Components/Avatar.vue';
-import Back from '@/Pages/Player/Back.vue';
+import Back from '@/Components/BackButton.vue';
 
 const props = defineProps({
     user: Object,
@@ -25,7 +25,7 @@ function goBack() {
     if (window.history.length > 1) {
         window.history.back();
     } else {
-        router.visit(route('tracks.index'));
+        router.visit(route('dashboard'));
     }
 }
 

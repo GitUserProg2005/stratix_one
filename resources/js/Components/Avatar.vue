@@ -26,7 +26,7 @@ function handleImageError() {
 
 <template>
     <Link
-        v-if="!noLink"
+        v-if="!noLink && userId != null"
         :href="route('user.profile', userId)"
         class="inline-block shrink-0 overflow-hidden rounded-full"
         :class="sizeClass"

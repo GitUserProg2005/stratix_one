@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
-import Playlists from '@/Pages/Playlist/Playlists.vue';
 import Notifications from './Notifications.vue';
 
 const page = usePage();
@@ -87,8 +86,6 @@ const emit = defineEmits(['update:isOpenSidebar']);
             </a>
           </div>
         </div>
-
-        <Playlists />
       </div>
     </aside>
 </template>

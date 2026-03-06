@@ -1,64 +1,22 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\CounterController;
 use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-use App\Http\Controllers\IndexController;
-use App\Http\Controllers\TrackController;
-use App\Http\Controllers\PlaylistController;
-use App\Http\Controllers\ReelsController;
-use App\Http\Controllers\FriendShipController;
-use App\Http\Controllers\ChatController;
-use App\Http\Controllers\ShareController;
-use App\Http\Controllers\PaymentController;
+// Тест WebSocket — счётчик (без БД, кэш + ShouldBroadcastNow)
+Route::get('/counter', [CounterController::class, 'index'])->name('counter');
+Route::post('/counter/increment', [CounterController::class, 'increment'])->name('counter.increment');
 
-// Reels
-Route::get('/reels', [ReelsController::class, 'index'])->name('reels.index');
-Route::get('/get-more-reels', [ReelsController::class, 'getReels'])->name('reels.get');
-Route::get('/snippets/search', [ReelsController::class, 'search'])
-    ->name('snippets.search');
-Route::post('/snippet/{snippetId}/stop', [ReelsController::class, 'stop'])
-    ->name('snippets.stop')->middleware('auth');
-
-Route::middleware(['auth'])->group(function() {
-    Broadcast::routes();
-
-    Route::post('/snippets/{snippet}/like', [ReelsController::class, 'likeToggle'])
-         ->name('snippets.like');
-    Route::post('/snippets/{snippet}/repost', [ReelsController::class, 'repostToggle'])
-         ->name('snippets.repost');
-    Route::get('/snippets/{snippet}/comments', [ReelsController::class, 'getComments'])
-         ->name('snippets.comments');
-    Route::post('/snippets/{snippet}/comments', [ReelsController::class, 'createComment'])
-         ->name('snippets.comments.create');
-
-    Route::get('/profile/{user}', [ProfileController::class, 'profile'])
-        ->name('user.profile');
-
-    // Друзья и заявки
-    Route::get('/friends', [FriendShipController::class, 'friends'])->name('friends.index');
-    Route::get('/friends/requests', [FriendShipController::class, 'pendingRequests'])->name('friends.requests');
-    Route::post('/friends/request/{user}', [FriendShipController::class, 'sendRequest'])->name('friends.send');
-    Route::post('/friends/accept/{friendship}', [FriendShipController::class, 'accept'])->name('friends.accept');
-    Route::post('/friends/reject/{friendship}', [FriendShipController::class, 'reject'])->name('friends.reject');
-
-    // Чат с другом (чат создаётся при первом сообщении)
-    Route::get('/chat/with/{user}', [ChatController::class, 'showWithUser'])->name('chat.with');
-    Route::get('/chat/list', [ChatController::class, 'listChats'])->name('chat.list');
-    Route::post('/chat/messages', [ChatController::class, 'storeMessage'])->name('chat.messages.store');
-
-    // Поделиться сниппетом в чаты
-    Route::post('/share/snippet', [ShareController::class, 'share'])->name('share.snippet');
-});
-
-// Tracks
-Route::get('/', [TrackController::class, 'index'])->name('tracks.index');
-Route::get('/track/{trackId}', [TrackController::class, 'show'])->name('tracks.show');
-Route::get('/track-search', [TrackController::class, 'search'])->name('tracks.search');
-Route::post('/track/{trackId}/stop', [TrackController::class, 'stop'])->name('tracks.stop')->middleware('auth');
+// Главная — редирект на дашборд для авторизованных, welcome для гостей
+Route::get('/', function () {
+    return auth()->check()
+        ? redirect()->route('dashboard')
+        : redirect()->route('welcome');
+})->name('home');
 
 // Subscription / Payment (YooKassa)
 Route::get('/rates', [PaymentController::class, 'rates'])->name('rates');
@@ -67,41 +25,6 @@ Route::get('/payment/callback', [PaymentController::class, 'callbackPayment'])->
 Route::post('/payment/callback', [PaymentController::class, 'callbackPayment'])->name('callback.payment.post');
 Route::get('/payment/status/{paymentId}', [PaymentController::class, 'paymentStatus'])->name('payment.status')->middleware('auth');
 
-// Playlists
-Route::prefix('playlists')->middleware('auth')->group(function () {
-    // Получение всех плейлистов пользователя
-    Route::get('/my-playlists', [PlaylistController::class, 'getPlaylists'])
-        ->name('get.playlists');
-
-    // Создание нового плейлиста
-    Route::post('/create', [PlaylistController::class, 'createPlaylist'])
-        ->name('create.playlists');
-
-    // Просмотр конкретного плейлиста
-    Route::get('/my-playlists/{playlistId}', [PlaylistController::class, 'showPlaylist'])
-        ->name('playlist.show');
-
-    // Обновление плейлиста (название и т.д.)
-    Route::patch('/my-playlists/{playlistId}', [PlaylistController::class, 'updatePlaylist'])
-        ->name('playlist.update');
-
-    // Удаление плейлиста
-    Route::delete('/my-playlists/{playlistId}', [PlaylistController::class, 'destroyPlaylist'])
-        ->name('playlist.destroy');
-
-    // Добавление трека в плейлист
-    Route::post('/add-track-to-playlist/{playlistId}', [PlaylistController::class, 'addTrackToPlaylist'])
-        ->name('playlist.add.track');
-
-    // Удаление трека из плейлиста
-    Route::delete('/my-playlists/{playlistId}/tracks/{trackId}', [PlaylistController::class, 'removeTrackFromPlaylist'])
-        ->name('playlist.remove.track');
-
-    // Новый метод: получение плейлистов без конкретного трека
-    Route::get('/without-track', [PlaylistController::class, 'getPlaylistsWithoutTrack'])
-        ->name('get.playlists.without.track');
-});
-
 Route::get('/welcome', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -109,11 +32,14 @@ Route::get('/welcome', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
-});
+})->name('welcome');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// Публичный просмотр профиля по id (нужен для Avatar в Sidebar и др.)
+Route::get('/profile/{user}', [ProfileController::class, 'profile'])->name('user.profile')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

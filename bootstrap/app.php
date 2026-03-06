@@ -17,9 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // YooKassa webhook приходит POST без CSRF
+        // YooKassa webhook приходит POST без CSRF; счётчик — тест без обязательного токена
         $middleware->validateCsrfTokens(except: [
             'payment/callback',
+            'counter/increment',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Snippet;
 use App\Models\Comment;
 
-use App\Services\Home\HotRecommendation;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -65,17 +63,7 @@ class ReelsController extends Controller
 
     public function getReels(Request $request)
     {
-        // $data = $request->validate([
-        //     'lastSnippetId' => 'required|integer|exists:snippets,id',
-        // ]);
-
-        $hotRecommendation = new HotRecommendation(Auth::id(), 'snippet', 2);
-        $recommendedIds = $hotRecommendation->getHotRecommendation();
-
-        \Log::info('RECOMMENDED IDS: ',  [
-            'ids' => $recommendedIds 
-        ]);
-
+        $lastId = $request->integer('lastSnippetId', 0);
         $friendIds = auth()->check() ? auth()->user()->friendIds() : [];
 
         $snippets = Snippet::query()
@@ -84,6 +72,7 @@ class ReelsController extends Controller
                 'repostedBy' => fn ($q) => $friendIds ? $q->whereIn('users.id', $friendIds)->select('users.id', 'users.name', 'users.avatar') : $q->whereRaw('1 = 0'),
             ])
             ->whereNotNull('audio')
+            ->when($lastId > 0, fn ($q) => $q->where('id', '>', $lastId))
             ->withCount(['likedBy', 'comments'])
             ->withExists([
                 'likedBy as is_liked' => fn ($q) =>
@@ -92,7 +81,6 @@ class ReelsController extends Controller
             ->withExists([
                 'repostedBy as is_reposted' => fn ($q) => $q->where('user_id', auth()->id()),
             ])
-            ->whereIn('id', $recommendedIds)
             ->orderBy('id')
             ->limit(2)
             ->get()
