@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
-import Notifications from './Notifications.vue';
 
 const page = usePage();
 const currentUser = computed(() => page.props.auth?.user || null);
@@ -58,8 +57,7 @@ const emit = defineEmits(['update:isOpenSidebar']);
           <img src="/img/wix_logo4.png" class="hidden lg:flex w-8 object-contain" alt="">
 
           <div class="flex items-center gap-4 font-semibold bg-content pl-3 rounded-full">
-            <Notifications v-if="currentUser" />
-            <i v-else class="fa-regular fa-bell"></i>
+            <i class="fa-regular fa-bell"></i>
             <Avatar 
               v-if="currentUser" 
               :name="currentUser.name" 

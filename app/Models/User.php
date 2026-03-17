@@ -10,8 +10,6 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-
 
 class User extends Authenticatable
 {
@@ -63,76 +61,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function likedSnippets(): BelongsToMany {
-        return $this->belongsToMany(Snippet::class, 'liked_snippets')
-            ->withTimestamps();
-    }
-
-    public function listens(): HasMany
-    {
-        return $this->hasMany(UserListen::class);
-    }
-
-    public function tracks()
-    {
-        return $this->hasManyThrough(
-            Track::class,
-            Release::class,
-            'artist_id', 
-            'release_id',
-            'id',        
-            'id'       
-        );
-    }
-
-    // Заявки в друзья
-    public function sentFriendRequests()
-    {
-        return $this->hasMany(Friendship::class, 'sender_id');
-    }
-
-    public function receivedFriendRequests()
-    {
-        return $this->hasMany(Friendship::class, 'receiver_id');
-    }
-
-    public function chats(): BelongsToMany
-    {
-        return $this->belongsToMany(Chat::class, 'chat_user')->withTimestamps();
-    }
-
-    public function messages(): HasMany
-    {
-        return $this->hasMany(Message::class);
-    }
-
     public function rate(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\Rate::class);
-    }
-
-    /**
-     * ID друзей (взаимно принятые заявки).
-     */
-    public function friendIds(): array
-    {
-        return (array) \App\Models\Friendship::where('status', 'accepted')
-            ->where(function ($q) {
-                $q->where('sender_id', $this->id)->orWhere('receiver_id', $this->id);
-            })
-            ->get()
-            ->map(fn (Friendship $f) => $f->sender_id === $this->id ? $f->receiver_id : $f->sender_id)
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Сниппеты, которые пользователь репостнул.
-     */
-    public function repostedSnippets(): BelongsToMany
-    {
-        return $this->belongsToMany(Snippet::class, 'reposted_snippets')->withTimestamps();
     }
 
     /**
@@ -155,28 +86,6 @@ class User extends Authenticatable
                 'error' => $e->getMessage()
             ]);
             return null;
-        }
-    }
-
-    public function getTracksCountAttribute(): int
-    {
-        return $this->tracks()->count();
-    }
-
-    public function getTotalDurationAttribute(): ?string
-    {
-        $totalSeconds = $this->tracks->sum('duration');
-        if (!$totalSeconds) return null;
-
-        $hours = floor($totalSeconds / 3600);
-        $minutes = floor(($totalSeconds % 3600) / 60);
-        $seconds = round($totalSeconds % 60);
-
-        // Если часов нет, возвращаем только мм:сс
-        if ($hours > 0) {
-            return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
-        } else {
-            return sprintf('%02d:%02d', $minutes, $seconds);
         }
     }
 }

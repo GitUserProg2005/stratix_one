@@ -32,9 +32,6 @@ use MoonShine\UI\Components\{Breadcrumbs,
     When};
 use App\MoonShine\Resources\UserResource;
 use MoonShine\MenuManager\MenuItem;
-use App\MoonShine\Resources\ReleaseResource;
-use App\MoonShine\Resources\TrackResource;
-use App\MoonShine\Resources\TagResource;
 use App\MoonShine\Resources\RateResource;
 
 final class MoonShineLayout extends CompactLayout
@@ -51,9 +48,6 @@ final class MoonShineLayout extends CompactLayout
         return [
             ...parent::menu(),
             MenuItem::make('Users', UserResource::class),
-            MenuItem::make('Releases', ReleaseResource::class),
-            MenuItem::make('Tracks', TrackResource::class),
-            MenuItem::make('Tags', TagResource::class),
             MenuItem::make('Rates', RateResource::class),
         ];
     }

@@ -13,9 +13,7 @@ Route::post('/counter/increment', [CounterController::class, 'increment'])->name
 
 // Главная — редирект на дашборд для авторизованных, welcome для гостей
 Route::get('/', function () {
-    return auth()->check()
-        ? redirect()->route('dashboard')
-        : redirect()->route('welcome');
+    return Inertia::render('Index');
 })->name('home');
 
 // Subscription / Payment (YooKassa)
