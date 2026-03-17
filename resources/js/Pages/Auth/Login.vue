@@ -30,19 +30,22 @@ const submit = () => {
     <GuestLayout>
         <Head title="Вход" />
 
-        <h1 class="title text-white mb-6">Вход</h1>
+        <h1 class="title mb-2">Вход</h1>
+        <p class="context mb-6">
+            Войдите в аккаунт, чтобы продолжить работу.
+        </p>
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-400">
+        <div v-if="status" class="mb-4 t-small text-green-600">
             {{ status }}
         </div>
 
         <form @submit.prevent="submit" class="space-y-5">
             <div>
-                <label for="email" class="block text-sm text-gray-400 mb-1">Email</label>
+                <label for="email" class="t-mini text-gray-600 mb-1 block">Email</label>
                 <input
                     id="email"
                     type="email"
-                    class="search-input block w-full text-white"
+                    class="input block w-full"
                     v-model="form.email"
                     required
                     autofocus
@@ -52,11 +55,11 @@ const submit = () => {
             </div>
 
             <div>
-                <label for="password" class="block text-sm text-gray-400 mb-1">Пароль</label>
+                <label for="password" class="t-mini text-gray-600 mb-1 block">Пароль</label>
                 <input
                     id="password"
                     type="password"
-                    class="search-input block w-full text-white"
+                    class="input block w-full"
                     v-model="form.password"
                     required
                     autocomplete="current-password"
@@ -65,21 +68,25 @@ const submit = () => {
             </div>
 
             <div class="flex items-center">
-                <Checkbox name="remember" v-model:checked="form.remember" class="rounded border-gray-500 text-[#7111EE] focus:ring-[#7111EE]" />
-                <span class="ms-2 text-sm text-gray-400">Запомнить меня</span>
+                <Checkbox
+                    name="remember"
+                    v-model:checked="form.remember"
+                    class="rounded border-gray-300 text-[#e97358] focus:ring-[#e97358]"
+                />
+                <span class="ms-2 t-small text-gray-600">Запомнить меня</span>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="text-sm text-gray-400 hover:text-white transition order-2 sm:order-1"
+                    class="t-small text-gray-600 hover:text-gray-900 transition order-2 sm:order-1"
                 >
                     Забыли пароль?
                 </Link>
                 <button
                     type="submit"
-                    class="primary-btn w-full sm:w-auto order-1 sm:order-2 disabled:opacity-50"
+                    class="primary-btn w-full sm:w-auto order-1 sm:order-2"
                     :disabled="form.processing"
                 >
                     Войти

@@ -69,13 +69,13 @@ import '../../css/custom.css';
                         </p>
 
                         <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="p-4 rounded-xl bg-white border border-gray-200">
+                            <div class="p-4 rounded-xl bg-white">
                                 <div class="title-2">Card</div>
                                 <div class="t-small text-gray-600 mt-1">
                                     Белая карточка на фоне content-блока.
                                 </div>
                             </div>
-                            <div class="p-4 rounded-xl bg-white border border-gray-200">
+                            <div class="p-4 rounded-xl bg-white">
                                 <div class="title-2">Card</div>
                                 <div class="t-small text-gray-600 mt-1">
                                     Подходит для списков / настроек.

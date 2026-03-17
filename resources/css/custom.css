@@ -24,16 +24,29 @@ body {
 .bg-body { @apply bg-white; }
 .bg-content { @apply bg-gray-50; }
 
+/* Base block: единое место для отступов, скруглений и базовой типографики */
+.block-base {
+    @apply p-6 rounded-3xl;
+}
+
 /* Content blocks */
-.content { @apply bg-gray-50 p-6 rounded-xl; }
-.content-p-0 { @apply bg-gray-50; }
+.content { @apply block-base bg-gray-50; }
+.content-p-0 { @apply bg-gray-50 rounded-3xl; }
 
 /* Dark content blocks (same spacing as .content) */
-.content-dark { @apply bg-[#1a1a1a] p-6 rounded-xl text-white; }
+.content-dark { @apply block-base bg-[#1a1a1a] text-white; }
 .bg-content-dark { @apply bg-[#1a1a1a] text-white; }
 
+/* Glass / backdrop-blur block */
+.content-glass {
+    @apply block-base bg-white/70 backdrop-blur-md border border-white/60;
+}
+
 /* Typography */
-.title-font { font-family: 'customFont', sans-serif; @apply text-2xl font-semibold tracking-tight; }
+.title-font {
+    font-family: 'customFont', sans-serif;
+    @apply text-2xl font-semibold tracking-tight break-words;
+}
 .title { @apply text-2xl font-semibold tracking-tight; }
 .title-2 { @apply text-xl font-semibold tracking-tight; }
 
