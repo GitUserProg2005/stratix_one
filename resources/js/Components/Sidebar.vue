@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import Avatar from './Avatar.vue';
+import { Link } from '@inertiajs/vue3';
 
 const page = usePage();
 const currentUser = computed(() => page.props.auth?.user || null);
@@ -14,6 +14,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:isOpenSidebar']);
+
+const closeSidebar = () => {
+    emit('update:isOpenSidebar', false);
+};
 </script>
 
 <template>
@@ -31,57 +35,83 @@ const emit = defineEmits(['update:isOpenSidebar']);
         lg:translate-x-0 lg:relative 
         z-[100]
         lg:z-[50]
-        bg-transparent
-        backdrop-blur-2xl
-        lg:bg-body
-        pt-4
-        w-4/5 sm:w-72 lg:w-96
+        w-4/5 sm:w-72 lg:w-full
       "
-      :class="{ 'translate-x-0': isOpenSidebar, '-translate-x-full': !isOpenSidebar }"
+      :class="isOpenSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     >
-      <div class="flex flex-col w-full">
-        <div class="flex items-center justify-between px-4 w-full mb-4 lg:hidden">
-            <h2 class="title">Мой профиль</h2>
+      <div class="h-full bg-content rounded-3xl flex flex-col p-0">
+        <div class="p-4 flex flex-col h-full gap-4">
+          <!-- Top card -->
+          <div class="bg-white/5 p-0">
+            <div class="px-5 pb-4 flex items-center justify-between lg:justify-center">
+              <div class="flex items-center justify-center gap-3">
+                <span class="title-font-3">STRATIX</span>
+              </div>
 
-            <button
-            class="lg:hidden"
-            @click="emit('update:isOpenSidebar', false)"
-            >
-            <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <div class="flex justify-between items-center 
-        w-full px-4
-        ">
-          <img src="/img/wix_logo4.png" class="hidden lg:flex w-8 object-contain" alt="">
-
-          <div class="flex items-center gap-4 font-semibold bg-content pl-3 rounded-full">
-            <i class="fa-regular fa-bell"></i>
-            <Avatar 
-              v-if="currentUser" 
-              :name="currentUser.name" 
-              :src="currentUser.avatar_url"
-              :userId="currentUser.id" 
-            />
-            <Avatar v-else name="Guest" />
+              <!-- Mobile close -->
+              <button
+                class="lg:hidden p-2"
+                @click="closeSidebar"
+                aria-label="Close sidebar"
+              >
+                <span class="block w-7 h-[2px] bg-white"></span>
+                <span class="block w-7 h-[2px] bg-white mt-1"></span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- Премиум -->
-        <div class="px-4 mb-4 mt-4">
-          <div class="bg-content p-4 rounded-2xl w-full space-y-2">
-            <h3 class="title-2">Приобрести премиум</h3>
-            <p class="context">
-              Без рекламы и высокое качество звука
-            </p>
-            <a
-              :href="route('rates')"
-              class="primary-btn mt-2 inline-flex items-center gap-2"
-            >
-              Оформить подписку
-              <i class="fa-solid fa-crown text-xs" />
-            </a>
+          <!-- Nav card -->
+          <nav class="flex-1 min-h-0 p-0 overflow-hidden">
+            <div class="px-2 pt-2 pb-1 h-full flex flex-col">
+              <div class="flex-1 min-h-0 overflow-y-auto custom-scroll">
+                <div class="space-y-1 px-1">
+                  <Link
+                    :href="route('dashboard')"
+                    class="sidebar-nav-link"
+                    @click="closeSidebar"
+                  >
+                    <i class="fa-solid fa-grid-2 text-sm"></i>
+                    Дашборд
+                  </Link>
+
+                  <Link
+                    :href="route('counter')"
+                    class="sidebar-nav-link"
+                    @click="closeSidebar"
+                  >
+                    <i class="fa-solid fa-hashtag text-sm"></i>
+                    Counter
+                  </Link>
+
+                  <Link
+                    :href="route('rates')"
+                    class="sidebar-nav-link"
+                    @click="closeSidebar"
+                  >
+                    <i class="fa-solid fa-credit-card text-sm"></i>
+                    Оплата
+                  </Link>
+
+                  <a
+                    href="#"
+                    class="sidebar-nav-link"
+                    @click.prevent="closeSidebar"
+                  >
+                    <i class="fa-solid fa-cubes text-sm"></i>
+                    Компоненты
+                  </a>
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          <div class="content-dark space-y-4">
+            <div>
+              <h2 class="">Скачивайте моб. приложение!</h2>
+              <p class="context">Пользуйтесь нашей платформой с телефона</p>
+            </div>
+
+            <button class="primary-btn-white w-full">Установить</button>
           </div>
         </div>
       </div>

@@ -16,6 +16,15 @@ Route::get('/', function () {
     return Inertia::render('Index');
 })->name('home');
 
+Route::get('/welcome', function () {
+    return Inertia::render('Welcome');
+})->name('welcome');
+
+// UI kit / components preview (public)
+Route::get('/uiux', function () {
+    return Inertia::render('UIUX');
+})->name('uiux');
+
 // Subscription / Payment (YooKassa)
 Route::get('/rates', [PaymentController::class, 'rates'])->name('rates');
 Route::post('/payment/purchase', [PaymentController::class, 'handlePurchase'])->name('payment.purchase')->middleware('auth');

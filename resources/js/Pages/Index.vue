@@ -1,198 +1,169 @@
 <script setup>
-import '../../css/custom.css';
+import DashboardLayout from '@/Layouts/DashboardLayout.vue';
+import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.vue';
 </script>
 
 <template>
-    <div class="bg-body min-h-screen">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <header class="py-8 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-gray-50 border border-gray-200" />
-                    <div class="flex flex-col leading-tight">
-                        <span class="title-font">STRATIX</span>
-                        <span class="t-mini text-gray-500">UI kit preview</span>
+    <DashboardLayout>
+        <div class="space-y-6 content rounded-3xl">
+            <!-- Top metrics -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                <div class="content-dashboard">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="title-2">Total Projects</h2>
+                            <p class="context mt-2">Увеличилось за последний месяц</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                            <i class="fa-solid fa-arrow-up-right text-green-700" />
+                        </div>
+                    </div>
+                    <div class="mt-4 text-4xl font-bold">24</div>
+                </div>
+
+                <div class="content-dashboard">
+                    <h2 class="title-2">Ended Projects</h2>
+                    <p class="context mt-2">Было закрыто за последний месяц</p>
+                    <div class="mt-4 text-4xl font-bold">10</div>
+                </div>
+
+                <div class="content-dashboard">
+                    <h2 class="title-2">Running Projects</h2>
+                    <p class="context mt-2">Активно в работе</p>
+                    <div class="mt-4 text-4xl font-bold">12</div>
+                </div>
+
+                <div class="content-dashboard">
+                    <h2 class="title-2">Pending Projects</h2>
+                    <p class="context mt-2">Требуют внимания</p>
+                    <div class="mt-4 text-4xl font-bold">2</div>
+                </div>
+            </div>
+
+            <!-- Analytics + reminders -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="lg:col-span-2 content-dashboard">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="title-2">Project Analytics</h2>
+                        <button class="tag">View</button>
+                    </div>
+
+                    <div class="mt-5">
+                        <div class="h-40 w-full rounded-2xl bg-gray-100 flex items-center justify-center">
+                            <div class="text-gray-400 font-medium">Chart placeholder</div>
+                        </div>
+                        <p class="context mt-3">
+                            Заглушка под график/диаграмму (вынесем в компонент позже).
+                        </p>
                     </div>
                 </div>
 
-                <nav class="hidden md:flex items-center gap-6">
-                    <a class="t-small text-gray-700 hover:text-black transition-colors" href="#">Главная</a>
-                    <a class="t-small text-gray-700 hover:text-black transition-colors" href="#">Компоненты</a>
-                    <a class="t-small text-gray-700 hover:text-black transition-colors" href="#">Оплата</a>
-                    <a class="t-small text-gray-700 hover:text-black transition-colors" href="#">Counter</a>
-                </nav>
-
-                <div class="flex items-center gap-3">
-                    <button class="tag">Demo</button>
-                    <button class="primary-btn">Войти</button>
-                </div>
-            </header>
-
-            <main class="pb-16 space-y-8">
-                <!-- HERO -->
-                <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="content flex flex-col justify-center">
-                        <h1 class="title-font">Минималистичный UI-kit</h1>
-                        <p class="context mt-2 max-w-prose">
-                            Витрина базовых классов: типографика, кнопки, блоки, инпуты и теги.
-                            Фокусируйся на чистой сетке, контрастных уровнях текста и аккуратных состояниях.
-                        </p>
-
-                        <div class="mt-6 flex flex-wrap items-center gap-3">
-                            <button class="primary-btn">Primary action</button>
-                            <button class="tag">Secondary / chip</button>
-                            <a class="t-small text-gray-700 underline underline-offset-4 hover:text-black" href="#">
-                                Текстовая ссылка
-                            </a>
+                <div class="content-dashboard">
+                    <h2 class="title-2">Reminders</h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="p-3 rounded-2xl bg-white/70 border border-black/5">
+                            <div class="font-semibold">Meeting with Arc</div>
+                            <div class="context">Time: 02:00 pm - 04:00 pm</div>
+                            <button class="primary-btn mt-3 inline-flex items-center gap-2">
+                                Start Meeting
+                                <i class="fa-solid fa-arrow-right text-xs" />
+                            </button>
                         </div>
-
-                        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="t-mini text-gray-600">Email</label>
-                                <input class="input mt-2 w-full" placeholder="name@domain.com" />
-                            </div>
-                            <div>
-                                <label class="t-mini text-gray-600">Поиск</label>
-                                <input class="search-input mt-2 w-full" placeholder="Найти..." />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="content">
-                        <div class="flex items-center justify-between">
-                            <h2 class="title">Контент-блок</h2>
-                            <span class="tag">new</span>
-                        </div>
-
-                        <p class="context mt-2">
-                            Фон: <span class="font-medium text-gray-900">bg-gray-50</span>, отступы: <span class="font-medium text-gray-900">p-6</span>,
-                            скругление: <span class="font-medium text-gray-900">rounded-xl</span>.
-                        </p>
-
-                        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="p-4 rounded-xl bg-white">
-                                <div class="title-2">Card</div>
-                                <div class="t-small text-gray-600 mt-1">
-                                    Белая карточка на фоне content-блока.
-                                </div>
-                            </div>
-                            <div class="p-4 rounded-xl bg-white">
-                                <div class="title-2">Card</div>
-                                <div class="t-small text-gray-600 mt-1">
-                                    Подходит для списков / настроек.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- TYPOGRAPHY -->
-                <section class="content">
-                    <div class="flex items-end justify-between gap-6 flex-wrap">
-                        <div>
-                            <h2 class="title">Типографика</h2>
-                            <p class="context mt-1">Основной текст — Roboto. Тайтл — Roboto или customFont.</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="tag">t-body</span>
-                            <span class="tag">t-small</span>
-                            <span class="tag">t-mini</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="space-y-3">
-                            <div class="title-font">Title (customFont)</div>
-                            <div class="title">Title (Roboto)</div>
-                            <div class="title-2">Subtitle (Roboto)</div>
-                            <div class="t-body text-gray-900">Body text — базовый размер.</div>
-                            <div class="t-small text-gray-700">Small text — для подписей, метаданных.</div>
-                            <div class="t-mini text-gray-600">Mini text — для label/secondary info.</div>
-                        </div>
-                        <div class="space-y-3">
-                            <p class="context">
-                                Пример “context”: нейтральный, не слишком бледный.
-                            </p>
-                            <p class="t-small text-gray-700">
-                                Смысловая иерархия строится за счёт размера, насыщенности и цвета.
-                            </p>
-                            <p class="t-mini text-gray-600">
-                                Минимум декоративности, максимум читаемости.
-                            </p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- INTERACTIONS -->
-                <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="content">
-                        <h2 class="title">Теги / интерактив</h2>
-                        <p class="context mt-1">Hover: фон #276d4c, текст белый, рамка исчезает.</p>
-
-                        <div class="mt-5 flex flex-wrap gap-2">
-                            <button class="tag">Tag</button>
-                            <button class="tag">Filter</button>
-                            <button class="tag">Action</button>
-                            <button class="tag">Chip</button>
-                            <button class="tag">Hover me</button>
-                        </div>
-                    </div>
-
-                    <div class="content-dark">
-                        <h2 class="title">Тёмный блок</h2>
-                        <p class="t-small text-white/80 mt-1">
-                            Цвет фона: #1a1a1a. Сетка/отступы такие же как у светлого content-блока.
-                        </p>
-
-                        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-                                <div class="t-small text-white">Item</div>
-                                <div class="t-mini text-white/70 mt-1">Secondary text</div>
-                            </div>
-                            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-                                <div class="t-small text-white">Item</div>
-                                <div class="t-mini text-white/70 mt-1">Secondary text</div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- FORMS -->
-                <section class="content">
-                    <h2 class="title">Инпуты</h2>
-                    <p class="context mt-1">Focus ring: #276d4c. Попробуй кликнуть/Tab.</p>
-
-                    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="t-mini text-gray-600">Имя</label>
-                            <input class="input mt-2 w-full" placeholder="Иван" />
-                        </div>
-                        <div>
-                            <label class="t-mini text-gray-600">Пароль</label>
-                            <input class="input mt-2 w-full" type="password" placeholder="••••••••" />
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="t-mini text-gray-600">Комментарий</label>
-                            <textarea class="input mt-2 w-full min-h-28 resize-y" placeholder="Короткий текст..." />
-                        </div>
-                    </div>
-
-                    <div class="mt-6 flex items-center gap-3">
-                        <button class="primary-btn">Сохранить</button>
-                        <button class="primary-btn" disabled>Disabled</button>
-                    </div>
-                </section>
-            </main>
-
-            <footer class="py-10 border-t border-gray-200">
-                <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-                    <div class="t-small text-gray-600">
-                        Boilerplate UI kit — light theme
-                    </div>
-                    <div class="t-small text-gray-600">
-                        Colors: <span class="font-medium text-gray-900">#276d4c</span>, <span class="font-medium text-gray-900">#1a1a1a</span>
                     </div>
                 </div>
-            </footer>
+
+                <div class="content-dashboard">
+                    <h2 class="title-2">Project</h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="p-3 rounded-2xl bg-white/70 border border-black/5">
+                            <div class="font-semibold">Develop API endpoints</div>
+                            <div class="context">Due date: Nov 28, 2024</div>
+                            <div class="mt-3 flex gap-2 flex-wrap">
+                                <span class="tag">Onboarding</span>
+                                <span class="tag">Build</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-dashboard">
+                    <h2 class="title-2">Progresses</h2>
+                    <div class="flex items-center mt-4 space-x-6">
+                        <div class="flex flex-col items-center justify-center gap-2">
+                            <VerticalProgressBar
+                                :value="40"
+                                color="#e97358"
+                                trackColor="#e97358"
+                                :height="110"
+                                :width="40"
+                                :rounded="9999"
+                                variant="hatch"
+                            />
+
+                            <h3>Доход</h3>
+                        </div>
+
+                        <div class="flex flex-col items-center justify-center gap-2">
+                            <VerticalProgressBar
+                                :value="90"
+                                color="#44c179"
+                                trackColor="#44c179"
+                                :height="110"
+                                :width="40"
+                                :rounded="9999"
+                                variant="hatch"
+                            />
+                            <h3>Расходы</h3>
+                        </div>
+
+                        <div class="flex flex-col items-center justify-center gap-2">
+                            <VerticalProgressBar
+                                :value="40"
+                                color="#54b5e3"
+                                trackColor="#54b5e3"
+                                :height="110"
+                                :width="40"
+                                :rounded="9999"
+                                variant="hatch"
+                            />
+                            <h3>Бюджет</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom two columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 content-dashboard">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="title-2">Team Collaboration</h2>
+                        <button class="tag">+ Add Member</button>
+                    </div>
+
+                    <div class="mt-5 space-y-3">
+                        <div class="flex items-center gap-3 p-3 rounded-2xl bg-white/70 border border-black/5">
+                            <div class="w-9 h-9 rounded-full bg-orange-400 flex items-center justify-center text-black font-bold">
+                                U
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-semibold truncate">Alexandra Deff</div>
+                                <div class="context truncate">Working on Github Project Repository</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-dashboard">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="title-2">Project Progress</h2>
+                        <button class="tag">Details</button>
+                    </div>
+
+                    <div class="mt-5 h-44 rounded-2xl bg-gray-100 flex items-center justify-center">
+                        <div class="text-gray-400 font-medium">Progress placeholder</div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </DashboardLayout>
 </template>

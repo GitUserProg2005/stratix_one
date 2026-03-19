@@ -53,10 +53,10 @@ watch(query, (value) => {
                 v-model="query"
                 type="text"
                 :placeholder="searchLabel"
-                class="search-input w-full px-3 py-2 pr-8 border rounded"
+                class="search-input-white w-full px-4 py-2 pr-10 border rounded"
             />
 
-            <span class="absolute inset-y-2 right-2 text-gray-400 pointer-events-none">
+            <span class="absolute inset-y-1/4 right-2 text-gray-400 pointer-events-none">
                 <i
                     class="fa-solid"
                     :class="isSearching ? 'fa-spinner fa-spin' : 'fa-magnifying-glass'"

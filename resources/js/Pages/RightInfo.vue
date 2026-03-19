@@ -25,7 +25,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <aside class="h-full flex flex-col bg-body p-4">
+  <aside class="h-full flex flex-col bg-body p-4 rounded-3xl overflow-hidden">
     <!-- Верхняя часть — пустое пространство -->
     <div class="flex-1 min-h-0" />
 
