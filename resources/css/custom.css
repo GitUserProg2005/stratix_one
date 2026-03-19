@@ -150,6 +150,18 @@ body {
     @apply bg-rose-50 text-rose-700 border-rose-200;
 }
 
+.content-badge-completed {
+    @apply block-base bg-emerald-50 text-emerald-700 border-emerald-200;
+}
+
+.content-badge-in-progress {
+    @apply block-base bg-amber-50 text-amber-700 border-amber-200;
+}
+
+.content-badge-pending {
+    @apply block-base bg-rose-50 text-rose-700 border-rose-200;
+}
+
 /* Minimal scrollbar */
 .custom-scroll::-webkit-scrollbar,
 html::-webkit-scrollbar { width: 8px; }

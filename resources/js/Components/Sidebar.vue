@@ -39,8 +39,8 @@ const closeSidebar = () => {
       "
       :class="isOpenSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     >
-      <div class="h-full bg-content rounded-3xl flex flex-col p-0">
-        <div class="p-4 flex flex-col h-full gap-4">
+      <div class="h-full bg-content rounded-r-3xl lg:rounded-3xl flex flex-col p-0">
+        <div class="p-4 flex flex-col h-full gap-2">
           <!-- Top card -->
           <div class="bg-white/5 p-0">
             <div class="px-5 pb-4 flex items-center justify-between lg:justify-center">
@@ -92,6 +92,24 @@ const closeSidebar = () => {
                     Оплата
                   </Link>
 
+                  <Link
+                    :href="route('rates')"
+                    class="sidebar-nav-link"
+                    @click="closeSidebar"
+                  >
+                    <i class="fa-solid fa-cart-shopping text-sm"></i>
+                    Заказы
+                  </Link>
+
+                  <Link
+                    :href="route('rates')"
+                    class="sidebar-nav-link"
+                    @click="closeSidebar"
+                  >
+                    <i class="fa-solid fa-users text-sm"></i>
+                    Пользователи
+                  </Link>
+
                   <a
                     href="#"
                     class="sidebar-nav-link"
@@ -108,7 +126,7 @@ const closeSidebar = () => {
           <div class="content-dark space-y-4">
             <div>
               <h2 class="">Скачивайте моб. приложение!</h2>
-              <p class="context">Пользуйтесь нашей платформой с телефона</p>
+              <p class="context pt-1">Пользуйтесь нашей платформой с телефона</p>
             </div>
 
             <button class="primary-btn-white w-full">Установить</button>

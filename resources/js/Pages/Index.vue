@@ -5,35 +5,35 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
 
 <template>
     <DashboardLayout>
-        <div class="space-y-6 content rounded-3xl">
+        <div class="space-y-6">
             <!-- Top metrics -->
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-                <div class="content-dashboard">
+                <div class="content-dark">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h2 class="title-2">Total Projects</h2>
                             <p class="context mt-2">Увеличилось за последний месяц</p>
                         </div>
-                        <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center">
                             <i class="fa-solid fa-arrow-up-right text-green-700" />
                         </div>
                     </div>
                     <div class="mt-4 text-4xl font-bold">24</div>
                 </div>
 
-                <div class="content-dashboard">
+                <div class="content">
                     <h2 class="title-2">Ended Projects</h2>
                     <p class="context mt-2">Было закрыто за последний месяц</p>
                     <div class="mt-4 text-4xl font-bold">10</div>
                 </div>
 
-                <div class="content-dashboard">
+                <div class="content-dark">
                     <h2 class="title-2">Running Projects</h2>
                     <p class="context mt-2">Активно в работе</p>
                     <div class="mt-4 text-4xl font-bold">12</div>
                 </div>
 
-                <div class="content-dashboard">
+                <div class="content">
                     <h2 class="title-2">Pending Projects</h2>
                     <p class="context mt-2">Требуют внимания</p>
                     <div class="mt-4 text-4xl font-bold">2</div>
@@ -42,10 +42,10 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
 
             <!-- Analytics + reminders -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="lg:col-span-2 content-dashboard">
+                <div class="lg:col-span-2 content">
                     <div class="flex items-center justify-between gap-4">
                         <h2 class="title-2">Project Analytics</h2>
-                        <button class="tag">View</button>
+                        <button class="primary-btn">View</button>
                     </div>
 
                     <div class="mt-5">
@@ -58,7 +58,7 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
                     </div>
                 </div>
 
-                <div class="content-dashboard">
+                <div class="content">
                     <h2 class="title-2">Reminders</h2>
                     <div class="mt-4 space-y-3">
                         <div class="p-3 rounded-2xl bg-white/70 border border-black/5">
@@ -72,7 +72,7 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
                     </div>
                 </div>
 
-                <div class="content-dashboard">
+                <div class="content">
                     <h2 class="title-2">Project</h2>
                     <div class="mt-4 space-y-3">
                         <div class="p-3 rounded-2xl bg-white/70 border border-black/5">
@@ -86,7 +86,7 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
                     </div>
                 </div>
 
-                <div class="content-dashboard">
+                <div class="content">
                     <h2 class="title-2">Progresses</h2>
                     <div class="flex items-center mt-4 space-x-6">
                         <div class="flex flex-col items-center justify-center gap-2">
@@ -134,7 +134,7 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
 
             <!-- Bottom two columns -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 content-dashboard">
+                <div class="lg:col-span-2 content">
                     <div class="flex items-center justify-between gap-4">
                         <h2 class="title-2">Team Collaboration</h2>
                         <button class="tag">+ Add Member</button>
@@ -153,7 +153,7 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
                     </div>
                 </div>
 
-                <div class="content-dashboard">
+                <div class="content">
                     <div class="flex items-center justify-between gap-4">
                         <h2 class="title-2">Project Progress</h2>
                         <button class="tag">Details</button>

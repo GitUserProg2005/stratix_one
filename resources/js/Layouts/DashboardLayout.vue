@@ -37,32 +37,47 @@ const username = computed(() => currentUser.value?.name ?? 'Username');
     <main class="overflow-y-auto">
       <div class="lg:hidden title p-4">
         <div class="flex items-center justify-between">
-          <button @click="isOpenSidebar = true">
-            <i class="fa-solid fa-bars"></i>
+          <div> 
+            <h2 class="title-font-2">STRATIX</h2>
+          </div>
+
+          <button
+            class="lg:hidden p-2"
+            @click="isOpenSidebar = true"
+            aria-label="Open menu"
+          >
+            <span class="block w-7 h-[2px] bg-black"></span>
+            <span class="block w-7 h-[2px] bg-black mt-1"></span>
           </button>
         </div>
       </div>
 
       <div class="w-full mx-auto">
         <div class="space-y-6 p-1">
-          <div class="content flex items-center gap-6">
-            
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <h2 class="title-2">Добро пожаловать, Дмитрий!</h2>
+            </div>
 
-            <div class="shrink-0 flex items-center gap-3">
-              <Avatar
-                :name="username"
-                :src="currentUser?.avatar_url"
-                :userId="null"
-                :no-link="true"
-                size="md"
-              />
+            <div class="flex items-center gap-12">
+              <Search :search-fn="searchFn" />
 
-              <div class="hidden sm:block min-w-0">
-                <div class="text-sm font-semibold truncate">
-                  {{ username }}
-                </div>
-                <div class="t-mini">
-                  Заглушка пользователя
+              <div class="shrink-0 flex items-center gap-3">
+                <Avatar
+                  :name="username"
+                  :src="currentUser?.avatar_url"
+                  :userId="null"
+                  :no-link="true"
+                  size="md"
+                />
+
+                <div class="hidden sm:block min-w-0">
+                  <div class="text-sm font-semibold truncate">
+                    Дмитрий
+                  </div>
+                  <div class="t-mini">
+                    dima@gmail.com
+                  </div>
                 </div>
               </div>
             </div>
