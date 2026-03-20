@@ -6,10 +6,12 @@ import RightInfo from '@/Pages/RightInfo.vue';
 import Search from '@/Components/Search/Search.vue';
 import Avatar from '@/Components/Avatar.vue';
 
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { usePage } from '@inertiajs/vue3';
 
 const isOpenSidebar = ref(false)
+const isMobileActionsOpen = ref(false)
+const mobileActionsWrap = ref(null)
 
 // Stub search for now: пока не подключаем серверный поиск
 const searchFn = async () => []
@@ -17,6 +19,23 @@ const searchFn = async () => []
 const page = usePage();
 const currentUser = computed(() => page.props.auth?.user || null);
 const username = computed(() => currentUser.value?.name ?? 'Username');
+
+const onDocumentClick = (e) => {
+  // Закрываем выпадашку при клике вне области.
+  if (!isMobileActionsOpen.value) return
+  const el = mobileActionsWrap.value
+  if (!el) return
+  if (el.contains(e.target)) return
+  isMobileActionsOpen.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', onDocumentClick)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocumentClick)
+})
 </script>
 
 <template>
@@ -24,7 +43,9 @@ const username = computed(() => currentUser.value?.name ?? 'Username');
     class="
       h-screen overflow-hidden
       grid grid-cols-1
-      lg:grid-cols-[16rem_1fr] lg:p-4 gap-4
+      lg:grid-cols-[16rem_1fr]
+      
+      gap-4
     "
   >
     <!-- Sidebar -->
@@ -34,55 +55,110 @@ const username = computed(() => currentUser.value?.name ?? 'Username');
     />
 
     <!-- Main -->
-    <main class="overflow-y-auto">
-      <div class="lg:hidden title p-4">
-        <div class="flex items-center justify-between">
-          <div> 
-            <h2 class="title-font-2">STRATIX</h2>
-          </div>
+    <main class="overflow-y-auto bg-content">
+      <header class="sticky top-0 z-50 bg-white/70 backdrop-blur-xl px-4">
+        <div class="py-6">
+          <div class="flex items-center gap-6 w-full">
+            <!-- Mobile burger -->
+            <button
+              class="lg:hidden w-10 h-10 rounded-full bg-[#e97358]/10 text-[#e97358] flex flex-col p-3 items-center justify-center"
+              @click="isOpenSidebar = true"
+              aria-label="Open menu"
+            >
+              <span class="block w-5 h-[2px] bg-[#e97358]"></span>
+              <span class="block w-5 h-[2px] bg-[#e97358] mt-1"></span>
+            </button>
 
-          <button
-            class="lg:hidden p-2"
-            @click="isOpenSidebar = true"
-            aria-label="Open menu"
-          >
-            <span class="block w-7 h-[2px] bg-black"></span>
-            <span class="block w-7 h-[2px] bg-black mt-1"></span>
-          </button>
-        </div>
-      </div>
+            <h2 class="hidden lg:flex title-2 truncate">
+              Добро пожаловать, Дмитрий!
+            </h2>
 
-      <div class="w-full mx-auto">
-        <div class="space-y-6 p-1">
-          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-              <h2 class="title-2">Добро пожаловать, Дмитрий!</h2>
+            <!-- Wide search -->
+            <div class="flex-1 min-w-0 max-w-2xl">
+              <Search :search-fn="searchFn" />
             </div>
 
-            <div class="flex items-center gap-12">
-              <Search :search-fn="searchFn" />
+            <!-- Notifications + user -->
+            <div class="flex items-center gap-4 shrink-0">
+              <div class="hidden lg:flex items-center gap-4">
+                <button
+                  class="relative w-10 h-10 rounded-full bg-[#e97358]/10 text-[#e97358] flex items-center justify-center"
+                  aria-label="Notifications"
+                >
+                  <i class="fa-solid fa-bell text-sm" />
+                  <span class="absolute top-2 right-2 w-2 h-2 bg-[#e97358] rounded-full" />
+                </button>
 
-              <div class="shrink-0 flex items-center gap-3">
-                <Avatar
-                  :name="username"
-                  :src="currentUser?.avatar_url"
-                  :userId="null"
-                  :no-link="true"
-                  size="md"
-                />
+                <button
+                  class="w-10 h-10 rounded-full bg-[#e97358]/10 text-[#e97358] flex items-center justify-center"
+                  aria-label="Messages"
+                >
+                  <i class="fa-solid fa-envelope text-sm" />
+                </button>
+              </div>
 
-                <div class="hidden sm:block min-w-0">
-                  <div class="text-sm font-semibold truncate">
+              <div
+                ref="mobileActionsWrap"
+                class="relative shrink-0 flex items-center gap-3"
+              >
+                <div
+                  class="cursor-pointer"
+                  role="button"
+                  tabindex="0"
+                  aria-label="Open user actions"
+                  @click.stop="isMobileActionsOpen = !isMobileActionsOpen"
+                  @keydown.enter.stop="isMobileActionsOpen = !isMobileActionsOpen"
+                >
+                  <Avatar
+                    :name="username"
+                    :src="currentUser?.avatar_url"
+                    :userId="null"
+                    :no-link="true"
+                    size="md"
+                  />
+                </div>
+
+                <div class="min-w-0">
+                  <div class="text-xs font-semibold truncate">
                     Дмитрий
                   </div>
                   <div class="t-mini">
-                    dima@gmail.com
+                    dmitriy@gmail.com
                   </div>
+                </div>
+
+                <!-- Mobile actions dropdown (under avatar) -->
+                <div
+                  v-if="isMobileActionsOpen"
+                  class="lg:hidden absolute right-0 top-12 w-44 bg-white/80 backdrop-blur-xl border border-black/5 rounded-2xl shadow-2xl p-2 z-[60]"
+                  @click.stop
+                >
+                  <button
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#e97358]/10 text-[#1a1a1a]"
+                    aria-label="Notifications"
+                    @click="isMobileActionsOpen = false"
+                  >
+                    <i class="fa-solid fa-bell text-sm text-[#e97358]" />
+                    <span class="text-sm font-semibold">Notifications</span>
+                  </button>
+
+                  <button
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#e97358]/10 text-[#1a1a1a]"
+                    aria-label="Messages"
+                    @click="isMobileActionsOpen = false"
+                  >
+                    <i class="fa-solid fa-envelope text-sm text-[#e97358]" />
+                    <span class="text-sm font-semibold">Messages</span>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </header>
 
+      <div class="w-full">
+        <div class="space-y-6 pt-6">
           <slot />
         </div>
       </div>

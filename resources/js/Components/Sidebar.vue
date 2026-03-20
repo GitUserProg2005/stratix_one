@@ -33,17 +33,18 @@ const closeSidebar = () => {
         fixed inset-y-0 left-0
         transform transition-transform duration-300
         lg:translate-x-0 lg:relative 
+        lg:inset-y-4
         z-[100]
         lg:z-[50]
         w-4/5 sm:w-72 lg:w-full
       "
       :class="isOpenSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     >
-      <div class="h-full bg-content rounded-r-3xl lg:rounded-3xl flex flex-col p-0">
+      <div class="h-full bg-content rounded-r-3xl p-0 flex flex-col">
         <div class="p-4 flex flex-col h-full gap-2">
           <!-- Top card -->
           <div class="bg-white/5 p-0">
-            <div class="px-5 pb-4 flex items-center justify-between lg:justify-center">
+            <div class="flex items-center justify-between lg:justify-center">
               <div class="flex items-center justify-center gap-3">
                 <span class="title-font-3">STRATIX</span>
               </div>
@@ -67,7 +68,7 @@ const closeSidebar = () => {
                 <div class="space-y-1 px-1">
                   <Link
                     :href="route('dashboard')"
-                    class="sidebar-nav-link"
+                    class="sidebar-nav-link sidebar-nav-link-active"
                     @click="closeSidebar"
                   >
                     <i class="fa-solid fa-grid-2 text-sm"></i>
@@ -76,7 +77,7 @@ const closeSidebar = () => {
 
                   <Link
                     :href="route('counter')"
-                    class="sidebar-nav-link"
+                    class="sidebar-nav-link-nested"
                     @click="closeSidebar"
                   >
                     <i class="fa-solid fa-hashtag text-sm"></i>
@@ -85,7 +86,7 @@ const closeSidebar = () => {
 
                   <Link
                     :href="route('rates')"
-                    class="sidebar-nav-link"
+                    class="sidebar-nav-link-nested"
                     @click="closeSidebar"
                   >
                     <i class="fa-solid fa-credit-card text-sm"></i>
@@ -94,7 +95,7 @@ const closeSidebar = () => {
 
                   <Link
                     :href="route('rates')"
-                    class="sidebar-nav-link"
+                    class="sidebar-nav-link-nested"
                     @click="closeSidebar"
                   >
                     <i class="fa-solid fa-cart-shopping text-sm"></i>
@@ -103,7 +104,7 @@ const closeSidebar = () => {
 
                   <Link
                     :href="route('rates')"
-                    class="sidebar-nav-link"
+                    class="sidebar-nav-link-nested"
                     @click="closeSidebar"
                   >
                     <i class="fa-solid fa-users text-sm"></i>
@@ -112,7 +113,7 @@ const closeSidebar = () => {
 
                   <a
                     href="#"
-                    class="sidebar-nav-link"
+                    class="sidebar-nav-link-nested"
                     @click.prevent="closeSidebar"
                   >
                     <i class="fa-solid fa-cubes text-sm"></i>
@@ -123,7 +124,7 @@ const closeSidebar = () => {
             </div>
           </nav>
 
-          <div class="content-dark space-y-4">
+          <div class="content-dark-gradient space-y-4 mb-4">
             <div>
               <h2 class="">Скачивайте моб. приложение!</h2>
               <p class="context pt-1">Пользуйтесь нашей платформой с телефона</p>

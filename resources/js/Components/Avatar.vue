@@ -33,10 +33,10 @@ function handleImageError() {
     >
         <span
             v-if="!props.src || imageError"
-            class="bg-orange-400 rounded-full text-black flex items-center font-bold justify-center w-full h-full"
+            class="bg-gray-200 rounded-full text-gray-500 flex items-center justify-center w-full h-full"
             :class="sizeClass"
         >
-            {{ initial }}
+            <i class="fa-solid fa-user text-sm" />
         </span>
         <img
             v-else
@@ -54,10 +54,10 @@ function handleImageError() {
     >
         <span
             v-if="!props.src || imageError"
-            class="bg-orange-400 rounded-full text-black flex items-center font-bold justify-center w-full h-full"
+            class="bg-gray-200 rounded-full text-gray-500 flex items-center justify-center w-full h-full"
             :class="sizeClass"
         >
-            {{ initial }}
+            <i class="fa-solid fa-user text-sm" />
         </span>
         <img
             v-else
