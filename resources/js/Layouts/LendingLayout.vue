@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
           <div class="flex items-center gap-3">
             <div class="hidden lg:flex items-center gap-3">
               <button class="primary-btn">Войти</button>
-              <button class="tag">Регистрация</button>
+              <button class="primary-btn-white-blur">Регистрация</button>
             </div>
 
             <!-- Burger (two lines) -->

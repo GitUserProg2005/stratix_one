@@ -47,8 +47,8 @@ import LendingLayout from '@/Layouts/LendingLayout.vue';
                 <div class="flex gap-6">
                     <div>
                         <img
-                            class="w-16 rounded-full object-cover"
-                            src="https://avatars.mds.yandex.net/get-bunker/120922/ff2998ac5afc4c57d056bc9600a0e542fd887ed5/orig" alt="">
+                            class="w-32 rounded-full object-cover"
+                            src="/img/abstract/cube_noise.png" alt="">
                     </div>
                     <div class="flex flex-col items-start">
                         <h2 class="title">Компоненты</h2>
@@ -133,44 +133,82 @@ import LendingLayout from '@/Layouts/LendingLayout.vue';
                     <h2 class="over-title">Моментальный старт</h2>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="flex flex-col items-center gap-6">
-                        <div class="content-dark">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                    <!-- Column 1 -->
+                    <div class="flex flex-col h-full">
+                        <div class="content-dark relative overflow-hidden flex flex-col h-full">
                             <h2 class="title">Простой старт для MVP</h2>
                             <p class="mt-4">Сделайте свой проект уникальным с помощью готовых компонентов!</p>
-                            <div class="flex justify-end items-end h-full">
-                                <img 
-                                class="object-contain w-1/2"
-                                src="https://avatars.mds.yandex.net/get-bunker/135516/24598417f4b3ba4e61a9c1b50f747f271bfa7034/orig" alt="">
-                            </div>
+
+                            <img
+                                class="absolute -bottom-12 -right-12 w-1/2 object-contain pointer-events-none"
+                                src="/img/abstract/capsule_noise.png"
+                                alt=""
+                            />
                         </div>
                     </div>
 
-                    <div class="flex flex-col items-center justify-between gap-6">
-                        <div class="content-corporate-blue h-full">
+                    <!-- Column 2 -->
+                    <div class="flex flex-col h-full gap-6">
+                        <div class="content-outline relative overflow-hidden flex flex-col flex-1">
                             <h2 class="title">Простой старт для MVP</h2>
                             <p class="context mt-4">Сделайте свой проект уникальным с помощью готовых компонентов!</p>
                         </div>
-                        <div class="content-corporate-blue h-full relative">
+
+                        <div class="content-outline relative overflow-hidden flex flex-col flex-1">
                             <h2 class="title">Простой старт для MVP</h2>
                             <p class="context mt-4">Сделайте свой проект уникальным с помощью готовых компонентов!</p>
-                            <div class="absolute bottom-0 right-0">
-                                <img 
-                                class="object-contain w-1/2"
-                                src="https://avatars.mds.yandex.net/get-bunker/50064/cab666cae7ab460729a8cc92b5f70228a0208377/orig" alt="">
-                            </div>
+
+                            <img
+                                class="absolute -bottom-48 -right-20 w-1/2 object-contain pointer-events-none"
+                                src="/img/abstract/circle.png"
+                                alt=""
+                            />
                         </div>
                     </div>
 
-                    <div class="flex flex-col items-center gap-6">
-                        <div class="content-dark">
+                    <!-- Column 3 -->
+                    <div class="flex flex-col h-full">
+                        <div class="content-dark relative overflow-hidden flex flex-col h-full">
                             <h2 class="title">S3-интеграция</h2>
                             <p class="mt-4">Отличные технические решения для вашего проекта</p>
-                            <div class="flex justify-end items-end h-full">
-                                <img 
-                                class="object-contain w-1/2"
-                                src="https://avatars.mds.yandex.net/get-bunker/135516/24598417f4b3ba4e61a9c1b50f747f271bfa7034/orig" alt="">
-                            </div>
+
+                            <img
+                                class="absolute -bottom-12 -right-12 w-1/2 object-contain pointer-events-none"
+                                src="/img/abstract/conus_noise.png"
+                                alt=""
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mt-16 space-y-6">
+                <div 
+                class="relative overflow-hidden rounded-3xl p-10 min-h-[520px] flex items-center">
+                    <!-- Blurred photo background -->
+                    <div
+                        class="absolute inset-0 bg-cover bg-center blur-md scale-110"
+                        style="background-image: url('https://www.profguide.io/images/article/a/52/3avHm1YTYs.webp');"
+                        aria-hidden="true"
+                    />
+                    <img
+                        class="absolute right-0 top-1/2 -translate-y-1/2 h-full w-1/2 object-contain pointer-events-none"
+                        src="/img/abstract/cube_noise.png"
+                        alt=""
+                    />
+
+                    <div class="relative z-10 w-full lg:w-1/2 pr-4">
+                        <h2 class="title-font text-white">
+                            Яндекс 360 для бизнеса
+                        </h2>
+                        <p class="text-white mt-4 max-w-prose">
+                            Наши сервисы и тарифы для крупного, среднего и малого бизнеса
+                        </p>
+
+                        <div class="mt-6 flex flex-wrap gap-3 items-center">
+                            <button class="primary-btn">Подключить</button>
+                            <button class="primary-btn-white">Все тарифы</button>
                         </div>
                     </div>
                 </div>

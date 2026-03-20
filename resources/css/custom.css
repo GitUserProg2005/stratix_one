@@ -22,7 +22,7 @@ body {
 
 /* Theme helpers */
 .bg-body { @apply bg-white; }
-.bg-content { @apply bg-gray-50; }
+.bg-content { @apply bg-[#f3f4f5]; }
 
 /* Base block: единое место для отступов, скруглений и базовой типографики */
 .block-base {
@@ -30,7 +30,7 @@ body {
 }
 
 /* Content blocks */
-.content { @apply block-base bg-gray-50; }
+.content { @apply block-base bg-[#f3f4f5]; }
 .content-p-0 { @apply bg-gray-50 rounded-3xl; }
 .content-dashboard { @apply block-base bg-body; }
 
@@ -73,6 +73,11 @@ body {
 }
 .bg-content-corporate-blue {
     @apply bg-[#E9EDFC];
+}
+
+/* Content: thick outline (border-2 black) */
+.content-outline {
+    @apply block-base bg-white border-2 border-black;
 }
 
 /* Typography */
@@ -125,6 +130,42 @@ body {
 }
 
 .primary-btn-white:disabled {
+    @apply opacity-60 cursor-not-allowed;
+}
+
+/* Blur buttons (glass / frosted) */
+.primary-btn-blur {
+    @apply px-6 py-3 rounded-xl font-semibold select-none transition-colors duration-200;
+    color: #e97358;
+    background: rgba(233, 115, 88, 0.08);
+    border: 1px solid rgba(233, 115, 88, 0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.primary-btn-blur:hover {
+    background: rgba(233, 115, 88, 0.14);
+    border-color: rgba(233, 115, 88, 0.45);
+}
+
+.primary-btn-blur:disabled {
+    @apply opacity-60 cursor-not-allowed;
+}
+
+.primary-btn-white-blur {
+    @apply px-6 py-3 rounded-xl font-semibold select-none transition-colors duration-200;
+    color: #111827;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(17, 24, 39, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.primary-btn-white-blur:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.primary-btn-white-blur:disabled {
     @apply opacity-60 cursor-not-allowed;
 }
 

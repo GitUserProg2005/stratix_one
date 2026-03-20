@@ -40,7 +40,7 @@ const closeSidebar = () => {
       "
       :class="isOpenSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     >
-      <div class="h-full bg-content rounded-r-3xl p-0 flex flex-col">
+      <div class="h-full rounded-r-3xl p-0 flex flex-col">
         <div class="p-4 flex flex-col h-full gap-2">
           <!-- Top card -->
           <div class="bg-white/5 p-0">
