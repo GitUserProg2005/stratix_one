@@ -67,11 +67,11 @@ import LendingLayout from '@/Layouts/LendingLayout.vue';
                 </div>
 
                 <div class="grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-6">
-                    <div class="content-corporate-blue animate-lift space-y-4">
+                    <div class="content-corporate-blue animate-lift space-y-4 relative overflow-hidden">
                         <h3 class="title">Компоненты</h3>
                         <p class="context">Сделайте свой проект уникальным с помощью готовых компонентов!</p>
                         <button class="primary-btn-white"><i class="fa-solid fa-angle-right"></i></button>
-                        <img src="" alt="">
+                        <img class="absolute bottom-5 -right-8 w-32 -rotate-45" src="/img/abstract/wave1.png" alt="">
                     </div>
 
                     <div class="content-corporate-blue animate-lift space-y-4">
