@@ -33,9 +33,9 @@ const closeSidebar = () => {
         fixed inset-y-0 left-0
         transform transition-transform duration-300
         lg:translate-x-0 lg:relative 
-        lg:inset-y-4
         z-[100]
         lg:z-[50]
+        bg-content
         w-4/5 sm:w-72 lg:w-full
       "
       :class="isOpenSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
@@ -43,7 +43,7 @@ const closeSidebar = () => {
       <div class="h-full rounded-r-3xl p-0 flex flex-col">
         <div class="p-4 flex flex-col h-full gap-2">
           <!-- Top card -->
-          <div class="bg-white/5 p-0">
+          <div class="p-0">
             <div class="flex items-center justify-between lg:justify-center">
               <div class="flex items-center justify-center gap-3">
                 <span class="title-font-3">STRATIX</span>
@@ -126,7 +126,7 @@ const closeSidebar = () => {
 
           <div class="content-dark-gradient space-y-4 mb-4">
             <div>
-              <h2 class="">Скачивайте моб. приложение!</h2>
+              <h2 class="title-2-on-dark">Скачивайте моб. приложение!</h2>
               <p class="context pt-1">Пользуйтесь нашей платформой с телефона</p>
             </div>
 

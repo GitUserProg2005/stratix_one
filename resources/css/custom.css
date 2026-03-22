@@ -7,36 +7,357 @@
     font-style: normal;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Design tokens — Light (default) / Dark (html.dark или .dark на предке)      */
+/* Именование: content-primary / content-secondary = основной и приглушённый  */
+/*             текст темы; text-* — семантические алиасы на те же значения.   */
+/* -------------------------------------------------------------------------- */
+:root {
+    color-scheme: light;
+
+    --bg-main: #ffffff;
+    --bg-card: #f3f4f5;
+
+    --content-primary: #1a1a1a;
+    --content-secondary: #6b7280;
+    --text-primary: var(--content-primary);
+    --text-secondary: var(--content-secondary);
+
+    --accent: #e97358;
+    --accent-hover: #c8634d;
+
+    /* Полная строка для border (outline-карточки, светлая тема) */
+    --border-outline: 2px solid #000000;
+    /* Градиент «блика» для тёмной темы (.content-outline) */
+    --border-outline-highlight: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.15),
+        rgba(255, 255, 255, 0)
+    );
+
+    --border-input: #e5e7eb;
+    --ring-focus: var(--accent);
+
+    --tag-bg: #f3f4f5;
+    --tag-border: #000000;
+    --tag-text: #000000;
+
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.6);
+
+    --corporate-blue-bg: #e9edfc;
+    --corporate-blue-text: #000000;
+
+    /* Намеренно тёмная плашка (.content-dark); в html.dark corporate-blue ссылается сюда же */
+    --content-dark-surface-bg: #1a1a1a;
+    --content-dark-surface-fg: #ffffff;
+
+    /* Ледовая плашка: мягкий #e0f2fe, текст всегда чёрный (любая тема страницы) */
+    --content-ice-bg: #e0f2fe;
+    --content-ice-fg: #000000;
+
+    --scrollbar-thumb: #d1d5db;
+
+    --sidebar-link-hover: rgba(0, 0, 0, 0.06);
+    --sidebar-nested-muted: #4b5563;
+
+    /* Семантические цвета бейджей (светлая тема) */
+    --badge-completed-bg: #ecfdf5;
+    --badge-completed-text: #047857;
+    --badge-completed-border: #a7f3d0;
+    --badge-in-progress-bg: #fffbeb;
+    --badge-in-progress-text: #b45309;
+    --badge-in-progress-border: #fde68a;
+    --badge-pending-bg: #fff1f2;
+    --badge-pending-text: #be123c;
+    --badge-pending-border: #fecdd3;
+}
+
+html.dark,
+.dark {
+    color-scheme: dark;
+
+    --bg-main: #121212;
+    --bg-card: #1a1a1a;
+
+    --content-primary: #ffffff;
+    --content-secondary: #e5e7eb;
+    --text-primary: var(--content-primary);
+    --text-secondary: var(--content-secondary);
+
+    --accent: #e97358;
+    --accent-hover: #c8634d;
+
+    /* Еле заметная обводка: ~12% white справа сверху → 0% снизу слева */
+    --border-hairline-gradient: linear-gradient(
+        to bottom left,
+        rgba(255, 255, 255, 0.12),
+        rgba(255, 255, 255, 0)
+    );
+
+    --border-outline: 1px solid transparent;
+
+    --border-input: rgba(255, 255, 255, 0.06);
+
+    --tag-bg: #1a1a1a;
+    --tag-border: transparent;
+    --tag-text: var(--content-primary);
+
+    --glass-bg: rgba(26, 26, 26, 0.72);
+    --glass-border: transparent;
+
+    /* В тёмной теме сайта не slate-blue — те же плашки, что и .content-dark */
+    --corporate-blue-bg: var(--content-dark-surface-bg);
+    --corporate-blue-text: var(--content-dark-surface-fg);
+
+    --scrollbar-thumb: #4b5563;
+
+    --sidebar-link-hover: rgba(255, 255, 255, 0.1);
+    --sidebar-nested-muted: #e5e7eb;
+
+    --badge-completed-bg: rgba(16, 185, 129, 0.12);
+    --badge-completed-text: #6ee7b7;
+    --badge-completed-border: transparent;
+    --badge-in-progress-bg: rgba(245, 158, 11, 0.12);
+    --badge-in-progress-text: #fcd34d;
+    --badge-in-progress-border: transparent;
+    --badge-pending-bg: rgba(244, 63, 94, 0.12);
+    --badge-pending-text: #fda4af;
+    --badge-pending-border: transparent;
+}
+
 /* Base */
-* { 
-    @apply box-border; 
+* {
+    @apply box-border;
     font-family: 'Roboto', sans-serif;
 }
 
-html { font-family: 'Roboto', sans-serif; }
+html {
+    font-family: 'Roboto', sans-serif;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+}
 
 body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply antialiased;
     font-weight: 500;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Theme helpers */
-.bg-body { @apply bg-white; }
-.bg-content { @apply bg-[#f3f4f5]; }
+.bg-body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+}
+
+.bg-content {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Lending hero — декоративные grid.png (светлая / тёмная тема страницы)      */
+/* -------------------------------------------------------------------------- */
+.lending-hero-grid-img {
+    object-fit: contain;
+    opacity: 0.36;
+}
+
+.lending-hero-grid-img--b {
+    opacity: 0.44;
+}
+
+.lending-hero-grid-img--faint {
+    opacity: 0.22;
+}
+
+html.dark .lending-hero-grid-img,
+.dark .lending-hero-grid-img {
+    opacity: 0.2;
+}
+
+html.dark .lending-hero-grid-img--b,
+.dark .lending-hero-grid-img--b {
+    opacity: 0.3;
+}
+
+html.dark .lending-hero-grid-img--faint,
+.dark .lending-hero-grid-img--faint {
+    opacity: 0.14;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Lending layout — навигация без Tailwind text-gray / hover:text-black:       */
+/* иначе в html.dark ссылки остаются «серыми/чёрными» поверх тёмного фона.   */
+/* -------------------------------------------------------------------------- */
+.lending-nav-link {
+    @apply transition-colors duration-200 no-underline;
+    color: rgba(17, 24, 39, 0.72);
+}
+
+.lending-nav-link:hover {
+    color: #0a0a0a;
+}
+
+html.dark .lending-nav-link {
+    color: rgba(255, 255, 255, 0.78);
+}
+
+html.dark .lending-nav-link:hover {
+    color: #ffffff;
+}
+
+/* Моб. drawer всегда на .bg-content-dark — текст ссылок всегда светлый */
+.lending-mobile-drawer .lending-nav-link {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.lending-mobile-drawer .lending-nav-link:hover {
+    color: #ffffff;
+}
+
+.lending-nav-link--block {
+    @apply block py-1;
+}
+
+/* Линии бургер-меню: в тёмной теме — светлые */
+.lending-burger-line {
+    @apply block w-7 h-0.5 rounded-full;
+    background-color: rgba(17, 24, 39, 0.92);
+}
+
+.lending-burger-line + .lending-burger-line {
+    @apply mt-1;
+}
+
+html.dark .lending-burger-line {
+    background-color: rgba(255, 255, 255, 0.92);
+}
+
+/* Кнопка закрытия drawer (иконка) */
+.lending-drawer-close {
+    @apply p-2 rounded-xl transition-colors;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.lending-drawer-close:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Кнопка бургера в шапке (hover с учётом темы) */
+.lending-header-icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+html.dark .lending-header-icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
 
 /* Base block: единое место для отступов, скруглений и базовой типографики */
 .block-base {
     @apply p-6 rounded-3xl;
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
 }
 
 /* Content blocks */
-.content { @apply block-base bg-[#f3f4f5]; }
-.content-p-0 { @apply bg-gray-50 rounded-3xl; }
-.content-dashboard { @apply block-base bg-body; }
+.content {
+    @apply block-base;
+    background-color: var(--bg-card);
+    color: var(--content-primary);
+}
 
-/* Dark content blocks (same spacing as .content) */
-.content-dark { @apply block-base bg-[#1a1a1a] text-white; }
-.bg-content-dark { @apply bg-[#1a1a1a] text-white; }
+.content-p-0 {
+    @apply rounded-3xl;
+    background-color: var(--bg-card);
+    color: var(--content-primary);
+}
+
+.content-dashboard {
+    @apply block-base;
+    background-color: var(--bg-main);
+    color: var(--content-primary);
+}
+
+/* Ледовая плашка: как .content по отступам/скруглению; текст #000 на любой теме */
+.content-ice {
+    @apply block-base;
+    background-color: var(--content-ice-bg);
+    color: var(--content-ice-fg);
+}
+
+.bg-content-ice {
+    background-color: var(--content-ice-bg);
+    color: var(--content-ice-fg);
+}
+
+.content-ice .context,
+.content-ice .title,
+.content-ice .title-2,
+.content-ice .over-title,
+.content-ice .title-font,
+.content-ice .title-font-2,
+.content-ice .title-font-3,
+.content-ice .title-on-dark,
+.content-ice .title-2-on-dark,
+.content-ice .over-title-on-dark,
+.content-ice .title-font-on-dark,
+.content-ice .title-font-2-on-dark,
+.content-ice .title-font-3-on-dark,
+.content-ice .t-body,
+.content-ice .t-small,
+.content-ice .t-mini {
+    color: var(--content-ice-fg);
+}
+
+/* @deprecated — используйте .content-ice */
+.content-lime {
+    @apply block-base;
+    background-color: var(--content-ice-bg);
+    color: var(--content-ice-fg);
+}
+
+.bg-content-lime {
+    background-color: var(--content-ice-bg);
+    color: var(--content-ice-fg);
+}
+
+.content-lime .context,
+.content-lime .title,
+.content-lime .title-2,
+.content-lime .over-title,
+.content-lime .title-font,
+.content-lime .title-font-2,
+.content-lime .title-font-3,
+.content-lime .title-on-dark,
+.content-lime .title-2-on-dark,
+.content-lime .over-title-on-dark,
+.content-lime .title-font-on-dark,
+.content-lime .title-font-2-on-dark,
+.content-lime .title-font-3-on-dark,
+.content-lime .t-body,
+.content-lime .t-small,
+.content-lime .t-mini {
+    color: var(--content-ice-fg);
+}
+
+/* Dark content blocks (намеренно тёмная плашка на любой теме) */
+.content-dark {
+    @apply block-base;
+    background-color: var(--content-dark-surface-bg);
+    color: var(--content-dark-surface-fg);
+}
+
+.bg-content-dark {
+    background-color: var(--content-dark-surface-bg);
+    color: var(--content-dark-surface-fg);
+}
 
 /* Dark gradient card (sidebar promo) */
 .content-dark-gradient {
@@ -56,81 +377,217 @@ body {
     pointer-events: none;
 }
 
+/* Подписи на намеренно тёмных плашках остаются светлыми */
+.content-dark .context,
+.content-dark-gradient .context,
+.content-corporate-orange .context,
+html.dark .content-corporate-blue .context,
+.dark .content-corporate-blue .context {
+    color: rgba(255, 255, 255, 0.78);
+}
+
 /* Glass / backdrop-blur block */
 .content-glass {
-    @apply block-base bg-white/70 backdrop-blur-md border border-white/60;
+    @apply block-base backdrop-blur-md;
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--content-primary);
 }
 
 .content-corporate-orange {
-    @apply block-base bg-[#e97358] text-white;
+    @apply block-base text-white;
+    background-color: var(--accent);
 }
+
 .bg-content-corporate-orange {
-    @apply bg-[#e97358];
+    background-color: var(--accent);
+    color: #ffffff;
 }
 
 .content-corporate-blue {
-    @apply block-base bg-[#E9EDFC] text-black;
-}
-.bg-content-corporate-blue {
-    @apply bg-[#E9EDFC];
+    @apply block-base;
+    background-color: var(--corporate-blue-bg);
+    color: var(--corporate-blue-text);
 }
 
-/* Content: thick outline (border-2 black) */
+.bg-content-corporate-blue {
+    background-color: var(--corporate-blue-bg);
+    color: var(--corporate-blue-text);
+}
+
+/* Content: outline card — светлая: чёрная рамка 2px; тёмная: тонкая + верхний блик */
 .content-outline {
-    @apply block-base bg-white border-2 border-black;
+    @apply block-base relative overflow-hidden;
+    background-color: var(--bg-main);
+    color: var(--content-primary);
+    border: var(--border-outline);
+}
+
+html.dark .content-outline,
+.dark .content-outline {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--bg-main), var(--bg-main)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+html.dark .content-outline::before,
+.dark .content-outline::before {
+    display: none;
 }
 
 .content-outline-blue {
-    @apply block-base bg-[#E9EDFC] border-2 border-black;
+    @apply block-base border-2;
+    background-color: var(--corporate-blue-bg);
+    color: var(--corporate-blue-text);
+    border-color: #000000;
+}
+
+html.dark .content-outline-blue,
+.dark .content-outline-blue {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--corporate-blue-bg), var(--corporate-blue-bg)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+html.dark .content-glass,
+.dark .content-glass {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--glass-bg), var(--glass-bg)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
 }
 
 /* Typography */
 .title-font {
     font-family: 'customFont', sans-serif;
     @apply text-2xl sm:text-3xl font-semibold tracking-tight break-words leading-[1.05];
+    color: var(--content-primary);
 }
+
 .title-font-2 {
     font-family: 'customFont', sans-serif;
     @apply text-lg sm:text-3xl font-semibold tracking-tight break-words leading-[1.05];
+    color: var(--content-primary);
 }
+
 .title-font-3 {
     font-family: 'customFont', sans-serif;
     @apply text-lg sm:text-lg font-semibold tracking-tight break-words leading-[1.05];
+    color: var(--content-primary);
 }
-.over-title { @apply text-4xl sm:text-4xl lg:text-5xl font-semibold tracking-tight break-words leading-[1.1]; }
-.title { @apply text-2xl sm:text-3xl font-semibold tracking-tight break-words leading-[1.1]; }
-.title-2 { @apply text-lg sm:text-xl font-semibold tracking-tight break-words leading-[1.2]; }
+
+.over-title {
+    @apply text-4xl sm:text-4xl lg:text-5xl font-semibold tracking-tight break-words leading-[1.1];
+    color: var(--content-primary);
+}
+
+.title {
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight break-words leading-[1.1];
+    color: var(--content-primary);
+}
+
+.title-2 {
+    @apply text-lg sm:text-xl font-semibold tracking-tight break-words leading-[1.2];
+    color: var(--content-primary);
+}
+
+/*
+ * Заголовки на тёмной плашке (.content-dark, hero поверх фото и т.д.):
+ * в светлой теме страницы --content-primary тёмный, поэтому базовые .title
+ * перебивают белый цвет контейнера — используйте *-on-dark рядом с тем же размером.
+ */
+.title-on-dark {
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight break-words leading-[1.1];
+    color: rgba(255, 255, 255, 0.98);
+}
+
+.title-2-on-dark {
+    @apply text-lg sm:text-xl font-semibold tracking-tight break-words leading-[1.2];
+    color: rgba(255, 255, 255, 0.98);
+}
+
+.over-title-on-dark {
+    @apply text-4xl sm:text-4xl lg:text-5xl font-semibold tracking-tight break-words leading-[1.1];
+    color: rgba(255, 255, 255, 0.98);
+}
+
+.title-font-on-dark {
+    font-family: 'customFont', sans-serif;
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight break-words leading-[1.05];
+    color: rgba(255, 255, 255, 0.98);
+}
+
+.title-font-2-on-dark {
+    font-family: 'customFont', sans-serif;
+    @apply text-lg sm:text-3xl font-semibold tracking-tight break-words leading-[1.05];
+    color: rgba(255, 255, 255, 0.98);
+}
+
+.title-font-3-on-dark {
+    font-family: 'customFont', sans-serif;
+    @apply text-lg sm:text-lg font-semibold tracking-tight break-words leading-[1.05];
+    color: rgba(255, 255, 255, 0.98);
+}
 
 /* Text sizes (avoid names that collide with Tailwind utilities) */
-.t-body { @apply text-base; }
-.t-small { @apply text-sm; }
-.t-mini { @apply text-xs; }
+.t-body {
+    @apply text-base;
+    color: var(--content-primary);
+}
+
+.t-small {
+    @apply text-sm font-normal;
+    color: var(--content-secondary);
+}
+
+.t-mini {
+    @apply text-xs font-normal;
+    color: var(--content-secondary);
+}
 
 /* Default muted text */
-.context { @apply text-sm text-gray-500 font-normal; }
-
-/* Secondary text weights */
-.t-small { @apply text-sm font-normal text-gray-700; }
-.t-mini { @apply text-xs font-normal text-gray-600; }
+.context {
+    @apply text-sm font-normal;
+    color: var(--content-secondary);
+}
 
 /* Buttons */
 .primary-btn {
     @apply px-6 py-3 rounded-xl font-semibold text-white transition-colors duration-200 select-none;
-    background-color: #e97358;
+    background-color: var(--accent);
 }
 
 .primary-btn:hover {
-    background-color: #c8634d;
+    background-color: var(--accent-hover);
 }
 
 .primary-btn:disabled {
     @apply opacity-60 cursor-not-allowed;
 }
 
-/* White button (same sizing as primary) */
+/* Белая кнопка: всегда белая плашка + тёмный текст (и в светлой, и в тёмной теме страницы) */
 .primary-btn-white {
     @apply px-6 py-3 rounded-xl font-semibold transition-colors duration-200 select-none;
-    @apply bg-white text-gray-900;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.primary-btn-white:hover {
+    background-color: #f4f4f5;
+    border-color: rgba(0, 0, 0, 0.14);
 }
 
 .primary-btn-white:disabled {
@@ -140,16 +597,43 @@ body {
 /* Blur buttons (glass / frosted) */
 .primary-btn-blur {
     @apply px-6 py-3 rounded-xl font-semibold select-none transition-colors duration-200;
-    color: #e97358;
-    background: rgba(233, 115, 88, 0.08);
-    border: 1px solid rgba(233, 115, 88, 0.35);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
 .primary-btn-blur:hover {
-    background: rgba(233, 115, 88, 0.14);
-    border-color: rgba(233, 115, 88, 0.45);
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+html.dark .primary-btn-blur,
+.dark .primary-btn-blur {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--accent) 10%, transparent),
+            color-mix(in srgb, var(--accent) 10%, transparent)
+        ),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+html.dark .primary-btn-blur:hover,
+.dark .primary-btn-blur:hover {
+    border-color: transparent;
+    background-image:
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--accent) 18%, transparent),
+            color-mix(in srgb, var(--accent) 18%, transparent)
+        ),
+        var(--border-hairline-gradient);
 }
 
 .primary-btn-blur:disabled {
@@ -158,15 +642,26 @@ body {
 
 .primary-btn-white-blur {
     @apply px-6 py-3 rounded-xl font-semibold select-none transition-colors duration-200;
-    color: #111827;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(17, 24, 39, 0.1);
+    color: var(--content-primary);
+    background: color-mix(in srgb, var(--bg-main) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--content-primary) 12%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 }
 
 .primary-btn-white-blur:hover {
-    background: rgba(255, 255, 255, 0.8);
+    background: color-mix(in srgb, var(--bg-main) 75%, transparent);
+}
+
+html.dark .primary-btn-white-blur,
+.dark .primary-btn-white-blur {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+html.dark .primary-btn-white-blur:hover,
+.dark .primary-btn-white-blur:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .primary-btn-white-blur:disabled {
@@ -175,25 +670,92 @@ body {
 
 /* Inputs */
 .input {
-    @apply px-6 py-3 rounded-lg border-2 border-gray-200 outline-none;
-    @apply focus:ring-2 focus:ring-[#e97358] focus:ring-offset-2 focus:ring-offset-white;
+    @apply px-6 py-3 rounded-lg border-2 outline-none;
+    background-color: var(--bg-card);
+    color: var(--content-primary);
+    border-color: var(--border-input);
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
-/* Keep old class name used in UI */
-.search-input { @apply input bg-gray-50; }
+.input:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--bg-main), 0 0 0 4px var(--accent);
+}
+
+.search-input {
+    @apply input;
+    background-color: var(--bg-card);
+}
 
 .search-input-white {
-    @apply input bg-white;
+    @apply input;
+    background-color: var(--bg-main);
+}
+
+/* Тёмная тема: градиентная «волосная» обводка у input (псевдо на <input> не работает) */
+html.dark .input,
+html.dark .search-input,
+.dark .input,
+.dark .search-input {
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--bg-card), var(--bg-card)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+html.dark .search-input-white,
+.dark .search-input-white {
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--bg-main), var(--bg-main)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
 }
 
 /* Tags / interactive chips */
 .tag {
-    @apply bg-gray-50 border-2 border-black text-black rounded-lg px-4 py-2 transition-colors duration-200 select-none;
+    @apply rounded-lg px-4 py-2 transition-colors duration-200 select-none border-2;
+    background-color: var(--tag-bg);
+    border-color: var(--tag-border);
+    color: var(--tag-text);
 }
 
 .tag:hover {
     @apply text-white border-transparent;
-    background-color: #e97358;
+    background-color: var(--accent);
+}
+
+html.dark .tag,
+.dark .tag {
+    border-width: 1px;
+    border-color: transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--tag-bg), var(--tag-bg)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+html.dark .tag:hover,
+.dark .tag:hover {
+    background-image: none;
+    background-color: var(--accent);
+    border: none;
 }
 
 /* Status badges (pills) */
@@ -202,58 +764,254 @@ body {
 }
 
 .badge-completed {
-    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+    background-color: var(--badge-completed-bg);
+    color: var(--badge-completed-text);
+    border-color: var(--badge-completed-border);
 }
 
 .badge-in-progress {
-    @apply bg-amber-50 text-amber-700 border-amber-200;
+    background-color: var(--badge-in-progress-bg);
+    color: var(--badge-in-progress-text);
+    border-color: var(--badge-in-progress-border);
 }
 
 .badge-pending {
-    @apply bg-rose-50 text-rose-700 border-rose-200;
+    background-color: var(--badge-pending-bg);
+    color: var(--badge-pending-text);
+    border-color: var(--badge-pending-border);
 }
 
 .content-badge-completed {
-    @apply block-base bg-emerald-50 text-emerald-700 border-emerald-200;
+    @apply block-base border;
+    background-color: var(--badge-completed-bg);
+    color: var(--badge-completed-text);
+    border-color: var(--badge-completed-border);
 }
 
 .content-badge-in-progress {
-    @apply block-base bg-amber-50 text-amber-700 border-amber-200;
+    @apply block-base border;
+    background-color: var(--badge-in-progress-bg);
+    color: var(--badge-in-progress-text);
+    border-color: var(--badge-in-progress-border);
 }
 
 .content-badge-pending {
-    @apply block-base bg-rose-50 text-rose-700 border-rose-200;
+    @apply block-base border;
+    background-color: var(--badge-pending-bg);
+    color: var(--badge-pending-text);
+    border-color: var(--badge-pending-border);
+}
+
+html.dark .badge-completed,
+.dark .badge-completed,
+html.dark .content-badge-completed,
+.dark .content-badge-completed {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--badge-completed-bg), var(--badge-completed-bg)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+html.dark .badge-in-progress,
+.dark .badge-in-progress,
+html.dark .content-badge-in-progress,
+.dark .content-badge-in-progress {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--badge-in-progress-bg), var(--badge-in-progress-bg)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+html.dark .badge-pending,
+.dark .badge-pending,
+html.dark .content-badge-pending,
+.dark .content-badge-pending {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--badge-pending-bg), var(--badge-pending-bg)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
 }
 
 /* Minimal scrollbar */
 .custom-scroll::-webkit-scrollbar,
-html::-webkit-scrollbar { width: 8px; }
+html::-webkit-scrollbar {
+    width: 8px;
+}
 
 .custom-scroll::-webkit-scrollbar-track,
-html::-webkit-scrollbar-track { background: transparent; }
+html::-webkit-scrollbar-track {
+    background: transparent;
+}
 
 .custom-scroll::-webkit-scrollbar-thumb,
-html::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
-
-html { scrollbar-width: thin; scrollbar-color: rgb(209 213 219) transparent; }
+html::-webkit-scrollbar-thumb {
+    @apply rounded-full;
+    background-color: var(--scrollbar-thumb);
+}
 
 /* Lift animation (hover) */
 .animate-lift {
     @apply transition-transform duration-200 ease-out;
 }
+
 .animate-lift:hover {
     @apply -translate-y-1;
 }
 
 /* Sidebar navigation link */
 .sidebar-nav-link {
-    @apply flex items-center gap-3 w-full pl-3 pr-4 py-2.5 rounded-xl hover:bg-white/10 transition-colors;
+    @apply flex items-center gap-3 w-full pl-3 pr-4 py-2.5 rounded-xl transition-colors;
+    color: var(--content-primary);
+}
+
+.sidebar-nav-link:hover {
+    background-color: var(--sidebar-link-hover);
 }
 
 .sidebar-nav-link-nested {
-    @apply flex items-center gap-3 w-full pl-8 pr-4 py-2.5 rounded-xl hover:bg-white/10 transition-colors text-sm text-gray-600;
+    @apply flex items-center gap-3 w-full pl-8 pr-4 py-2.5 rounded-xl transition-colors text-sm;
+    color: var(--sidebar-nested-muted);
+}
+
+.sidebar-nav-link-nested:hover {
+    background-color: var(--sidebar-link-hover);
 }
 
 .sidebar-nav-link-active {
-    @apply bg-[#e97358]/10 text-[#e97358] font-semibold;
+    @apply font-semibold;
+    background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dashboard (страница Index): без сырых Tailwind bg-white / gray / black/5   */
+/* -------------------------------------------------------------------------- */
+.text-accent {
+    color: var(--accent);
+}
+
+/* Нейтральный pill для метрик (+8 this month и т.п.) — светлая/тёмная тема */
+.badge-neutral {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border select-none leading-none;
+    background-color: color-mix(in srgb, var(--bg-card) 75%, var(--bg-main));
+    color: var(--content-primary);
+    border-color: color-mix(in srgb, var(--content-primary) 10%, transparent);
+}
+
+html.dark .badge-neutral,
+.dark .badge-neutral {
+    background-color: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: var(--content-primary);
+}
+
+/* Вложенная карточка внутри content-dashboard */
+.dashboard-inset {
+    @apply p-3 rounded-2xl;
+    background-color: var(--bg-card);
+    color: var(--content-primary);
+    border: 1px solid color-mix(in srgb, var(--content-primary) 8%, transparent);
+}
+
+html.dark .dashboard-inset,
+.dark .dashboard-inset {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Область графика: не белая плашка в тёмной теме */
+.dashboard-chart-wrap {
+    @apply h-56 w-full rounded-2xl p-4;
+    background-color: var(--bg-card);
+    border: 1px solid color-mix(in srgb, var(--content-primary) 8%, transparent);
+}
+
+html.dark .dashboard-chart-wrap,
+.dark .dashboard-chart-wrap {
+    background-color: #101010;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.dashboard-stat-value {
+    @apply text-5xl font-extrabold tracking-tight;
+    color: var(--content-primary);
+}
+
+.dashboard-row-title {
+    @apply font-semibold;
+    color: var(--content-primary);
+}
+
+.dashboard-icon-slot {
+    @apply w-10 h-10 rounded-2xl flex items-center justify-center shrink-0;
+    background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.dashboard-avatar {
+    @apply w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold;
+}
+
+.dashboard-avatar--accent {
+    background-color: color-mix(in srgb, var(--accent) 50%, var(--bg-card));
+    color: #111827;
+}
+
+.dashboard-avatar--sky {
+    background-color: color-mix(in srgb, #0ea5e9 48%, var(--bg-card));
+    color: #0c4a6e;
+}
+
+.dashboard-avatar--emerald {
+    background-color: color-mix(in srgb, #10b981 48%, var(--bg-card));
+    color: #064e3b;
+}
+
+html.dark .dashboard-avatar--accent,
+.dark .dashboard-avatar--accent {
+    color: #0f172a;
+}
+
+html.dark .dashboard-avatar--sky,
+.dark .dashboard-avatar--sky {
+    color: #082f49;
+}
+
+html.dark .dashboard-avatar--emerald,
+.dark .dashboard-avatar--emerald {
+    color: #022c22;
+}
+
+.dashboard-progress-track {
+    @apply mt-2 h-2 w-full rounded-full overflow-hidden;
+    background-color: color-mix(in srgb, var(--content-primary) 7%, var(--bg-card));
+}
+
+html.dark .dashboard-progress-track,
+.dark .dashboard-progress-track {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-progress-fill {
+    @apply h-full rounded-full;
+}
+
+.dashboard-progress-fill--accent {
+    background-color: var(--accent);
+}
+
+.dashboard-progress-fill--success {
+    background-color: #10b981;
+}
+
+.dashboard-progress-fill--info {
+    background-color: #0ea5e9;
 }

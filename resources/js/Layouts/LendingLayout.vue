@@ -34,34 +34,35 @@ onBeforeUnmount(() => {
   <!-- Mobile Sidebar (slides in from the left) -->
   <aside
     class="
+      lending-mobile-drawer
       fixed inset-y-0 left-0 z-[70]
       w-4/5 sm:w-72
       transform transition-transform duration-300
-      bg-white/80 backdrop-blur-2xl border-r
+      bg-content-dark backdrop-blur-2xl border-r border-white/10
       pt-4
       lg:hidden
     "
     :class="isOpen ? 'translate-x-0' : '-translate-x-full'"
   >
     <div class="px-4 flex items-center justify-between mb-4">
-      <h1 class="title-font-2 text-2xl">STRATIX</h1>
+      <h1 class="title-font-2-on-dark text-2xl">STRATIX</h1>
 
-      <button class="p-2" @click="close" aria-label="Close menu">
-        <i class="fa-solid fa-xmark"></i>
+      <button type="button" class="lending-drawer-close" @click="close" aria-label="Закрыть меню">
+        <i class="fa-solid fa-xmark text-lg" aria-hidden="true" />
       </button>
     </div>
 
-    <nav class="px-4 space-y-2">
-      <a class="t-body block text-gray-700 hover:text-black transition-colors" href="#" @click="close">
+    <nav class="px-4 space-y-1" aria-label="Мобильное меню">
+      <a class="lending-nav-link lending-nav-link--block" href="#" @click.prevent="close">
         Главная
       </a>
-      <a class="t-body block text-gray-700 hover:text-black transition-colors" href="#" @click="close">
+      <a class="lending-nav-link lending-nav-link--block" href="#" @click.prevent="close">
         Компоненты
       </a>
-      <a class="t-body block text-gray-700 hover:text-black transition-colors" href="#" @click="close">
+      <a class="lending-nav-link lending-nav-link--block" href="#" @click.prevent="close">
         Оплата
       </a>
-      <a class="t-body block text-gray-700 hover:text-black transition-colors" href="#" @click="close">
+      <a class="lending-nav-link lending-nav-link--block" href="#" @click.prevent="close">
         Counter
       </a>
     </nav>
@@ -75,19 +76,19 @@ onBeforeUnmount(() => {
   <!-- Desktop wrapper + header + page content -->
   <div class="relative z-10">
     <header
-      class="sticky top-0 z-50 w-full transition-colors duration-200"
-      :class="isScrolled ? 'bg-white/20 backdrop-blur-xl shadow-sm' : 'bg-transparent'"
+      class="sticky top-0 z-50 w-full transition-colors duration-200 rounded-b-3xl mx-auto"
+      :class="isScrolled ? 'backdrop-blur-xl shadow-sm' : 'bg-transparent'"
     >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-10">
             <h1 class="title-font">STRATIX</h1>
 
-            <nav class="hidden lg:flex items-center gap-12 ml-10">
-              <a class="t-body text-gray-700 hover:text-black transition-colors" href="#">Главная</a>
-              <a class="t-body text-gray-700 hover:text-black transition-colors" href="#">Компоненты</a>
-              <a class="t-body text-gray-700 hover:text-black transition-colors" href="#">Оплата</a>
-              <a class="t-body text-gray-700 hover:text-black transition-colors" href="#">Counter</a>
+            <nav class="hidden lg:flex items-center gap-12 ml-10" aria-label="Основное меню">
+              <a class="lending-nav-link text-base font-medium" href="#">Главная</a>
+              <a class="lending-nav-link text-base font-medium" href="#">Компоненты</a>
+              <a class="lending-nav-link text-base font-medium" href="#">Оплата</a>
+              <a class="lending-nav-link text-base font-medium" href="#">Counter</a>
             </nav>
           </div>
 
@@ -99,19 +100,20 @@ onBeforeUnmount(() => {
 
             <!-- Burger (two lines) -->
             <button
-              class="lg:hidden p-2"
+              type="button"
+              class="lending-header-icon-btn lg:hidden p-2 rounded-xl transition-colors"
               @click="isOpen = true"
-              aria-label="Open menu"
+              aria-label="Открыть меню"
             >
-              <span class="block w-7 h-[2px] bg-black"></span>
-              <span class="block w-7 h-[2px] bg-black mt-1"></span>
+              <span class="lending-burger-line" />
+              <span class="lending-burger-line" />
             </button>
           </div>
         </div>
       </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-40">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 lg:py-10">
       <slot />
     </main>
   </div>

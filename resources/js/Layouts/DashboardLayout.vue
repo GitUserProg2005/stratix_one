@@ -45,7 +45,7 @@ onBeforeUnmount(() => {
       grid grid-cols-1
       lg:grid-cols-[16rem_1fr]
       
-      gap-4
+      gap-2
     "
   >
     <!-- Sidebar -->
@@ -56,7 +56,7 @@ onBeforeUnmount(() => {
 
     <!-- Main -->
     <main class="overflow-y-auto bg-content">
-      <header class="sticky top-0 z-50 bg-white/70 backdrop-blur-xl px-4">
+      <header class="sticky top-0 z-50 backdrop-blur-xl px-4">
         <div class="py-6">
           <div class="flex items-center gap-6 w-full">
             <!-- Mobile burger -->

@@ -93,7 +93,10 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
                     <div class="flex items-end justify-between gap-6 flex-wrap">
                         <div>
                             <h2 class="title">Типографика</h2>
-                            <p class="context mt-1">Основной текст — Roboto. Тайтл — Roboto или customFont.</p>
+                            <p class="context mt-1">
+                                Основной текст — Roboto. Тайтл — Roboto или customFont. На чёрной плашке при светлой теме —
+                                классы с суффиксом <code class="text-xs bg-gray-100 px-1 rounded">-on-dark</code>.
+                            </p>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="tag">t-body</span>
@@ -110,6 +113,14 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
                             <div class="t-body text-gray-900">Body text — базовый размер.</div>
                             <div class="t-small text-gray-700">Small text — для подписей, метаданных.</div>
                             <div class="t-mini text-gray-600">Mini text — для label/secondary info.</div>
+
+                            <div class="content-dark rounded-2xl p-5 space-y-2 mt-4">
+                                <div class="t-mini text-white/65">Тёмная плашка, светлая тема страницы</div>
+                                <div class="title-font-on-dark">title-font-on-dark</div>
+                                <div class="title-on-dark">title-on-dark</div>
+                                <div class="title-2-on-dark">title-2-on-dark</div>
+                                <div class="over-title-on-dark !text-2xl">over-title-on-dark</div>
+                            </div>
                         </div>
                         <div class="space-y-3">
                             <p class="context">
@@ -178,7 +189,7 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
                     </div>
 
                     <div class="content-dark">
-                        <h2 class="title">Тёмный блок</h2>
+                        <h2 class="title-on-dark">Тёмный блок</h2>
                         <p class="t-small text-white/80 mt-1">
                             Цвет фона: #1a1a1a. Сетка/отступы такие же как у светлого content-блока.
                         </p>
