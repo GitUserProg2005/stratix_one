@@ -13,6 +13,7 @@ import LendingServicesSection from '@/Components/Lending/LendingServicesSection.
     <div class="relative bg-body">
         <LendingLayout>
             <LendingHeroSection />
+            <div class="w-full laser-line"></div>
             <LendingComponentsIntroSection />
             <LendingClientsSection />
             <LendingQuickStartSection />

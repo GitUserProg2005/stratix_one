@@ -78,7 +78,10 @@
             >
         </div>
 
-        <div class="relative z-10 mx-auto max-w-3xl px-4 text-center space-y-5">
+        <div class="relative z-10 mx-auto max-w-3xl px-4 text-center space-y-5 flex flex-col items-center justify-center">
+            <div class="label-landing">
+                <span class="">Попробовать бесплатно <i class="fa-solid fa-angle-right ml-2"></i></span>
+            </div>
             <h2 class="title-font mt-20">
                 Простой старт для MVP
             </h2>
@@ -93,6 +96,14 @@
                 <button type="button" class="tag">
                     Посмотреть UI kit
                 </button>
+            </div>
+
+            <div class="flex flex-wrap max-w-4xls items-center justify-center gap-2 mt-16">
+                <span class="tag">Разделы маркетинга</span>
+                <span class="tag">Инкубация</span>
+                <span class="hidden md:block tag">Selfhosted-решения</span>
+                <span class="hidden md:block tag">Коммуникация и AI-ассистенты</span>
+                <span class="tag">Маршруты</span>
             </div>
         </div>
     </section>

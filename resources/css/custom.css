@@ -157,6 +157,201 @@ body {
     color: var(--text-primary);
 }
 
+/*
+ * ---------------------------------------------------------------------------
+ * bg-content-outline — только фон и рамка в стиле .content-outline (без padding,
+ * без rounded по умолчанию — добавьте rounded-* при необходимости).
+ *
+ * Пример:
+ *   <div class="bg-content-outline rounded-2xl p-4">...</div>
+ * ---------------------------------------------------------------------------
+ */
+.bg-content-outline {
+    background-color: var(--bg-main);
+    border: var(--border-outline);
+}
+
+html.dark .bg-content-outline,
+.dark .bg-content-outline {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--bg-main), var(--bg-main)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Лейблы (.label-*) — компактная плашка px-4 py-1, rounded-full, text-xs.
+ *
+ * Как выбрать класс:
+ *   • label-body        — на фоне страницы (--bg-main): подписи к секциям, kicker.
+ *   • label-content     — на карточке / сером фоне (--bg-card).
+ *   • label-outline     — «как outline-карточка»: светлая рамка / в dark — hairline.
+ *   • label-dark        — тёмная плашка (#1a1a1a), белый текст (на светлой странице).
+ *   • label-glass       — полупрозрачное стекло + лёгкая рамка.
+ *   • label-ice         — ледовый фон #e0f2fe, чёрный текст (как .content-ice).
+ *   • label-corporate-blue — голубой блок (как .content-corporate-blue).
+ *   • label-accent      — акцентный оранжевый, белый текст.
+ *   • label-completed | label-in-progress | label-pending — семантика статусов (как бейджи).
+ *   • label-landing     — крупный pill для лендинга: светлая тема — фон #1a1a1a, текст белый;
+ *                         тёмная тема — фон белый, текст #1a1a1a (инверсия).
+ *
+ * Пример:
+ *   <span class="label-accent">New</span>
+ *   <span class="label-landing">Короткий лид</span>
+ * ---------------------------------------------------------------------------
+ */
+
+.label-body {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-semibold;
+    background-color: var(--bg-main);
+    color: var(--content-primary);
+    border: 1px solid color-mix(in srgb, var(--content-primary) 10%, transparent);
+}
+
+html.dark .label-body,
+.dark .label-body {
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.label-content {
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold;
+    background-color: var(--bg-card);
+    color: var(--content-primary);
+    border: 1px solid color-mix(in srgb, var(--content-primary) 8%, transparent);
+}
+
+html.dark .label-content,
+.dark .label-content {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.label-outline {
+    @apply inline-flex items-center justify-center px-8 py-4 rounded-full text-sm font-semibold;
+    background-color: var(--bg-main);
+    color: var(--content-primary);
+    border: 2px solid #000000;
+}
+
+html.dark .label-outline,
+.dark .label-outline {
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.22);
+    background-color: var(--bg-main);
+}
+
+.label-dark {
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold;
+    background-color: var(--content-dark-surface-bg);
+    color: var(--content-dark-surface-fg);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* Лендинг: контрастная «плашка» — в светлой теме тёмная, в тёмной — светлая */
+.label-landing {
+    @apply inline-flex max-w-xs items-center justify-center px-8 py-2 rounded-full text-center text-sm font-semibold;
+    box-sizing: border-box;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid transparent;
+}
+
+html.dark .label-landing,
+.dark .label-landing {
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+.label-glass {
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold backdrop-blur-md;
+    background-color: var(--glass-bg);
+    color: var(--content-primary);
+    border: 1px solid var(--glass-border);
+}
+
+.label-ice {
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold;
+    background-color: var(--content-ice-bg);
+    color: var(--content-ice-fg);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.label-corporate-blue {
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold;
+    background-color: var(--corporate-blue-bg);
+    color: var(--corporate-blue-text);
+    border: 1px solid color-mix(in srgb, var(--corporate-blue-text) 12%, transparent);
+}
+
+html.dark .label-corporate-blue,
+.dark .label-corporate-blue {
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.label-accent {
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold text-white;
+    background-color: var(--accent);
+    border: 1px solid color-mix(in srgb, #ffffff 22%, var(--accent));
+}
+
+.label-completed {
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold;
+    background-color: var(--badge-completed-bg);
+    color: var(--badge-completed-text);
+    border: 1px solid var(--badge-completed-border);
+}
+
+html.dark .label-completed,
+.dark .label-completed {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--badge-completed-bg), var(--badge-completed-bg)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+.label-in-progress {
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold;
+    background-color: var(--badge-in-progress-bg);
+    color: var(--badge-in-progress-text);
+    border: 1px solid var(--badge-in-progress-border);
+}
+
+html.dark .label-in-progress,
+.dark .label-in-progress {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--badge-in-progress-bg), var(--badge-in-progress-bg)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+.label-pending {
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold;
+    background-color: var(--badge-pending-bg);
+    color: var(--badge-pending-text);
+    border: 1px solid var(--badge-pending-border);
+}
+
+html.dark .label-pending,
+.dark .label-pending {
+    border: 1px solid transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--badge-pending-bg), var(--badge-pending-bg)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Lending hero — декоративные grid.png (светлая / тёмная тема страницы)      */
 /* -------------------------------------------------------------------------- */
@@ -254,6 +449,69 @@ html.dark .lending-burger-line {
 
 html.dark .lending-header-icon-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Тёплое свечение #feeccd: на всю ширину, акцент справа, заметное, длиннее к низу */
+.lending-layout-glow {
+    pointer-events: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100vw;
+    height: min(125vh, 1100px);
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(254, 236, 205, 0.62) 0%,
+            rgba(254, 236, 205, 0.28) 22%,
+            rgba(254, 236, 205, 0.1) 48%,
+            rgba(254, 236, 205, 0.02) 72%,
+            transparent 92%
+        ),
+        radial-gradient(
+            ellipse 160% 85% at 100% -8%,
+            rgba(254, 236, 205, 0.95) 0%,
+            rgba(254, 236, 205, 0.55) 32%,
+            rgba(254, 236, 205, 0.2) 58%,
+            transparent 82%
+        ),
+        radial-gradient(
+            ellipse 130% 70% at 50% -18%,
+            rgba(254, 236, 205, 0.35) 0%,
+            rgba(254, 236, 205, 0.12) 45%,
+            transparent 72%
+        ),
+        radial-gradient(
+            ellipse 95% 50% at 82% 6%,
+            rgba(254, 236, 205, 0.45) 0%,
+            transparent 58%
+        );
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 0.92) 18%,
+        rgba(0, 0, 0, 0.65) 42%,
+        rgba(0, 0, 0, 0.28) 68%,
+        rgba(0, 0, 0, 0.06) 88%,
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 0.92) 18%,
+        rgba(0, 0, 0, 0.65) 42%,
+        rgba(0, 0, 0, 0.28) 68%,
+        rgba(0, 0, 0, 0.06) 88%,
+        transparent 100%
+    );
+}
+
+html.dark .lending-layout-glow,
+.dark .lending-layout-glow {
+    opacity: 0.55;
 }
 
 /* Base block: единое место для отступов, скруглений и базовой типографики */
@@ -728,20 +986,31 @@ html.dark .search-input-white,
 
 /* Tags / interactive chips */
 .tag {
-    @apply rounded-lg px-4 py-2 transition-colors duration-200 select-none border-2;
+    @apply rounded-lg px-4 py-2 select-none;
+    box-sizing: border-box;
+    border-style: solid;
+    /* Одна толщина рамки default/hover — без сдвига и «дрожания» текста */
+    border-width: 2px;
     background-color: var(--tag-bg);
     border-color: var(--tag-border);
     color: var(--tag-text);
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .tag:hover {
-    @apply text-white border-transparent;
+    border-width: 2px;
+    border-color: transparent;
     background-color: var(--accent);
+    color: #ffffff;
 }
 
 html.dark .tag,
 .dark .tag {
     border-width: 1px;
+    border-style: solid;
     border-color: transparent;
     background-color: transparent;
     background-image:
@@ -749,13 +1018,23 @@ html.dark .tag,
         var(--border-hairline-gradient);
     background-origin: border-box;
     background-clip: padding-box, border-box;
+    /* Не анимируем background-image — только цвета */
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 html.dark .tag:hover,
 .dark .tag:hover {
+    /* Та же толщина 1px, что и в покое — без border: none */
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
     background-image: none;
     background-color: var(--accent);
-    border: none;
+    background-clip: border-box;
+    color: #ffffff;
 }
 
 /* Status badges (pills) */
@@ -1015,3 +1294,28 @@ html.dark .dashboard-progress-track,
 .dashboard-progress-fill--info {
     background-color: #0ea5e9;
 }
+
+.laser-line {
+  position: relative;
+  width: 100%;
+  height: 1px; /* Сама линия может быть невидимой */
+  background: transparent;
+}
+
+.laser-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%; /* Длина свечения */
+  height: 40px; /* Толщина свечения */
+  background: radial-gradient(
+    ellipse at center, 
+    rgba(233, 115, 88, 0.4) 0%, /* Твой оранжевый #e97358 */
+    rgba(233, 115, 88, 0) 70%
+  );
+  filter: blur(10px); /* Тот самый soft-эффект */
+  pointer-events: none;
+}
+

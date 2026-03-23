@@ -88,6 +88,38 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
                     </div>
                 </section>
 
+                <!-- LABELS + bg-content-outline -->
+                <section class="content space-y-4">
+                    <div>
+                        <h2 class="title">Лейблы и bg-content-outline</h2>
+                        <p class="context mt-1 max-w-3xl">
+                            Плашки: классы <code class="text-xs">.label-*</code> (в т.ч.
+                            <code class="text-xs">label-landing</code> — px-8 py-2, max-w-xs).
+                            Утилита <code class="text-xs">.bg-content-outline</code> — только фон и рамка как у
+                            <code class="text-xs">.content-outline</code>; скругление и padding задайте сами
+                            (например <code class="text-xs">rounded-2xl p-4</code>).
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <span class="label-body">label-body</span>
+                        <span class="label-content">label-content</span>
+                        <span class="label-outline">label-outline</span>
+                        <span class="label-dark">label-dark</span>
+                        <span class="label-landing">label-landing</span>
+                        <span class="label-glass">label-glass</span>
+                        <span class="label-ice">label-ice</span>
+                        <span class="label-corporate-blue">label-corporate-blue</span>
+                        <span class="label-accent">label-accent</span>
+                        <span class="label-completed">label-completed</span>
+                        <span class="label-in-progress">label-in-progress</span>
+                        <span class="label-pending">label-pending</span>
+                    </div>
+                    <div class="bg-content-outline rounded-2xl p-4 max-w-md">
+                        <p class="t-small font-medium">Блок с .bg-content-outline + .rounded-2xl .p-4</p>
+                        <p class="context mt-1 text-sm">Без padding у утилиты — только фон и border.</p>
+                    </div>
+                </section>
+
                 <!-- TYPOGRAPHY -->
                 <section class="content">
                     <div class="flex items-end justify-between gap-6 flex-wrap">

@@ -24,6 +24,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <!-- Тёплое свечение #feeccd сверху справа, очень мягко к низу -->
+  <div class="lending-layout-glow" aria-hidden="true" />
+
   <!-- Mobile overlay -->
   <div
     v-if="isOpen"
