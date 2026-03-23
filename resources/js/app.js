@@ -1,5 +1,4 @@
 import '../css/app.css';
-import '../css/custom.css';
 import './bootstrap';
 import './echo';
 
@@ -38,8 +37,9 @@ createInertiaApp({
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/build/sw.js')
-            .then(reg => console.log('SW registered', reg))
-            .catch(err => console.error('SW registration failed:', err));
+        navigator.serviceWorker
+            .register('/build/sw.js')
+            .then((reg) => console.log('SW registered', reg.scope))
+            .catch((err) => console.error('SW registration failed:', err));
     });
 }

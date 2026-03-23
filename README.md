@@ -6,7 +6,14 @@ Laravel 12, Inertia, Vue 3, Laravel Reverb (WebSocket), PostgreSQL, Redis, Meili
 
 ## Запуск через Docker
 
-На хосте нужны только **Docker**, **Docker Compose** и **Nginx**. PHP, Composer и Node не требуются — всё выполняется в образе. Вы заполняете только `.env` в каталоге проекта на хосте; файла `.env` внутри контейнера нет — переменные передаются через `env_file` при запуске.
+На хосте нужны только **Docker**, **Docker Compose** и **Nginx**. PHP, Composer и Node на хосте не требуются — всё выполняется в образе. Вы заполняете только `.env` в каталоге проекта на хосте; файла `.env` внутри контейнера нет — переменные передаются через `env_file` при запуске.
+
+### Два варианта `docker compose`
+
+| Файл | Назначение |
+|------|------------|
+| **`docker-compose.yml`** | Разработка на VDS: **bind-mount** кода, тома `wix-vendor` и `wix-node-modules`. Контейнер `app` при старте выполняет `composer install` и при отсутствии `public/build` — `npm ci && npm run build`. Порт **5173** для Vite. Копировать `public` из образа на хост не нужно. |
+| **`docker-compose.prod.yml`** | Продакшен / CI: только образ, без монтирования кода. Деплой: `docker compose -f docker-compose.prod.yml up -d`. Статику на хост для Nginx — см. раздел 7. |
 
 ### Требования
 
@@ -135,18 +142,34 @@ docker compose exec app printenv AWS_BUCKET
 
 ### 3. Сборка образа
 
-Composer, npm и сборка фронта выполняются внутри Docker. Переменные `VITE_REVERB_*` и `APP_NAME` подставляются из `.env` при сборке.
+Composer, npm и сборка фронта для **образа** выполняются при `docker build`. Переменные `VITE_*` подставляются из `.env` при сборке.
+
+Разработка (`docker-compose.yml`):
 
 ```bash
 docker compose build app
+```
+
+Продакшен:
+
+```bash
+docker compose -f docker-compose.prod.yml build app
 ```
 
 ---
 
 ### 4. Запуск контейнеров
 
+Разработка (bind-mount):
+
 ```bash
 docker compose up -d
+```
+
+Продакшен:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 | Сервис      | Порт   | Назначение        |
@@ -188,15 +211,19 @@ docker compose exec app chmod -R 775 /var/www/wix/todo/storage /var/www/wix/todo
 
 ---
 
-### 7. Копирование public на хост (для Nginx)
+### 7. Статика `public` для Nginx
 
-Статику (CSS, JS, `build/`) отдаёт Nginx с хоста из каталога `public` проекта. Скопируйте содержимое `public` из образа в каталог проекта на хосте (один раз после первой сборки и после каждого пересборки образа):
+Статику (CSS, JS, `build/`) отдаёт Nginx с хоста из каталога `public` проекта.
+
+- При **`docker-compose.yml`** (разработка): `public/build` появляется в каталоге проекта на хосте — **копировать из контейнера не нужно**. После правок фронта: `docker compose exec app npm run build` или `FORCE_FRONTEND_BUILD=1 docker compose up -d app`.
+
+- При **`docker-compose.prod.yml`**:
 
 ```bash
-docker compose run --rm -v "$(pwd)/public:/host/public" app sh -c "cp -r /var/www/wix/todo/public/. /host/public/"
+docker compose -f docker-compose.prod.yml run --rm -v "$(pwd)/public:/host/public" app sh -c "cp -r /var/www/wix/todo/public/. /host/public/"
 ```
 
-В `./public` появятся `build/`, `index.php` и остальные файлы.
+**Vite dev (HMR):** `docker compose exec app npm run dev -- --host 0.0.0.0 --port 5173`, порт 5173 проброшен в dev-compose; при HTTPS настройте прокси в Nginx.
 
 ---
 
@@ -276,8 +303,10 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ```bash
 cd /var/www/rus_spotify
-docker compose exec app php /var/www/wix/todo/artisan backup:run
+docker compose -f docker-compose.prod.yml exec app php /var/www/wix/todo/artisan backup:run
 ```
+
+В режиме разработки (`docker-compose.yml`) можно вызывать `docker compose exec app …` без `-f`.
 
 Успешный запуск создаёт архив на S3. Ошибки выводятся в консоль.
 
@@ -289,7 +318,7 @@ docker compose exec app php /var/www/wix/todo/artisan backup:run
    ```
 2. Добавьте строку. Пример — раз в день в 03:00, с записью лога и статуса:
    ```cron
-   0 3 * * * cd /var/www/rus_spotify && docker compose exec -T app php /var/www/wix/todo/artisan backup:run >> /var/www/rus_spotify/backup.log 2>&1; echo "$(date -Iseconds) exit=$?" >> /var/www/rus_spotify/backup-status.log
+   0 3 * * * cd /var/www/rus_spotify && docker compose -f docker-compose.prod.yml exec -T app php /var/www/wix/todo/artisan backup:run >> /var/www/rus_spotify/backup.log 2>&1; echo "$(date -Iseconds) exit=$?" >> /var/www/rus_spotify/backup-status.log
    ```
    Путь `/var/www/rus_spotify` замените на фактический каталог проекта на хосте. Флаг `-T` нужен для запуска из cron (без TTY).
 
@@ -310,11 +339,11 @@ docker compose exec app php /var/www/wix/todo/artisan backup:run
 1. Клонировать репозиторий, `cp .env.example .env`.
 2. Заполнить `.env`: DB_*, REDIS_*, QUEUE_CONNECTION, BROADCAST_DRIVER, REVERB_*, VITE_REVERB_*, при необходимости AWS_*, SCOUT_*.
 3. Сгенерировать и прописать `APP_KEY`: `docker compose run --rm app php artisan key:generate --show`.
-4. Собрать образ: `docker compose build app`.
-5. Запустить контейнеры: `docker compose up -d`.
+4. Собрать образ: `docker compose build app` (прод: `docker compose -f docker-compose.prod.yml build app`).
+5. Запустить контейнеры: `docker compose up -d` (прод: `-f docker-compose.prod.yml`).
 6. Выполнить миграции: `docker compose exec app php artisan migrate --force`.
 7. При необходимости поправить права: `docker compose exec app chown -R www-data:www-data /var/www/wix/todo/storage /var/www/wix/todo/bootstrap/cache`.
-8. Скопировать public на хост: `docker compose run --rm -v "$(pwd)/public:/host/public" app sh -c "cp -r /var/www/wix/todo/public/. /host/public/"`.
+8. Для **`docker-compose.prod.yml`** — скопировать `public` на хост (раздел 7). Для **`docker-compose.yml`** шаг не нужен.
 9. Настроить Nginx (root на public хоста, SCRIPT_FILENAME на путь в контейнере, proxy на 8081 для `/app`).
 10. (Опционально) Настроить бэкапы в S3 и хостовый cron — см. раздел «Бэкапы (S3) и хостовый cron»; примеры в `_Docker/cron-host.example`.
 
@@ -322,14 +351,14 @@ docker compose exec app php /var/www/wix/todo/artisan backup:run
 
 ## Полезные команды
 
-Пересборка образа и перезапуск:
+Пересборка образа (если меняли Dockerfile) и перезапуск:
 
 ```bash
 docker compose build app
 docker compose up -d app reverb queue
 ```
 
-После пересборки снова скопировать public на хост (шаг 7).
+С bind-mount правки PHP/Vue без пересборки образа; фронт: `docker compose exec app npm run build`. Для **`docker-compose.prod.yml`** после пересборки образа снова скопируйте `public` (раздел 7).
 
 Логи:
 
@@ -351,13 +380,15 @@ docker compose exec app php artisan migrate --force
 docker compose exec app php /var/www/wix/todo/artisan backup:run
 ```
 
+На проде с **`docker-compose.prod.yml`**: `docker compose -f docker-compose.prod.yml exec …`.
+
 Остановка:
 
 ```bash
 docker compose down
 ```
 
-Данные приложения хранятся в томах `wix-storage` и `wix-cache`. При `docker compose down -v` тома удаляются.
+Данные приложения хранятся в томах `wix-storage` и `wix-cache`; в режиме разработки также `wix-vendor` и `wix-node-modules`. При `docker compose down -v` тома удаляются.
 
 ---
 
@@ -369,6 +400,7 @@ docker compose down
 - Кастомный php.ini: `upload_max_filesize` / `post_max_size` 50M, `memory_limit` 256M, `max_execution_time` 120.
 - ffmpeg (для конвертации в HLS и создания сниппетов).
 - Entrypoint при старте удаляет закэшированные `packages.php` и `services.php` из bootstrap/cache, чтобы не подтягивались dev-пакеты (например Pail), которых нет в образе.
+- В финальный образ добавлены **Node/npm** для режима `DEV_MOUNT=1` (composer/npm в контейнере без Node на хосте).
 
 ---
 

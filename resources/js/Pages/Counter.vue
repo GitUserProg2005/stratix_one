@@ -25,8 +25,19 @@ onMounted(() => {
     if (typeof window.Echo !== 'undefined') {
         echoChannel = window.Echo.channel('counter')
             .listen('.counter.updated', (e) => {
+                // Диагностика: событие должно прилетать сюда из Reverb
+                console.log('[counter.updated] payload', e);
                 count.value = e.count ?? count.value;
             });
+
+        echoChannel.subscribed(() => {
+            console.log('✅ Подписка на канал counter прошла успешно!');
+        });
+
+        // ❌ Ошибка подписки
+        echoChannel.error((err) => {
+            console.error('❌ Ошибка при подписке на канал counter:', err);
+        });
     }
 });
 

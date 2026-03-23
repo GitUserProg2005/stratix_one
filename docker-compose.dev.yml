@@ -13,23 +13,25 @@ services:
 
   meilisearch:
     image: getmeili/meilisearch:v0.28
-    container_name: app_meilisearch_bot
+    container_name: app_meilisearch_bot_dev
     environment:
       - MEILI_NO_ANALYTICS=true
       - MEILI_MASTER_KEY=masterKey
     ports:
       - 7700:7700
     volumes:
-      - meilisearch-data:/meili_data
+      - meilisearch-data-dev:/meili_data
 
   redis:
     image: redis:7-alpine
-    container_name: redis-messenger
+    container_name: redis-messenger-dev
     ports:
       - "6379:6379"
     restart: unless-stopped
 
+  # Dev: монтируем проект внутрь контейнера, чтобы не пересобирать образ `app`.
   app:
+    image: wix-app-dev:latest
     build:
       context: .
       dockerfile: _Docker/Dockerfile
@@ -39,15 +41,17 @@ services:
         VITE_REVERB_PORT: ${VITE_REVERB_PORT}
         VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME}
         VITE_APP_NAME: ${APP_NAME:-Laravel}
-    image: wix-app:latest
-    container_name: wix-app
     env_file: .env
     environment:
       DB_HOST: db
       REDIS_HOST: redis
+      DEV_MOUNT: "1"
     volumes:
-      - wix-storage:/var/www/wix/todo/storage
-      - wix-cache:/var/www/wix/todo/bootstrap/cache
+      - ./:/var/www/wix/todo
+      - wix-storage-dev:/var/www/wix/todo/storage
+      - wix-cache-dev:/var/www/wix/todo/bootstrap/cache
+      - wix-vendor-dev:/var/www/wix/todo/vendor
+      - wix-node-modules-dev:/var/www/wix/todo/node_modules
     depends_on:
       - db
       - redis
@@ -57,9 +61,9 @@ services:
       - "9000:9000"
 
   reverb:
-    image: wix-app:latest
-    container_name: wix-reverb
-    command: php artisan reverb:start --debug
+    image: wix-app-dev:latest
+    container_name: wix-reverb-dev
+    command: php artisan reverb:start
     env_file: .env
     environment:
       DB_HOST: db
@@ -67,26 +71,31 @@ services:
       REVERB_SERVER_HOST: 0.0.0.0
       REVERB_SERVER_PORT: 8081
     volumes:
-      - wix-storage:/var/www/wix/todo/storage
-      - wix-cache:/var/www/wix/todo/bootstrap/cache
+      - ./:/var/www/wix/todo
+      - wix-storage-dev:/var/www/wix/todo/storage
+      - wix-cache-dev:/var/www/wix/todo/bootstrap/cache
+      - wix-vendor-dev:/var/www/wix/todo/vendor
+      - wix-node-modules-dev:/var/www/wix/todo/node_modules
     depends_on:
       - app
       - redis
     ports:
       - "8081:8081"
-    restart: unless-stopped
 
   queue:
-    image: wix-app:latest
-    container_name: wix-queue
+    image: wix-app-dev:latest
+    container_name: wix-queue-dev
     command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
     env_file: .env
     environment:
       DB_HOST: db
       REDIS_HOST: redis
     volumes:
-      - wix-storage:/var/www/wix/todo/storage
-      - wix-cache:/var/www/wix/todo/bootstrap/cache
+      - ./:/var/www/wix/todo
+      - wix-storage-dev:/var/www/wix/todo/storage
+      - wix-cache-dev:/var/www/wix/todo/bootstrap/cache
+      - wix-vendor-dev:/var/www/wix/todo/vendor
+      - wix-node-modules-dev:/var/www/wix/todo/node_modules
     depends_on:
       - app
       - redis
@@ -95,6 +104,8 @@ services:
     restart: unless-stopped
 
 volumes:
-  meilisearch-data:
-  wix-storage:
-  wix-cache:
+  meilisearch-data-dev:
+  wix-storage-dev:
+  wix-cache-dev:
+  wix-vendor-dev:
+  wix-node-modules-dev:

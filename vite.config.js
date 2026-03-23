@@ -25,7 +25,8 @@ export default defineConfig({
 
             registerType: 'autoUpdate',
 
-            injectRegister: 'auto',
+            // Регистрация SW вручную в resources/js/app.js (Blade, не index.html)
+            injectRegister: false,
 
             includeAssets: [
                 'icons/icon-192.png',

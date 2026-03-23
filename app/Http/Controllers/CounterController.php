@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\CounterUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class CounterController extends Controller
@@ -36,8 +37,15 @@ class CounterController extends Controller
         }
 
         try {
+            Log::info('[counter.increment] dispatch CounterUpdated', [
+                'count' => $count,
+            ]);
             event(new CounterUpdated($count));
         } catch (\Throwable $e) {
+            Log::error('[counter.increment] dispatch failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             report($e);
         }
 

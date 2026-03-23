@@ -14,12 +14,13 @@
 #    см. строку с backup-status.log ниже.
 #
 # --- Строки для расписания ---
+# На продакшене: -f docker-compose.prod.yml (без bind-mount кода)
 #
 # Раз в день в 03:00 (рекомендуется), с записью статуса:
-# 0 3 * * * cd /var/www/rus_spotify && docker compose exec -T app php /var/www/wix/todo/artisan backup:run >> /var/www/rus_spotify/backup.log 2>&1; echo "$(date -Iseconds) exit=$?" >> /var/www/rus_spotify/backup-status.log
+# 0 3 * * * cd /var/www/rus_spotify && docker compose -f docker-compose.prod.yml exec -T app php /var/www/wix/todo/artisan backup:run >> /var/www/rus_spotify/backup.log 2>&1; echo "$(date -Iseconds) exit=$?" >> /var/www/rus_spotify/backup-status.log
 #
 # Тот же запуск без файла статуса:
-# 0 3 * * * cd /var/www/rus_spotify && docker compose exec -T app php /var/www/wix/todo/artisan backup:run >> /var/www/rus_spotify/backup.log 2>&1
+# 0 3 * * * cd /var/www/rus_spotify && docker compose -f docker-compose.prod.yml exec -T app php /var/www/wix/todo/artisan backup:run >> /var/www/rus_spotify/backup.log 2>&1
 #
 # Раз в 6 часов:
-# 0 */6 * * * cd /var/www/rus_spotify && docker compose exec -T app php /var/www/wix/todo/artisan backup:run >> /var/www/rus_spotify/backup.log 2>&1; echo "$(date -Iseconds) exit=$?" >> /var/www/rus_spotify/backup-status.log
+# 0 */6 * * * cd /var/www/rus_spotify && docker compose -f docker-compose.prod.yml exec -T app php /var/www/wix/todo/artisan backup:run >> /var/www/rus_spotify/backup.log 2>&1; echo "$(date -Iseconds) exit=$?" >> /var/www/rus_spotify/backup-status.log

@@ -89,6 +89,12 @@ FROM base AS app
 COPY --from=composer /var/www/wix/todo /var/www/wix/todo
 COPY --from=frontend /app/public/build /var/www/wix/todo/public/build
 
+# Node/npm в runtime: dev-compose — composer/npm в entrypoint без Node на хосте
+COPY --from=node:20-bookworm-slim /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:20-bookworm-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
 RUN chown -R www-data:www-data /var/www/wix/todo/storage /var/www/wix/todo/bootstrap/cache /var/www/wix/todo/public/build \
     && chmod -R 775 /var/www/wix/todo/storage /var/www/wix/todo/bootstrap/cache \
     && rm -f /var/www/wix/todo/bootstrap/cache/packages.php /var/www/wix/todo/bootstrap/cache/services.php
