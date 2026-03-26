@@ -4,22 +4,29 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CounterController;
 use App\Http\Controllers\AiChatController;
+use App\Services\Prometheus\Metrics;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Prometheus\RenderTextFormat;
 
 // Тест WebSocket — счётчик (без БД, кэш + ShouldBroadcastNow)
 Route::get('/counter', [CounterController::class, 'index'])->name('counter');
 Route::post('/counter/increment', [CounterController::class, 'increment'])->name('counter.increment');
 
-// Главная — редирект на дашборд для авторизованных, welcome для гостей
+// Главная: гостям — лендинг Welcome, авторизованным — дашборд Index
 Route::get('/', function () {
-    return Inertia::render('Index');
-})->name('home');
+    if (auth()->check()) {
+        return Inertia::render('Index');
+    }
 
-Route::get('/welcome', function () {
-    return Inertia::render('Welcome');
-})->name('welcome');
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
+})->name('home');
 
 // UI kit / components preview (public)
 Route::get('/uiux', function () {
@@ -33,6 +40,7 @@ Route::get('/payment/callback', [PaymentController::class, 'callbackPayment'])->
 Route::post('/payment/callback', [PaymentController::class, 'callbackPayment'])->name('callback.payment.post');
 Route::get('/payment/status/{paymentId}', [PaymentController::class, 'paymentStatus'])->name('payment.status')->middleware('auth');
 
+// Явный URL лендинга (те же props, что и у гостя на /)
 Route::get('/welcome', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -57,5 +65,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/ai-chat', [AiChatController::class, 'index'])->name('ai-chat.index');
     Route::post('/ai-chat/prompt-response', [AiChatController::class, 'promptResponse'])->name('ai-chat.prompt-response');
 });
+
+// Prometheus metrics (без web middleware — без сессий/CSRF для scrape).
+Route::get('/metrics', function (Metrics $metrics) {
+    return response($metrics->render(), 200)
+        ->header('Content-Type', RenderTextFormat::MIME_TYPE);
+})->withoutMiddleware(['web']);
 
 require __DIR__.'/auth.php';

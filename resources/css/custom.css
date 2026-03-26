@@ -955,6 +955,29 @@ html.dark .primary-btn-white-blur:hover,
     background-color: var(--bg-main);
 }
 
+.select-input {
+    @apply px-3 py-2 rounded-lg outline-none text-sm;
+    background-color: var(--bg-main);
+    color: var(--content-primary);
+    border: 1px solid var(--border-input);
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.select-input:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--bg-main), 0 0 0 4px var(--accent);
+}
+
+.select-input option {
+    background-color: var(--bg-main);
+    color: var(--content-primary);
+}
+
 /* Тёмная тема: градиентная «волосная» обводка у input (псевдо на <input> не работает) */
 html.dark .input,
 html.dark .search-input,
@@ -973,6 +996,19 @@ html.dark .search-input,
 
 html.dark .search-input-white,
 .dark .search-input-white {
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--bg-main), var(--bg-main)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+html.dark .select-input,
+.dark .select-input {
     border-width: 1px;
     border-style: solid;
     border-color: transparent;

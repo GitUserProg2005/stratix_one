@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\CounterUpdated;
+use App\Services\Prometheus\Metrics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +25,7 @@ class CounterController extends Controller
         ]);
     }
 
-    public function increment(Request $request)
+    public function increment(Request $request, Metrics $metrics)
     {
         $count = 0;
         try {
@@ -48,6 +49,8 @@ class CounterController extends Controller
             ]);
             report($e);
         }
+
+        $metrics->counter('ws_counter_increment_total', 'Total number of WebSocket counter increments')->inc();
 
         return response()->json(['count' => $count]);
     }

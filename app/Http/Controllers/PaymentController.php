@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
+use App\Services\Prometheus\Metrics;
 use App\Services\SubscriptionPayment;
 
 use App\Models\Rate;
@@ -94,7 +95,7 @@ class PaymentController extends Controller
         }
     }
 
-    public function callbackPayment(Request $request)
+    public function callbackPayment(Request $request, Metrics $metrics)
     {
         if ($request->isMethod('post')) {
             $object = $request->input('object', []);
@@ -163,6 +164,8 @@ class PaymentController extends Controller
 
                     DB::commit();
 
+                    $metrics->counter('payment_callback_total', 'Total number of successful payment callbacks')->inc();
+
                     Log::info('POST callback - Payment processed successfully', [
                         'purchase_id' => $purchace->id,
                         'user_id' => $user->id,
@@ -227,6 +230,8 @@ class PaymentController extends Controller
                     }
 
                     DB::commit();
+
+                    $metrics->counter('payment_callback_total', 'Total number of successful payment callbacks')->inc();
                 } catch (\Exception $e) {
                     DB::rollBack();
                     Log::error('GET callback - Error processing payment', [

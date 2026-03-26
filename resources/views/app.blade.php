@@ -24,7 +24,8 @@
 
         <!-- Scripts -->
         @routes
-        @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
+        {{-- Inertia: страницы подключаются динамически из app.js (import.meta.glob), отдельный entry в @vite не нужен --}}
+        @vite(['resources/js/app.js'])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
