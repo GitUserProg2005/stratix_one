@@ -5,6 +5,18 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
 
+    server: {
+        watch: {
+            // Иначе Vite + Laravel refresh пытаются смотреть весь репозиторий → ENOSPC на Linux
+            ignored: [
+                '**/vendor/**',
+                '**/storage/**',
+                '**/node_modules/**',
+                '**/public/build/**',
+            ],
+        },
+    },
+
     plugins: [
 
         laravel({

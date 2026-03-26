@@ -1,5 +1,6 @@
 <script setup>
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
+import JsonTree from '@/Components/AI/JsonTree.vue';
 import { Head } from '@inertiajs/vue3';
 import { nextTick, ref } from 'vue';
 import axios from 'axios';
@@ -8,27 +9,24 @@ const inputText = ref('');
 const isLoading = ref(false);
 const messages = ref([]);
 const messagesContainer = ref(null);
+const jsonMode = ref('false');
 
 const scrollToBottom = async () => {
     await nextTick();
-
-    if (!messagesContainer.value) {
-        return;
+    if (messagesContainer.value) {
+        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
     }
-
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
 };
 
 const sendMessage = async () => {
     const text = inputText.value.trim();
-
     if (!text || isLoading.value) {
         return;
     }
 
     messages.value.push({
         role: 'user',
-        text,
+        text: jsonMode.value === 'true' ? `${text}\n\n[JSON mode: ON]` : text,
     });
 
     inputText.value = '';
@@ -38,16 +36,21 @@ const sendMessage = async () => {
     try {
         const { data } = await axios.post(route('ai-chat.prompt-response'), {
             text,
+            json_mode: jsonMode.value === 'true',
         });
 
         messages.value.push({
             role: 'ai',
-            text: data.ai_response ?? 'Пустой ответ от AI.',
+            text: typeof data.ai_response === 'string' ? data.ai_response : '',
+            jsonMode: Boolean(data.json_mode),
+            jsonData: data.json_mode ? (data.ai_response ?? {}) : null,
         });
-    } catch (error) {
+    } catch (_error) {
         messages.value.push({
             role: 'ai',
-            text: 'Ошибка при запросе к AI. Попробуйте ещё раз.',
+            text: 'Ошибка при запросе к AI. Попробуйте еще раз.',
+            jsonMode: false,
+            jsonData: null,
         });
     } finally {
         isLoading.value = false;
@@ -87,7 +90,17 @@ const sendMessage = async () => {
                                 ? 'bg-[#e97358] text-white rounded-br-md'
                                 : 'bg-white text-[#1a1a1a] border border-black/10 rounded-bl-md'"
                         >
-                            {{ message.text }}
+                            <template v-if="message.role === 'ai' && message.jsonMode">
+                                <div class="bg-red-500 rounded-xl p-3">
+                                    <JsonTree
+                                        :value="message.jsonData"
+                                        node-key="response"
+                                    />
+                                </div>
+                            </template>
+                            <template v-else>
+                                {{ message.text }}
+                            </template>
                         </div>
                     </div>
 
@@ -100,13 +113,25 @@ const sendMessage = async () => {
                 </div>
 
                 <form
-                    class="p-3 border-t border-black/10 flex gap-2"
+                    class="p-3 border-t border-black/10 flex flex-col gap-3 md:flex-row md:items-center"
                     @submit.prevent="sendMessage"
                 >
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700 select-none md:min-w-[190px]">
+                        <span class="font-semibold">JSON mode</span>
+                        <select
+                            v-model="jsonMode"
+                            class="select-input w-[108px]"
+                            :disabled="isLoading"
+                        >
+                            <option value="false">false</option>
+                            <option value="true">true</option>
+                        </select>
+                    </label>
+
                     <input
                         v-model="inputText"
                         type="text"
-                        class="flex-1 rounded-xl border-black/20 focus:border-[#e97358] focus:ring-[#e97358]"
+                        class="input flex-1"
                         placeholder="Введите сообщение..."
                         :disabled="isLoading"
                     >
