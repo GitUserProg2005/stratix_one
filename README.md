@@ -37,15 +37,37 @@ cp .env.example .env
 
 Редактируйте **только** файл `.env` на хосте (рядом с `docker-compose.yml`).
 
-**Шаг 2.1 — база и Redis (обязательно):**
+**Шаг 2.1 — база (PostgreSQL cluster: primary + replica + Pgpool) и Redis:**
+
+Ниже два готовых варианта `.env` для БД-кластера.  
+Laravel уже настроен на read/write split:
+- **write** -> `DB_HOST:DB_PORT` (primary через Pgpool/или напрямую в docker-сети)
+- **read** -> `DB_REPLICA_HOST:DB_REPLICA_PORT` (replica)
+
+**Вариант A: Laravel локально, БД в Docker (хостовые порты)**
 
 ```env
 DB_CONNECTION=pgsql
-DB_HOST=db
+DB_HOST=127.0.0.1
 DB_PORT=5432
-DB_DATABASE=wix
-DB_USERNAME=wix_user
-DB_PASSWORD=wix@228339
+DB_REPLICA_HOST=127.0.0.1
+DB_REPLICA_PORT=5433
+DB_DATABASE=laravel
+DB_USERNAME=postgres
+DB_PASSWORD=secret
+```
+
+**Вариант B: full Docker (Laravel внутри compose, внутренние хосты/порты)**
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=pgpool
+DB_PORT=5432
+DB_REPLICA_HOST=postgres-replica
+DB_REPLICA_PORT=5432
+DB_DATABASE=laravel
+DB_USERNAME=postgres
+DB_PASSWORD=secret
 
 REDIS_CLIENT=predis
 REDIS_HOST=redis
@@ -172,14 +194,16 @@ docker compose up -d
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-| Сервис      | Порт   | Назначение        |
-|-------------|--------|--------------------|
-| app         | 9000   | PHP-FPM            |
-| reverb      | 8081   | WebSocket (чат)    |
-| queue       | —      | Очередь (Redis)    |
-| db          | 5433   | PostgreSQL         |
-| redis       | 6380   | Redis              |
-| meilisearch | 7701   | Поиск              |
+| Сервис            | Порт                | Назначение                      |
+|-------------------|---------------------|----------------------------------|
+| app               | 9000                | PHP-FPM                          |
+| reverb            | 8081                | WebSocket (чат)                  |
+| queue             | —                   | Очередь (Redis)                  |
+| pgpool            | 5432 (host -> cont) | Точка входа в кластер PostgreSQL |
+| postgres-primary  | internal 5432       | Primary PostgreSQL               |
+| postgres-replica  | 5433 (host), 5432   | Replica PostgreSQL               |
+| redis             | 6379                | Redis                            |
+| meilisearch       | 7700                | Поиск                            |
 
 ---
 

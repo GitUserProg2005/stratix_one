@@ -1,15 +1,66 @@
 services:
-  db:
-    image: postgres:16
-    restart: always
-    volumes:
-      - ./tmp/db:/var/lib/postgresql/data
+  # db:
+  #   image: postgres:16
+  #   restart: always
+  #   volumes:
+  #     - ./tmp/db:/var/lib/postgresql/data
+  #   environment:
+  #     POSTGRES_DB: wix
+  #     POSTGRES_USER: wix_user
+  #     POSTGRES_PASSWORD: wix@228339
+  #   ports:
+  #     - 5432:5432
+
+  postgres-primary:
+    # bitnami/* часто недоступны; актуальные сборки: bitnamilegacy/*
+    image: bitnamilegacy/postgresql:16
+    container_name: postgres-primary
     environment:
-      POSTGRES_DB: wix
-      POSTGRES_USER: wix_user
-      POSTGRES_PASSWORD: wix@228339
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
+      - POSTGRESQL_PASSWORD=secret
+      - POSTGRESQL_DATABASE=laravel
+    volumes:
+      - postgres_primary_data:/bitnami/postgresql
+  
+  postgres-replica:
+    image: bitnamilegacy/postgresql:16
+    container_name: postgres-replica
+    depends_on:
+      - postgres-primary
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_MASTER_HOST=postgres-primary
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
+      - POSTGRESQL_PASSWORD=secret
     ports:
-      - 5432:5432
+      # Прямое подключение к реплике с хоста (Laravel локально) — для проверки streaming replication
+      - "5433:5432"
+    volumes:
+      - postgres_replica_data:/bitnami/postgresql
+  
+  pgpool:
+    image: bitnamilegacy/pgpool:latest
+    container_name: pgpool
+    ports:
+      - "5432:5432"
+    depends_on:
+      - postgres-primary
+      - postgres-replica
+    environment:
+      - PGPOOL_BACKEND_NODES=0:postgres-primary:5432,1:postgres-replica:5432
+      - PGPOOL_SR_CHECK_USER=postgres
+      - PGPOOL_SR_CHECK_PASSWORD=secret
+      - PGPOOL_POSTGRES_USERNAME=postgres
+      - PGPOOL_POSTGRES_PASSWORD=secret
+      - PGPOOL_ADMIN_USERNAME=admin
+      - PGPOOL_ADMIN_PASSWORD=admin
+      - PGPOOL_ENABLE_LOAD_BALANCING=yes
+      - PGPOOL_DISABLE_LOAD_BALANCE_ON_WRITE=transaction
+      # Иначе при падении primary клиенты не переключаются на оставшийся backend (см. ошибку failover_on_backend_error)
+      - PGPOOL_FAILOVER_ON_BACKEND_ERROR=on
 
   meilisearch:
     image: getmeili/meilisearch:v0.28
@@ -43,13 +94,13 @@ services:
     container_name: wix-app
     env_file: .env
     environment:
-      DB_HOST: db
+      DB_HOST: pgpool
       REDIS_HOST: redis
     volumes:
       - wix-storage:/var/www/wix/todo/storage
       - wix-cache:/var/www/wix/todo/bootstrap/cache
     depends_on:
-      - db
+      - pgpool
       - redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -62,7 +113,7 @@ services:
     command: php artisan reverb:start --debug
     env_file: .env
     environment:
-      DB_HOST: db
+      DB_HOST: pgpool
       REDIS_HOST: redis
       REVERB_SERVER_HOST: 0.0.0.0
       REVERB_SERVER_PORT: 8081
@@ -82,7 +133,7 @@ services:
     command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
     env_file: .env
     environment:
-      DB_HOST: db
+      DB_HOST: pgpool
       REDIS_HOST: redis
     volumes:
       - wix-storage:/var/www/wix/todo/storage
@@ -96,5 +147,9 @@ services:
 
 volumes:
   meilisearch-data:
+
   wix-storage:
   wix-cache:
+
+  postgres_primary_data:
+  postgres_replica_data:

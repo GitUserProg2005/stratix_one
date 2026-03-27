@@ -86,8 +86,38 @@ return [
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
+            
+            'read' => [
+                'host' => [env('DB_REPLICA_HOST', '127.0.0.1')],
+                'port' => env('DB_REPLICA_PORT', '5433'),
+            ],
+            'write' => [
+                'host' => [env('DB_HOST', '127.0.0.1')],
+                'port' => env('DB_PORT', '5432'),
+            ],
+
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'sticky' => false,
+            'search_path' => 'public',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+        ],
+
+        /*
+        | Прямое подключение к read-replica (обход Pgpool) — для проверки репликации с хоста.
+        | В docker-compose порт реплики проброшен как 5433:5432.
+        */
+        'pgsql_replica' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_REPLICA_URL'),
+            'host' => env('DB_REPLICA_HOST', '127.0.0.1'),
+            'port' => env('DB_REPLICA_PORT', '5433'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
