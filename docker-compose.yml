@@ -12,55 +12,70 @@ services:
   #     - 5432:5432
 
   postgres-primary:
-    # bitnami/* часто недоступны; актуальные сборки: bitnamilegacy/*
-    image: bitnamilegacy/postgresql:16
+    image: bitnamilegacy/postgresql-repmgr:16
     container_name: postgres-primary
     environment:
-      - POSTGRESQL_REPLICATION_MODE=master
-      - POSTGRESQL_REPLICATION_USER=repl_user
-      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
       - POSTGRESQL_PASSWORD=secret
+      - POSTGRESQL_POSTGRES_PASSWORD=secret
       - POSTGRESQL_DATABASE=laravel
+      - REPMGR_PASSWORD=repmgrpass
+      - REPMGR_PGHBA_TRUST_ALL=yes
+
+      - REPMGR_PRIMARY_HOST=postgres-primary
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=postgres-primary:5432,postgres-replica:5432
+      - REPMGR_NODE_NAME=pg-0
+      - REPMGR_NODE_ID=1
+      - REPMGR_NODE_NETWORK_NAME=postgres-primary
+      - REPMGR_PORT_NUMBER=5432
+      - REPMGR_FAILOVER=automatic
+      - REPMGR_FENCE_OLD_PRIMARY=yes
     volumes:
       - postgres_primary_data:/bitnami/postgresql
+    restart: unless-stopped
   
   postgres-replica:
-    image: bitnamilegacy/postgresql:16
+    image: bitnamilegacy/postgresql-repmgr:16
     container_name: postgres-replica
     depends_on:
       - postgres-primary
     environment:
-      - POSTGRESQL_REPLICATION_MODE=slave
-      - POSTGRESQL_MASTER_HOST=postgres-primary
-      - POSTGRESQL_REPLICATION_USER=repl_user
-      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
       - POSTGRESQL_PASSWORD=secret
+      - POSTGRESQL_POSTGRES_PASSWORD=secret
+      - POSTGRESQL_DATABASE=laravel
+      - REPMGR_PASSWORD=repmgrpass
+      - REPMGR_PGHBA_TRUST_ALL=yes
+
+      - REPMGR_PRIMARY_HOST=postgres-primary
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=postgres-primary:5432,postgres-replica:5432
+      - REPMGR_NODE_NAME=pg-1
+      - REPMGR_NODE_ID=2
+      - REPMGR_NODE_NETWORK_NAME=postgres-replica
+      - REPMGR_PORT_NUMBER=5432
+      - REPMGR_FAILOVER=automatic
+      - REPMGR_FENCE_OLD_PRIMARY=yes
     ports:
       # Прямое подключение к реплике с хоста (Laravel локально) — для проверки streaming replication
       - "5433:5432"
     volumes:
       - postgres_replica_data:/bitnami/postgresql
+    restart: unless-stopped
   
-  pgpool:
-    image: bitnamilegacy/pgpool:latest
-    container_name: pgpool
+  postgres-haproxy:
+    image: bitnamilegacy/haproxy:latest
+    container_name: postgres-haproxy
     ports:
       - "5432:5432"
     depends_on:
       - postgres-primary
       - postgres-replica
-    environment:
-      - PGPOOL_BACKEND_NODES=0:postgres-primary:5432,1:postgres-replica:5432
-      - PGPOOL_SR_CHECK_USER=postgres
-      - PGPOOL_SR_CHECK_PASSWORD=secret
-      - PGPOOL_POSTGRES_USERNAME=postgres
-      - PGPOOL_POSTGRES_PASSWORD=secret
-      - PGPOOL_ADMIN_USERNAME=admin
-      - PGPOOL_ADMIN_PASSWORD=admin
-      - PGPOOL_ENABLE_LOAD_BALANCING=yes
-      - PGPOOL_DISABLE_LOAD_BALANCE_ON_WRITE=transaction
-      # Иначе при падении primary клиенты не переключаются на оставшийся backend (см. ошибку failover_on_backend_error)
-      - PGPOOL_FAILOVER_ON_BACKEND_ERROR=on
+    links:
+      - postgres-primary
+      - postgres-replica
+    volumes:
+      - ./haproxy.cfg:/bitnami/haproxy/conf/haproxy.cfg
+    restart: unless-stopped
 
   meilisearch:
     image: getmeili/meilisearch:v0.28
@@ -94,13 +109,13 @@ services:
     container_name: wix-app
     env_file: .env
     environment:
-      DB_HOST: pgpool
+      DB_HOST: postgres-haproxy
       REDIS_HOST: redis
     volumes:
       - wix-storage:/var/www/wix/todo/storage
       - wix-cache:/var/www/wix/todo/bootstrap/cache
     depends_on:
-      - pgpool
+      - postgres-haproxy
       - redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -113,7 +128,7 @@ services:
     command: php artisan reverb:start --debug
     env_file: .env
     environment:
-      DB_HOST: pgpool
+      DB_HOST: postgres-haproxy
       REDIS_HOST: redis
       REVERB_SERVER_HOST: 0.0.0.0
       REVERB_SERVER_PORT: 8081
@@ -133,7 +148,7 @@ services:
     command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
     env_file: .env
     environment:
-      DB_HOST: pgpool
+      DB_HOST: postgres-haproxy
       REDIS_HOST: redis
     volumes:
       - wix-storage:/var/www/wix/todo/storage
