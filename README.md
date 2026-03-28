@@ -37,37 +37,44 @@ cp .env.example .env
 
 Редактируйте **только** файл `.env` на хосте (рядом с `docker-compose.yml`).
 
-**Шаг 2.1 — база (PostgreSQL cluster: primary + replica + Pgpool) и Redis:**
+**Шаг 2.1 — база (PostgreSQL: repmgr primary + replica + HAProxy) и Redis:**
 
-Ниже два готовых варианта `.env` для БД-кластера.  
-Laravel уже настроен на read/write split:
-- **write** -> `DB_HOST:DB_PORT` (primary через Pgpool/или напрямую в docker-сети)
-- **read** -> `DB_REPLICA_HOST:DB_REPLICA_PORT` (replica)
+Кластер в Docker: **`postgres-primary`**, **`postgres-replica`**, **`postgres-haproxy`**. HAProxy слушает **5432** и проксирует запросы **только на текущий primary** (по проверке `pg_is_in_recovery()`), чтобы после failover приложение не ходило в standby на запись. Отдельного read/write split в `config/database.php` для основного подключения нет — одна точка входа.
 
-**Вариант A: Laravel локально, БД в Docker (хостовые порты)**
+Подробные команды проверки репликации и failover — в **`DB_CLUSTER_README.md`**.
+
+**Вариант A: Laravel на хосте, БД-кластер в Docker**
+
+На хосте **5432** — HAProxy (всегда primary для read/write). **5433** — прямой доступ к реплике (только для отладки или отдельного подключения `pgsql_replica` в коде).
 
 ```env
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
-DB_REPLICA_HOST=127.0.0.1
-DB_REPLICA_PORT=5433
 DB_DATABASE=laravel
 DB_USERNAME=postgres
 DB_PASSWORD=secret
+
+# Опционально: для connection `pgsql_replica` (прямое чтение с реплики, порт из docker-compose)
+DB_REPLICA_HOST=127.0.0.1
+DB_REPLICA_PORT=5433
 ```
 
-**Вариант B: full Docker (Laravel внутри compose, внутренние хосты/порты)**
+**Вариант B: полная докеризация (Laravel в compose)**
+
+В `docker-compose.yml` для сервисов `app`, `reverb`, `queue` задано **`DB_HOST=postgres-haproxy`** — это переопределяет значение из `.env` внутри контейнеров. В `.env` можно явно указать то же для ясности (или оставить `127.0.0.1` — на работу контейнеров это не повлияет из‑за override):
 
 ```env
 DB_CONNECTION=pgsql
-DB_HOST=pgpool
+DB_HOST=postgres-haproxy
 DB_PORT=5432
-DB_REPLICA_HOST=postgres-replica
-DB_REPLICA_PORT=5432
 DB_DATABASE=laravel
 DB_USERNAME=postgres
 DB_PASSWORD=secret
+
+# Опционально: прямое подключение к реплике по имени сервиса (только для `pgsql_replica`)
+DB_REPLICA_HOST=postgres-replica
+DB_REPLICA_PORT=5432
 
 REDIS_CLIENT=predis
 REDIS_HOST=redis
@@ -194,16 +201,16 @@ docker compose up -d
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-| Сервис            | Порт                | Назначение                      |
-|-------------------|---------------------|----------------------------------|
-| app               | 9000                | PHP-FPM                          |
-| reverb            | 8081                | WebSocket (чат)                  |
-| queue             | —                   | Очередь (Redis)                  |
-| pgpool            | 5432 (host -> cont) | Точка входа в кластер PostgreSQL |
-| postgres-primary  | internal 5432       | Primary PostgreSQL               |
-| postgres-replica  | 5433 (host), 5432   | Replica PostgreSQL               |
-| redis             | 6379                | Redis                            |
-| meilisearch       | 7700                | Поиск                            |
+| Сервис              | Порт                | Назначение |
+|---------------------|---------------------|------------|
+| app                 | 9000                | PHP-FPM    |
+| reverb              | 8081                | WebSocket (чат) |
+| queue               | —                   | Очередь (Redis) |
+| postgres-haproxy    | 5432 (host → cont)  | Вход в кластер: только текущий primary |
+| postgres-primary    | 5432 в сети compose | Узел PostgreSQL (repmgr) |
+| postgres-replica    | 5433 (host), 5432 в сети | Реплика; с хоста для прямого подключения |
+| redis               | 6379                | Redis      |
+| meilisearch         | 7700                | Поиск      |
 
 ---
 
@@ -429,6 +436,8 @@ docker compose down
 ---
 
 ## Локальная разработка без Docker
+
+Нужны локально **PHP**, **Composer**, **Node**, **PostgreSQL**. Если БД вы поднимаете тем же `docker-compose` (только postgres + haproxy + redis и т.д.), в `.env` укажите **`DB_HOST=127.0.0.1`**, **`DB_PORT=5432`** (HAProxy). Если используете один локальный инстанс Postgres без кластера — **`DB_HOST`**, **`DB_PORT`** как у вашего сервера; переменные **`DB_REPLICA_*`** не обязательны.
 
 ```bash
 composer install

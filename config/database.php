@@ -101,8 +101,8 @@ return [
         ],
 
         /*
-        | Прямое подключение к read-replica (обход Pgpool) — для проверки репликации с хоста.
-        | В docker-compose порт реплики проброшен как 5433:5432.
+        | Прямое подключение к read-replica (минуя HAProxy) — опционально для отладки или read-only.
+        | С хоста в docker-compose порт реплики: 5433:5432.
         */
         'pgsql_replica' => [
             'driver' => 'pgsql',
