@@ -1,6 +1,8 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import '../../css/custom.css'
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import '../../css/custom.css';
+
+import Cursor from '@/Components/Cursor.vue';
 
 const isOpen = ref(false)
 const isScrolled = ref(false)
@@ -16,6 +18,8 @@ const handleScroll = () => {
 onMounted(() => {
   handleScroll()
   window.addEventListener('scroll', handleScroll, { passive: true })
+
+  document.body.style.cursor = 'none';
 })
 
 onBeforeUnmount(() => {
@@ -24,6 +28,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <Cursor />  
+
   <!-- Тёплое свечение #feeccd сверху справа, очень мягко к низу -->
   <div class="lending-layout-glow" aria-hidden="true" />
 
