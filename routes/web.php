@@ -1,9 +1,11 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\CounterController;
 use App\Http\Controllers\AiChatController;
+use App\Http\Controllers\CounterController;
+use App\Http\Controllers\N8N\NodeController;
+use App\Http\Controllers\N8N\WorkflowController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProfileController;
 use App\Services\Prometheus\Metrics;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +66,29 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/ai-chat', [AiChatController::class, 'index'])->name('ai-chat.index');
     Route::post('/ai-chat/prompt-response', [AiChatController::class, 'promptResponse'])->name('ai-chat.prompt-response');
+
+    Route::get('/workflows', function () {
+        return Inertia::render('N8N/Workflows');
+    })->middleware('verified')->name('workflows.index');
+
+    Route::post('/run-workflow/{workflowId}', [WorkflowController::class, 'runWorkflow'])->name('run.workflow');
+    Route::get('/get-workflows', [WorkflowController::class, 'getWorkflows'])->name('get.workflows');
+    Route::get('/show-workflow/{workflowId}', [WorkflowController::class, 'showWorkflow'])->name('show.workflow');
+    Route::post('/create-workflow', [WorkflowController::class, 'createWorkflow'])->name('create.workflow');
+    Route::post('/update-workflow/{workflowId}', [WorkflowController::class, 'updateWorkflow'])->name('update.workflow');
+    Route::delete('/delete-workflow/{workflowId}', [WorkflowController::class, 'deleteWorkflow'])->name('delete.workflow');
+
+    Route::get('/get-nodes/{workflowId}', [NodeController::class, 'getNodes'])->name('get.nodes');
+    Route::get('/get-node-types', [NodeController::class, 'getNodeTypes'])->name('get.node.types');
+    Route::get('/show-node/{nodeId}', [NodeController::class, 'showNode'])->name('show.node');
+    Route::post('/create-node', [NodeController::class, 'createNode'])->name('create.node');
+    Route::post('/update-node-position/{nodeId}', [NodeController::class, 'updateNodePosition'])->name('update.node.position');
+    Route::put('/update-node/{nodeId}', [NodeController::class, 'updateNode'])->name('update.node');
+    Route::delete('/delete-node/{nodeId}', [NodeController::class, 'deleteNode'])->name('delete.node');
+
+    Route::get('/get-edges/{workflowId}', [NodeController::class, 'getEdges'])->name('get.edges');
+    Route::post('/create-edge', [NodeController::class, 'createEdge'])->name('create.edge');
+    Route::delete('/delete-edge/{edgeId}', [NodeController::class, 'deleteEdge'])->name('delete.edge');
 });
 
 // Prometheus metrics (без web middleware — без сессий/CSRF для scrape).

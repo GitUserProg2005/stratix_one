@@ -85,6 +85,15 @@ const closeSidebar = () => {
                   </Link>
 
                   <Link
+                    :href="route('workflows.index')"
+                    class="sidebar-nav-link-nested"
+                    @click="closeSidebar"
+                  >
+                    <i class="fa-solid fa-diagram-project text-sm"></i>
+                    Workflows
+                  </Link>
+
+                  <Link
                     :href="route('rates')"
                     class="sidebar-nav-link-nested"
                     @click="closeSidebar"

@@ -3,6 +3,8 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
+const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
 window.Echo = new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY,
@@ -13,4 +15,12 @@ window.Echo = new Echo({
     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
     enabledTransports: ['ws', 'wss'],
     disableStats: true,
+
+    authEndpoint: '/broadcasting/auth',
+    auth: {
+        headers: {
+            ...(csrf ? { 'X-CSRF-TOKEN': csrf } : {}),
+            Accept: 'application/json',
+        },
+    },
 });

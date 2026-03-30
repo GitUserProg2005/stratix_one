@@ -64,23 +64,30 @@ onUnmounted(() => {
 });
 
 const maxWidthClass = computed(() => {
-    return {
+    const map = {
         sm: 'sm:max-w-sm',
         md: 'sm:max-w-md',
         lg: 'sm:max-w-lg',
         xl: 'sm:max-w-xl',
         '2xl': 'sm:max-w-2xl',
-    }[props.maxWidth];
+        '3xl': 'sm:max-w-3xl',
+        '4xl': 'sm:max-w-4xl',
+        '5xl': 'sm:max-w-5xl',
+        '6xl': 'sm:max-w-6xl',
+        '7xl': 'sm:max-w-7xl',
+    };
+
+    return map[props.maxWidth] ?? map['2xl'];
 });
 </script>
 
 <template>
     <dialog
-        class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
+        class="z-[200] m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
         ref="dialog"
     >
         <div
-            class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
+            class="fixed inset-0 z-[200] overflow-y-auto px-4 py-6 sm:px-0"
             scroll-region
         >
             <Transition
@@ -96,9 +103,7 @@ const maxWidthClass = computed(() => {
                     class="fixed inset-0 transform transition-all"
                     @click="close"
                 >
-                    <div
-                        class="absolute inset-0 bg-gray-500 opacity-75"
-                    />
+                    <div class="absolute inset-0 bg-content-dark opacity-75" />
                 </div>
             </Transition>
 
@@ -112,7 +117,7 @@ const maxWidthClass = computed(() => {
             >
                 <div
                     v-show="show"
-                    class="relative z-10 mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full"
+                    class="relative z-[210] mb-6 transform overflow-hidden shadow-xl transition-all sm:mx-auto sm:w-full bg-content-outline rounded-3xl"
                     :class="maxWidthClass"
                 >
                     <slot v-if="showSlot" />

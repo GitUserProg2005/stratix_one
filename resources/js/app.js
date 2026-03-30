@@ -23,8 +23,7 @@ createInertiaApp({
         ),
     setup({ el, App, props, plugin }) {
         return createApp({
-            render: () =>
-                h(Fragment, [h(App, props), h(ToggleTheme)]),
+            render: () => h(Fragment, [h(App, props), h(ToggleTheme)]),
         })
             .use(plugin)
             .use(ZiggyVue)

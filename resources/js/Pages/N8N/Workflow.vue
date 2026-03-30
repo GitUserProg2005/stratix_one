@@ -1,0 +1,382 @@
+<script setup>
+import Modal from '@/Components/Modal.vue';
+import CreateNode from './Components/CreateNode.vue';
+import CustomNode from './Components/CustomNode.vue';
+import RedDot from './Components/RedDot.vue';
+
+import { VueFlow, useVueFlow, Panel } from '@vue-flow/core';
+import '@vue-flow/core/dist/style.css';
+import '@vue-flow/core/dist/theme-default.css';
+import { Background } from '@vue-flow/background';
+
+import { ref, watch } from 'vue';
+import axios from 'axios';
+
+const props = defineProps({
+    workflow: {
+        type: Object,
+        required: true,
+    },
+});
+
+const emit = defineEmits(['delete']);
+
+/** Один store на строку workflow: тот же id, что у <VueFlow> (@vue-flow/core не экспортирует VueFlowProvider). */
+const vueFlowInstanceId = `workflow-${props.workflow.id}`;
+
+const { addNodes, project } = useVueFlow(vueFlowInstanceId);
+
+const workflowIsRunning = ref(false);
+const nodeTypes = { custom: CustomNode };
+
+const showLogsModal = ref(false);
+const logs = ref([]);
+const countLogs = ref(0);
+
+const nodes = ref([]);
+const edges = ref([]);
+const showModal = ref(false);
+const isLoading = ref(false);
+
+let workflowEchoChannel = null;
+
+function leaveWorkflowChannel() {
+    if (typeof window.Echo === 'undefined' || !props.workflow?.id) {
+        return;
+    }
+    const name = `workflow-step.${props.workflow.id}`;
+    try {
+        window.Echo.leave(`private-${name}`);
+    } catch {
+        try {
+            window.Echo.leave(name);
+        } catch {
+            /* noop */
+        }
+    }
+    workflowEchoChannel = null;
+}
+
+function subscribeWorkflowChannel() {
+    if (typeof window.Echo === 'undefined') {
+        return;
+    }
+    leaveWorkflowChannel();
+    workflowEchoChannel = window.Echo.private(`workflow-step.${props.workflow.id}`)
+        .listen('WorkflowStep', async (e) => {
+            if (e.result && String(e.result).trim() !== '') {
+                const cleanResult = String(e.result).replace(/\\n/g, '\n');
+                const existingLog = logs.value.find((log) => log.nodeId === e.currentNodeId);
+                if (existingLog) {
+                    existingLog.body += cleanResult;
+                } else {
+                    logs.value.push({
+                        nodeId: e.currentNodeId,
+                        body: `INFO ${e.nextProcessingNodeId || e.currentNodeId}:\n\n${cleanResult}`,
+                    });
+                }
+                countLogs.value += 1;
+            }
+
+            const currentId = String(e.currentNodeId);
+            const nextId = e.nextProcessingNodeId ? String(e.nextProcessingNodeId) : null;
+
+            nodes.value = nodes.value.map((node) =>
+                node.id === currentId
+                    ? { ...node, data: { ...node.data, status: 'running' } }
+                    : node
+            );
+            nodes.value = [...nodes.value];
+
+            await new Promise((r) => setTimeout(r, 2000));
+
+            nodes.value = nodes.value.map((node) =>
+                node.id === currentId
+                    ? { ...node, data: { ...node.data, status: 'done' } }
+                    : node
+            );
+            nodes.value = [...nodes.value];
+
+            if (nextId) {
+                nodes.value = nodes.value.map((node) =>
+                    node.id === nextId
+                        ? { ...node, data: { ...node.data, status: 'running' } }
+                        : node
+                );
+                nodes.value = [...nodes.value];
+            } else {
+                workflowIsRunning.value = false;
+            }
+        });
+}
+
+function toggleModal() {
+    showModal.value = !showModal.value;
+}
+
+watch(showModal, (open) => {
+    if (open) {
+        logs.value = [];
+        countLogs.value = 0;
+        getNodes();
+        getEdges();
+        subscribeWorkflowChannel();
+    } else {
+        leaveWorkflowChannel();
+        workflowIsRunning.value = false;
+    }
+});
+
+function toggleLogsModal() {
+    showLogsModal.value = !showLogsModal.value;
+}
+
+async function getNodes() {
+    isLoading.value = true;
+    try {
+        const response = await axios.get(route('get.nodes', props.workflow.id));
+        if (response.data.result === 'ok') {
+            nodes.value = response.data.nodes.map((node) => ({
+                id: String(node.id),
+                type: 'custom',
+                position: node.position || { x: 100, y: 100 },
+                data: {
+                    id: node.id,
+                    label: node.title,
+                    type: node.type,
+                    config: node.config || {},
+                    status: 'idle',
+                },
+            }));
+        }
+    } catch (e) {
+        console.error('Ошибка загрузки нод:', e);
+    } finally {
+        isLoading.value = false;
+    }
+}
+
+function handleCreatedNode(node) {
+    const position = project(node.position);
+    addNodes({
+        id: String(node.id),
+        type: 'custom',
+        position,
+        data: {
+            id: node.id,
+            label: node.title,
+            type: node.type,
+            config: node.config || {},
+        },
+    });
+}
+
+function handleUpdatedNode(updatedNode) {
+    nodes.value = nodes.value.map((node) =>
+        node.id === String(updatedNode.id)
+            ? {
+                  ...node,
+                  data: {
+                      ...node.data,
+                      label: updatedNode.title,
+                      type: updatedNode.type,
+                      config: updatedNode.config,
+                  },
+              }
+            : node
+    );
+}
+
+function handleDeletedNode(deletedNodeId) {
+    const deletedId = String(deletedNodeId);
+    nodes.value = nodes.value.filter((node) => node.id !== deletedId);
+    edges.value = edges.value.filter(
+        (e) => e.source !== deletedId && e.target !== deletedId
+    );
+}
+
+function onNodeDragStop({ node }) {
+    axios
+        .post(route('update.node.position', node.id), { position: node.position })
+        .catch((e) => console.error('Ошибка обновления позиции', e));
+}
+
+async function onConnect({ source, target }) {
+    const tempId = `${source}-${target}`;
+    edges.value.push({
+        id: tempId,
+        source,
+        target,
+        type: 'default',
+        animated: true,
+    });
+    try {
+        const response = await axios.post(route('create.edge'), {
+            workflow_id: props.workflow.id,
+            source_node_id: parseInt(source, 10),
+            target_node_id: parseInt(target, 10),
+            type: 'default',
+        });
+        if (response.data.result === 'ok' && response.data.edge) {
+            const edge = response.data.edge;
+            edges.value = edges.value.map((e) =>
+                e.id === tempId
+                    ? {
+                          id: String(edge.id),
+                          source: String(edge.source_node_id),
+                          target: String(edge.target_node_id),
+                          type: edge.type || 'smoothstep',
+                          animated: true,
+                          data: edge.data || {},
+                      }
+                    : e
+            );
+        }
+    } catch (e) {
+        console.error('Ошибка создания связи:', e);
+        edges.value = edges.value.filter((e) => e.id !== tempId);
+    }
+}
+
+async function getEdges() {
+    try {
+        const response = await axios.get(route('get.edges', props.workflow.id));
+        if (response.data.result === 'ok') {
+            edges.value = response.data.edges.map((edge) => ({
+                id: String(edge.id),
+                source: String(edge.source_node_id),
+                target: String(edge.target_node_id),
+                type: edge.type || 'smoothstep',
+                animated: true,
+                data: edge.data || {},
+            }));
+        }
+    } catch (e) {
+        console.error('Ошибка загрузки рёбер:', e);
+    }
+}
+
+function toggleIsRunning() {
+    workflowIsRunning.value = !workflowIsRunning.value;
+    if (workflowIsRunning.value) {
+        workflowObserve();
+    }
+}
+
+async function workflowObserve() {
+    nodes.value = nodes.value.map((node) => ({
+        ...node,
+        data: { ...node.data, status: 'idle' },
+    }));
+    try {
+        await axios.post(route('run.workflow', props.workflow.id));
+    } catch (e) {
+        console.error('Ошибка запуска workflow:', e);
+        workflowIsRunning.value = false;
+    }
+}
+</script>
+
+<template>
+    <div class="flex flex-row justify-between items-center gap-2 py-2">
+        <button
+            type="button"
+            class="sidebar-nav-link flex-1 min-w-0 truncate justify-start text-left"
+            @click="toggleModal"
+        >
+            <span class="dashboard-row-title truncate">{{ workflow.name }}</span>
+        </button>
+        <button type="button" class="badge badge-pending shrink-0" @click.stop="$emit('delete', workflow.id)">
+            Удалить
+        </button>
+    </div>
+
+    <Modal :show="showModal" max-width="7xl" @close="showModal = false">
+        <div class="p-4 md:p-6 max-h-[90vh] overflow-y-auto custom-scroll">
+            <div class="flex flex-row items-center justify-between gap-3 mb-4">
+                <h2 class="title-2">Workflow: {{ workflow.name }}</h2>
+                <button type="button" class="shrink-0 border-0 bg-transparent p-1 leading-none text-inherit" aria-label="Закрыть" @click="showModal = false">
+                    <i class="fa-solid fa-xmark text-xl" />
+                </button>
+            </div>
+
+            <div
+                class="dashboard-chart-wrap relative flex w-full flex-col !h-auto min-h-[min(530px,55vh)]"
+            >
+                <VueFlow
+                    :id="vueFlowInstanceId"
+                    :key="`${vueFlowInstanceId}-${nodes.length}`"
+                    v-model:nodes="nodes"
+                    v-model:edges="edges"
+                    :node-types="nodeTypes"
+                    class="min-h-[min(530px,55vh)] w-full flex-1"
+                    @node-drag-stop="onNodeDragStop"
+                    @connect="onConnect"
+                >
+                    <Background variant="dots" :gap="22" :size="1.5" color="rgba(120,120,152,0.13)" />
+                    <template #node-custom="{ data }">
+                        <CustomNode
+                            :nodes="nodes"
+                            :data="data"
+                            :workflow-id="workflow.id"
+                            :on-webhook-log="
+                                (log) => {
+                                    logs.push(log);
+                                    countLogs += 1;
+                                }
+                            "
+                            @node-updated="handleUpdatedNode"
+                            @node-deleted="handleDeletedNode"
+                        />
+                    </template>
+
+                    <Panel position="top-left" class="!m-3 flex max-w-[min(100%,28rem)] flex-col gap-2">
+                        <div class="dashboard-inset flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                class="primary-btn flex items-center gap-2 text-sm"
+                                @click="toggleIsRunning"
+                            >
+                                Запустить
+                                <span
+                                    v-if="workflowIsRunning"
+                                    class="inline-block h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+                                />
+                            </button>
+                            <CreateNode :workflow-id="workflow.id" :nodes="nodes" @onCreatedNode="handleCreatedNode" />
+                        </div>
+                        <div class="dashboard-inset hidden max-w-[11rem] sm:block">
+                            <div class="dashboard-row-title mb-1">Индикаторы</div>
+                            <div class="flex items-center gap-2">
+                                <RedDot />
+                                <span class="t-mini">Заполните параметры</span>
+                            </div>
+                        </div>
+                    </Panel>
+
+                    <Panel position="bottom-center" class="!m-3 w-[min(100%,calc(100%-1.5rem))] max-w-none">
+                        <div
+                            class="dashboard-inset cursor-pointer"
+                            :class="showLogsModal ? 'max-h-48' : 'max-h-14 overflow-hidden'"
+                            @dblclick="toggleLogsModal"
+                        >
+                            <div class="flex items-center gap-2">
+                                <span class="dashboard-row-title text-sm">Результаты</span>
+                                <span class="badge badge-completed">{{ countLogs }}</span>
+                            </div>
+                            <div v-if="showLogsModal" class="custom-scroll mt-2 max-h-36 space-y-2 overflow-y-auto">
+                                <pre
+                                    v-for="log in logs"
+                                    :key="log.nodeId"
+                                    class="dashboard-inset t-mini whitespace-pre-wrap"
+                                    >{{ log.body }}</pre
+                                >
+                                <p v-if="!logs.length" class="context">Пока нет логов</p>
+                            </div>
+                        </div>
+                    </Panel>
+                </VueFlow>
+            </div>
+        </div>
+    </Modal>
+</template>
