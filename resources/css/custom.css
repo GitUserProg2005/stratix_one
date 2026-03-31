@@ -1,3 +1,46 @@
+.map-marker {
+  width: 16px;
+  height: 16px;
+  background: #3b82f6;
+  border-radius: 999px;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.map-marker-result {
+  width: 12px;
+  height: 12px;
+  background: #3b82f6;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.route-info-badge {
+  background-color: #dcfce7;
+  color: #166534;
+  border-radius: 1rem;
+  padding: 0.45rem 1rem;
+}
+
+.btn-primary-block {
+  @apply w-full px-4 py-2 bg-black hover:bg-gray-800 text-white font-medium rounded-lg disabled:opacity-70 disabled:cursor-not-allowed transition-colors;
+}
+
+.title {
+  @apply text-lg font-semibold text-black;
+}
+
+.primary-btn {
+  @apply bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-full transition-all duration-300;
+}
+
+@media (max-width: 1023px) {
+  .aside-resized-mobile {
+    height: var(--aside-height) !important;
+    max-height: 85vh;
+  }
+}
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Wix+Madefor+Text:ital,wght@0,400..800;1,400..800&display=swap');
 
 @font-face {

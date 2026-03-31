@@ -44,4 +44,15 @@ return [
         'file_field' => env('AUDIO_ANALYSIS_FILE_FIELD', 'file'),
     ],
 
+    'nominatim' => [
+        'url' => env('NOMINATIM_URL', 'https://nominatim.openstreetmap.org'),
+        'user_agent' => env('NOMINATIM_USER_AGENT', 'DriveeApp/1.0'),
+    ],
+
+    'map' => [
+        'tileserver_url' => env('TILESERVER_URL', 'http://localhost:8082'),
+        'osrm_url' => env('OSRM_URL', 'http://localhost:5000'),
+        'tileserver_style' => env('TILESERVER_STYLE', 'basic-preview'),
+    ],
+
 ];

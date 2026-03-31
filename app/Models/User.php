@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -25,8 +26,13 @@ class User extends Authenticatable
         'name',
         'avatar',
         'email',
+        'phone',
         'password',
         'rate_id',
+        'role',
+        'lat',
+        'lng',
+        'is_online',
     ];
 
     /**
@@ -58,12 +64,42 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => \App\Enums\UserRole::class,
+            'lat' => 'decimal:8',
+            'lng' => 'decimal:8',
+            'is_online' => 'boolean',
         ];
     }
 
     public function rate(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\Rate::class);
+    }
+
+    public function ordersAsCustomer(): HasMany
+    {
+        return $this->hasMany(Order::class, 'customer_id');
+    }
+
+    public function ordersAsDriver(): HasMany
+    {
+        return $this->hasMany(Order::class, 'driver_id');
+    }
+
+    public function vehicle(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Vehicle::class, 'driver_id');
+    }
+
+    public function tournaments(): BelongsToMany
+    {
+        return $this->belongsToMany(Tournament::class, 'tournament_participants', 'driver_id', 'tournament_id')
+            ->withTimestamps();
+    }
+
+    public function isParticipant(int $tournamentId): bool
+    {
+        return $this->tournaments()->where('tournament_id', $tournamentId)->exists();
     }
 
     /**

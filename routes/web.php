@@ -2,10 +2,16 @@
 
 use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\CounterController;
+use App\Http\Controllers\DriverController;
+use App\Http\Controllers\GamesController;
 use App\Http\Controllers\N8N\NodeController;
 use App\Http\Controllers\N8N\WorkflowController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\MapController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TournamentController;
+use App\Http\Controllers\VehicleController;
 use App\Services\Prometheus\Metrics;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +21,8 @@ use Prometheus\RenderTextFormat;
 // Тест WebSocket — счётчик (без БД, кэш + ShouldBroadcastNow)
 Route::get('/counter', [CounterController::class, 'index'])->name('counter');
 Route::post('/counter/increment', [CounterController::class, 'increment'])->name('counter.increment');
+Route::get('/map', [MapController::class, 'index'])->name('map')->middleware('auth');
+Route::get('/search', [MapController::class, 'search'])->name('map.search')->middleware('auth');
 
 // Главная: гостям — лендинг Welcome, авторизованным — дашборд Index
 Route::get('/', function () {
@@ -60,6 +68,22 @@ Route::get('/dashboard', function () {
 Route::get('/profile/{user}', [ProfileController::class, 'profile'])->name('user.profile')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/vehicles/get', [VehicleController::class, 'getVehicles'])->name('vehicles.get');
+
+    Route::post('/create-order', [OrderController::class, 'create'])->name('order.create');
+    Route::post('/order-accept', [OrderController::class, 'accept'])->name('order.accept');
+    Route::post('/order-arrived', [OrderController::class, 'arrived'])->name('order.arrived');
+    Route::post('/order-in-way', [OrderController::class, 'inWay'])->name('order.in_way');
+    Route::post('/order-complete', [OrderController::class, 'complete'])->name('order.complete');
+    Route::post('/order-cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+    Route::post('/order/get', [OrderController::class, 'getOrder'])->name('get.order');
+    Route::post('/driver/update-position', [DriverController::class, 'updatePosition'])->name('update.position');
+    Route::get('/tournaments/active', [TournamentController::class, 'active'])->name('tournaments.active');
+    Route::post('/tournaments/{tournament}/join', [TournamentController::class, 'join'])->name('tournaments.join');
+    Route::post('/tournaments/{tournament}/update-position', [TournamentController::class, 'updatePosition'])->name('tournaments.update-position');
+    Route::get('/tournaments/{tournament}/state', [TournamentController::class, 'state'])->name('tournaments.state');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -89,6 +113,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/get-edges/{workflowId}', [NodeController::class, 'getEdges'])->name('get.edges');
     Route::post('/create-edge', [NodeController::class, 'createEdge'])->name('create.edge');
     Route::delete('/delete-edge/{edgeId}', [NodeController::class, 'deleteEdge'])->name('delete.edge');
+
+    Route::get('/games/puzzle', [GamesController::class, 'index'])->name('puzzle.index');
+
+    # Route::get('map-index', [])
 });
 
 // Prometheus metrics (без web middleware — без сессий/CSRF для scrape).

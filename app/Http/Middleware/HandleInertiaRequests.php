@@ -33,12 +33,23 @@ class HandleInertiaRequests extends Middleware
         
         return [
             ...parent::share($request),
+            'mapServices' => [
+                'tileserverUrl' => config('services.map.tileserver_url'),
+                'osrmUrl' => config('services.map.osrm_url'),
+                'tileserverStyle' => config('services.map.tileserver_style'),
+            ],
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'phone' => $user->phone,
                     'avatar_url' => $user->avatar_url,
+                    'role' => $user->role?->value ?? 'passenger',
+                    'lat' => $user->lat ? (float) $user->lat : null,
+                    'lng' => $user->lng ? (float) $user->lng : null,
+                    'is_online' => (bool) $user->is_online,
+                    'orders_count' => $user->ordersAsCustomer()->count(),
                 ] : null,
             ],
         ];

@@ -1,4 +1,37 @@
 services:
+  tileserver:
+    image: maptiler/tileserver-gl
+    container_name: tileserver-dev
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./_Docker/tiles:/data
+
+  osrm:
+    image: osrm/osrm-backend
+    container_name: osrm-dev
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./_Docker/osrm:/data
+    command: osrm-routed --algorithm mld /data/map.osrm
+    restart: unless-stopped
+
+  nominatim:
+    image: mediagis/nominatim:4.4
+    container_name: nominatim-dev
+    ports:
+      - "8083:8080"
+    environment:
+      PBF_URL: ${NOMINATIM_PBF_URL:-https://download.geofabrik.de/russia/central-fed-district-latest.osm.pbf}
+      REPLICATION_URL: ""
+      UPDATE_MODE: "none"
+      THREADS: "2"
+      NOMINATIM_PASSWORD: nominatim
+    volumes:
+      - nominatim-data-dev:/var/lib/postgresql/14/main
+    restart: unless-stopped
+
   db:
     image: postgres:16
     restart: always
@@ -105,6 +138,7 @@ services:
 
 volumes:
   meilisearch-data-dev:
+  nominatim-data-dev:
   wix-storage-dev:
   wix-cache-dev:
   wix-vendor-dev:

@@ -23,3 +23,9 @@ tmp/db/
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Docker map artifacts (keep only empty dirs via .gitkeep)
+_Docker/osrm/*
+!_Docker/osrm/.gitkeep
+_Docker/tiles/*
+!_Docker/tiles/.gitkeep

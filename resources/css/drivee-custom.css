@@ -1,0 +1,45 @@
+@import './custom.css';
+
+/* Drivee theme overrides.
+   Use higher-specificity selectors so these vars win even if custom.css
+   is injected later by other layouts/chunks. */
+html:root {
+    --accent: #96ea28;
+    --accent-hover: #84cf23;
+    --ring-focus: var(--accent);
+
+    /* Dark blocks on light pages */
+    --content-dark-surface-bg: #373c46;
+    --content-dark-surface-fg: #ffffff;
+}
+
+html.dark,
+.dark {
+    /* Dark theme surfaces */
+    --accent: #96ea28;
+    --accent-hover: #84cf23;
+    --bg-card: #373c46;
+    --content-dark-surface-bg: #373c46;
+    --content-dark-surface-fg: #ffffff;
+}
+
+/* Green accent buttons should have dark text in both themes */
+.primary-btn,
+.btn-primary-block {
+    color: #111111;
+}
+
+.primary-btn i,
+.btn-primary-block i {
+    color: #111111;
+}
+
+/* Keep landing dark pill aligned with Drivee dark surface */
+.label-landing {
+    background-color: #373c46;
+}
+
+html.dark .label-landing,
+.dark .label-landing {
+    color: #373c46;
+}

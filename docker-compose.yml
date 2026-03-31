@@ -1,4 +1,37 @@
 services:
+  tileserver:
+    image: maptiler/tileserver-gl
+    container_name: tileserver
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./_Docker/tiles:/data
+
+  osrm:
+    image: osrm/osrm-backend
+    container_name: osrm
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./_Docker/osrm:/data
+    command: osrm-routed --algorithm mld /data/map.osrm
+    restart: unless-stopped
+
+  nominatim:
+    image: mediagis/nominatim:4.4
+    container_name: nominatim
+    ports:
+      - "8083:8080"
+    environment:
+      PBF_URL: ${NOMINATIM_PBF_URL:-https://download.geofabrik.de/russia/central-fed-district-latest.osm.pbf}
+      REPLICATION_URL: ""
+      UPDATE_MODE: "none"
+      THREADS: "2"
+      NOMINATIM_PASSWORD: nominatim
+    volumes:
+      - nominatim-data:/var/lib/postgresql/14/main
+    restart: unless-stopped
+
   # db:
   #   image: postgres:16
   #   restart: always
@@ -12,12 +45,15 @@ services:
   #     - 5432:5432
 
   postgres-primary:
-    image: bitnamilegacy/postgresql-repmgr:16
+    build:
+      context: ./_Docker/postgres
     container_name: postgres-primary
     environment:
+      - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=secret
       - POSTGRESQL_POSTGRES_PASSWORD=secret
       - POSTGRESQL_DATABASE=laravel
+      - POSTGRESQL_POSTGIS_ENABLED=true
       - REPMGR_PASSWORD=repmgrpass
       - REPMGR_PGHBA_TRUST_ALL=yes
 
@@ -35,14 +71,17 @@ services:
     restart: unless-stopped
   
   postgres-replica:
-    image: bitnamilegacy/postgresql-repmgr:16
+    build:
+      context: ./_Docker/postgres
     container_name: postgres-replica
     depends_on:
       - postgres-primary
     environment:
+      - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=secret
       - POSTGRESQL_POSTGRES_PASSWORD=secret
       - POSTGRESQL_DATABASE=laravel
+      - POSTGRESQL_POSTGIS_ENABLED=true
       - REPMGR_PASSWORD=repmgrpass
       - REPMGR_PGHBA_TRUST_ALL=yes
 
@@ -162,6 +201,7 @@ services:
 
 volumes:
   meilisearch-data:
+  nominatim-data:
 
   wix-storage:
   wix-cache:
