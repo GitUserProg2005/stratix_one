@@ -58,7 +58,7 @@ function isLoadingForButton(buttonConfig) {
 
         <div class="relative flex flex-row gap-3 pr-6">
             <img v-if="data.type === 'ai_request'" src="/img/nodes/gigachat.png" 
-                class="w-4 h-4 object-contain select-none pointer-events-none" alt="Gigachat"
+                class="w-12 h-12 object-contain select-none pointer-events-none" alt="Gigachat"
             >
             <img v-if="data.type === 'ai_agent_request'" src="/img/nodes/gigachat.png" 
                 class="w-12 h-12 object-contain select-none pointer-events-none" alt="Gigachat"

@@ -7,6 +7,9 @@ use App\Models\Workflow;
 use App\Services\N8N\Runner;
 use Illuminate\Http\Request;
 
+use Inertia\Inertia;
+
+
 class WorkflowController extends Controller
 {
     public function getWorkflows()
@@ -23,7 +26,7 @@ class WorkflowController extends Controller
     {
         $workflow = Workflow::with('nodes')->findOrFail($workflowId);
 
-        return response()->json([
+        return Inertia::render('N8N/Workflow', [
             'result' => 'ok',
             'workflow' => $workflow,
         ]);

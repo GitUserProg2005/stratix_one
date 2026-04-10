@@ -75,6 +75,7 @@ const maxWidthClass = computed(() => {
         '5xl': 'sm:max-w-5xl',
         '6xl': 'sm:max-w-6xl',
         '7xl': 'sm:max-w-7xl',
+        'full': 'sm:max-w-full',
     };
 
     return map[props.maxWidth] ?? map['2xl'];
@@ -87,7 +88,7 @@ const maxWidthClass = computed(() => {
         ref="dialog"
     >
         <div
-            class="fixed inset-0 z-[200] overflow-y-auto px-4 py-6 sm:px-0"
+            class="fixed inset-0 z-[200] overflow-y-auto px-4 py-6 mx-4 sm:px-0"
             scroll-region
         >
             <Transition

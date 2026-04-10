@@ -1,7 +1,8 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Workflow from './Workflow.vue';
-import { Head } from '@inertiajs/vue3';
+import ContextMenu from '@/Components/ContextMenu.vue';
+import { Head, Link } from '@inertiajs/vue3';
 import { ref, nextTick } from 'vue';
 import axios from 'axios';
 
@@ -108,7 +109,7 @@ getWorkflows();
         <div class="max-w-4xl p-4 lg:p-6">
             <h1 class="title mb-4">Workflows</h1>
             <p class="context mb-6">
-                Визуальные сценарии: ноды, связи, запуск и лог по WebSocket (Reverb).
+                Визуальные сценарии: ноды, связи, запуск и лог.
             </p>
 
             <div class="mb-6 flex flex-col gap-2 sm:flex-row">
@@ -138,12 +139,36 @@ getWorkflows();
                         />
                     </template>
                     <template v-else>
-                        <div class="mb-2">
-                            <button type="button" class="sidebar-nav-link-nested inline-flex w-auto" @click="startEditing(workflow)">
-                                Переименовать
-                            </button>
+                        <div class="flex items-center gap-2">
+                            <ContextMenu>
+                                <!--<Workflow :workflow="workflow" @delete="deleteWorkflow" />-->
+                                <Link :href="route('show.workflow', workflow.id)" 
+                                >
+                                    <div class="flex flex-row justify-between items-center gap-2 py-2">
+                                        <button
+                                            type="button"
+                                            class="sidebar-nav-link flex-1 min-w-0 truncate justify-start text-left"
+                                            @click="toggleModal"
+                                        >
+                                            <span class="dashboard-row-title truncate">{{ workflow.name }}</span>
+                                        </button>
+                                        <button type="button" class="badge badge-pending shrink-0" @click.stop="deleteWorkflow(workflow.id)">
+                                            Удалить
+                                        </button>
+                                    </div>
+                                </Link>
+                                
+                                <template #menu="{ toggleOpen }">
+                                    <div class="flex flex-col gap-4">
+                                        <button type="button" 
+                                            class="w-full text-left text-sm whitespace-nowrap" 
+                                            @click="startEditing(workflow); toggleOpen()">
+                                            Переименовать workflow
+                                        </button>
+                                    </div>
+                                </template>
+                            </ContextMenu>
                         </div>
-                        <Workflow :workflow="workflow" @delete="deleteWorkflow" />
                     </template>
                 </li>
             </ul>

@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
       </header>
 
       <div class="w-full">
-        <div class="space-y-6 pt-6">
+        <div class="space-y-6">
           <slot />
         </div>
       </div>

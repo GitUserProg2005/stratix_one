@@ -1,5 +1,6 @@
 <script setup>
 import Modal from '@/Components/Modal.vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
 import CreateNode from './Components/CreateNode.vue';
 import CustomNode from './Components/CustomNode.vue';
 import RedDot from './Components/RedDot.vue';
@@ -9,7 +10,7 @@ import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import { Background } from '@vue-flow/background';
 
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -109,23 +110,6 @@ function subscribeWorkflowChannel() {
             }
         });
 }
-
-function toggleModal() {
-    showModal.value = !showModal.value;
-}
-
-watch(showModal, (open) => {
-    if (open) {
-        logs.value = [];
-        countLogs.value = 0;
-        getNodes();
-        getEdges();
-        subscribeWorkflowChannel();
-    } else {
-        leaveWorkflowChannel();
-        workflowIsRunning.value = false;
-    }
-});
 
 function toggleLogsModal() {
     showLogsModal.value = !showLogsModal.value;
@@ -268,38 +252,38 @@ async function workflowObserve() {
         ...node,
         data: { ...node.data, status: 'idle' },
     }));
+    
     try {
         await axios.post(route('run.workflow', props.workflow.id));
     } catch (e) {
-        console.error('Ошибка запуска workflow:', e);
+    console.error('Ошибка запуска workflow:', e);
         workflowIsRunning.value = false;
     }
 }
+
+onMounted(() => {
+    logs.value = [];
+    countLogs.value = 0;
+    getNodes();
+    getEdges();
+    subscribeWorkflowChannel();
+});
+
+onBeforeUnmount(() => {
+    leaveWorkflowChannel();
+    workflowIsRunning.value = false;
+});
 </script>
 
-<template>
-    <div class="flex flex-row justify-between items-center gap-2 py-2">
-        <button
-            type="button"
-            class="sidebar-nav-link flex-1 min-w-0 truncate justify-start text-left"
-            @click="toggleModal"
-        >
-            <span class="dashboard-row-title truncate">{{ workflow.name }}</span>
-        </button>
-        <button type="button" class="badge badge-pending shrink-0" @click.stop="$emit('delete', workflow.id)">
-            Удалить
-        </button>
-    </div>
+<template>  
+    <AppLayout>
+        <div class="px-4 md:px-6 flex flex-row items-center justify-between gap-3 mt-4">
+            <h2 class="title-2">Workflow: <span class="label-accent">
+                {{ workflow.name }}</span>
+            </h2>
+        </div>
 
-    <Modal :show="showModal" max-width="7xl" @close="showModal = false">
-        <div class="p-4 md:p-6 max-h-[90vh] overflow-y-auto custom-scroll">
-            <div class="flex flex-row items-center justify-between gap-3 mb-4">
-                <h2 class="title-2">Workflow: {{ workflow.name }}</h2>
-                <button type="button" class="shrink-0 border-0 bg-transparent p-1 leading-none text-inherit" aria-label="Закрыть" @click="showModal = false">
-                    <i class="fa-solid fa-xmark text-xl" />
-                </button>
-            </div>
-
+        <div class="px-4 md:px-6 flex flex-col overflow-y-auto custom-scroll">
             <div
                 class="dashboard-chart-wrap relative flex w-full flex-col !h-auto min-h-[min(530px,55vh)]"
             >
@@ -309,7 +293,7 @@ async function workflowObserve() {
                     v-model:nodes="nodes"
                     v-model:edges="edges"
                     :node-types="nodeTypes"
-                    class="min-h-[min(530px,55vh)] w-full flex-1"
+                    class="min-h-[min(72vh)] w-full flex-1"
                     @node-drag-stop="onNodeDragStop"
                     @connect="onConnect"
                 >
@@ -378,5 +362,5 @@ async function workflowObserve() {
                 </VueFlow>
             </div>
         </div>
-    </Modal>
+    </AppLayout>
 </template>

@@ -1,5 +1,5 @@
 <script setup>
-import '../../css/drivee-custom.css';
+import '../../css/custom.css';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import Avatar from '@/Components/Avatar.vue';
