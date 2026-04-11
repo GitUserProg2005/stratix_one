@@ -2,22 +2,17 @@
 
 namespace App\Services\N8N\Handles;
 
-class Condition
+use App\Services\N8N\BaseNode;
+
+
+class Condition extends BaseNode
 {
-    public static function handleCondition($node, $prevResult)
+    public function handle(): int
     {
-        $config = is_string($node->config)
-            ? json_decode($node->config, true)
-            : $node->config;
-
-        if (! $config) {
-            throw new \RuntimeException('Config not found');
-        }
-
-        $conditionTree = $config['condition'];
-        $prevResult = is_string($prevResult)
-            ? json_decode($prevResult, true)
-            : $prevResult;
+        $conditionTree = $this->getConfig('condition');
+        $prevResult = is_string($this->input)
+            ? json_decode($this->input, true)
+            : $this->input;
 
         if (! is_array($prevResult)) {
             return $conditionTree['on_false']['node_id'];
@@ -28,7 +23,7 @@ class Condition
             : $conditionTree['on_false']['node_id'];
     }
 
-    protected static function evaluateCondition($condition, $data): bool
+    protected static function evaluateCondition(array $condition, array $data): bool
     {
         return match ($condition['type']) {
             'group' => self::evaluateGroup($condition, $data),
@@ -37,7 +32,7 @@ class Condition
         };
     }
 
-    protected static function evaluateGroup($group, $data)
+    protected static function evaluateGroup(array $group, array $data)
     {
         $results = [];
 
@@ -50,7 +45,7 @@ class Condition
             : in_array(true, $results, true);
     }
 
-    protected static function evaluateComparison($condition, $data)
+    protected static function evaluateComparison(array $condition, array $data)
     {
         $leftValue = self::extractValue($data,
             $condition['left']['path']

@@ -3,21 +3,24 @@
 namespace App\Services\N8N\Handles;
 
 use App\Services\AI\Gigachat;
+use App\Services\N8N\BaseNode;
 
-class AiRequest
+class AiRequest extends BaseNode
 {
-    public static function handleAiRequest(Gigachat $gigachat, $node, ?string $input = null, bool $agentMode = false): string
+    public function handle(): string
     {
-        $config = is_string($node->config)
-            ? json_decode($node->config, true)
-            : $node->config;
+        $aiService = app(Gigachat::class);
 
-        if (! is_array($config)) {
-            throw new \RuntimeException('AI node config is invalid JSON');
-        }
+        // $config = is_string($node->config)
+        //     ? json_decode($node->config, true)
+        //     : $node->config;
+// 
+        // if (! is_array($config)) {
+        //     throw new \RuntimeException('AI node config is invalid JSON');
+        // }
 
-        $prompt = $config['prompt'] ?? 'Пустой промпт';
-        $outputSchema = $config['output'] ?? null;
+        $prompt = $this->getConfig('prompt', 'Пустой промпт');
+        $outputSchema = $this->getConfig('output');
 
         if ($outputSchema) {
             $prompt .= "\n\n";
@@ -31,13 +34,16 @@ class AiRequest
             );
         }
 
-        if ($input !== null && $input !== '') {
-            $prompt .= "\n\nВходные данные предыдущего шага:\n".$input;
+        if (!empty($input)) {
+            $inputString = is_array($this->input || is_object($this->input))
+                ? json_encode($this->input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+                : (string) $this->input;
+            $prompt .= "\n\nВходные данные предыдущего шага:\n".$inputString;
         }
 
-        $jsonFormat = $agentMode || (bool) $outputSchema;
+        $jsonFormat = $this->node->type === 'ai_agent_request' ? true : false;
 
-        $response = $gigachat->sendRequest($prompt, $jsonFormat);
+        $response = $aiService->sendRequest($prompt, $jsonFormat);
 
         if (is_array($response)) {
             return json_encode($response, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);

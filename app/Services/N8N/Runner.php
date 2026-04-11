@@ -4,12 +4,6 @@ namespace App\Services\N8N;
 
 use App\Enums\NodeType;
 use App\Events\WorkflowStep;
-use App\Services\AI\Gigachat;
-use App\Services\N8N\Handles\AiRequest;
-use App\Services\N8N\Handles\CollectMetrics;
-use App\Services\N8N\Handles\Condition;
-use App\Services\N8N\Handles\EmailReport;
-use App\Services\N8N\Handles\LogNode;
 
 class Runner
 {
@@ -17,14 +11,23 @@ class Runner
 
     protected array $graph = [];
 
+    protected array $nodeHandlers = [
+        NodeType::AI_REQUEST->value => \App\Services\N8N\Handles\AiRequest::class,
+        NodeType::AI_AGENT_REQUEST->value => \App\Services\N8N\Handles\AiRequest::class,
+        NodeType::EMAIL_REPORT->value => \App\Services\N8N\Handles\EmailReport::class,
+        NodeType::COLLECT_METRICS->value => \App\Services\N8N\Handles\CollectMetrics::class,
+        NodeType::CONDITION->value => \App\Services\N8N\Handles\Condition::class,
+        NodeType::LOG->value => \App\Services\N8N\Handles\LogNode::class,
+    ];
+
     public function __construct(
         protected int $workflowId,
         protected $nodes,
         protected $edges,
         protected array $context = [],
-        protected ?Gigachat $gigachat = null,
+        // protected ?Gigachat $gigachat = null,
     ) {
-        $this->gigachat = $gigachat ?? app(Gigachat::class);
+        // $this->gigachat = $gigachat ?? app(Gigachat::class);
 
         foreach ($edges as $edge) {
             $this->graph[$edge->source_node_id][] = $edge->target_node_id;
@@ -48,33 +51,59 @@ class Runner
         return implode("\n", $nodeResults);
     }
 
-    protected function runNode($nodeId, $previousResult = null, &$nodeResults = [])
+    /**
+     * Рекурсивное выполнение ноды и всех ее последующих нod в графе    
+     * @param int $nodeId ID нodы для выполнения
+     * @param mixed $previousResult результат выполнения предыдущей нodы, который может быть нужен
+     */
+    protected function runNode(int $nodeId, mixed $previousResult = null, &$nodeResults = [])
     {
-        $node = $this->nodes->firstWhere('id', $nodeId);
-        $type = NodeType::from($node->type);
+        // Получаем данные о ноде по ID
+        $nodeData = $this->nodes->firstWhere('id', $nodeId);
+        $type = NodeType::from($nodeData->type) ?? null;
 
-        $result = match ($type) {
-            NodeType::AI_REQUEST => AiRequest::handleAiRequest($this->gigachat, $node, $previousResult, false),
-            NodeType::AI_AGENT_REQUEST => AiRequest::handleAiRequest($this->gigachat, $node, $previousResult, true),
-            NodeType::EMAIL_REPORT => EmailReport::handleEmailReport($node, (string) ($previousResult ?? '')),
-            NodeType::COLLECT_METRICS => CollectMetrics::handleCollectMetrics($node),
-            NodeType::CONDITION => Condition::handleCondition($node, $previousResult),
-            NodeType::LOG => LogNode::handle($node, $previousResult),
-        };
+        // $result = match ($type) {
+        //     NodeType::AI_REQUEST => AiRequest::handleAiRequest($this->gigachat, $node, $previousResult, false),
+        //     NodeType::AI_AGENT_REQUEST => AiRequest::handleAiRequest($this->gigachat, $node, $previousResult, true),
+        //     NodeType::EMAIL_REPORT => EmailReport::handleEmailReport($node, (string) ($previousResult ?? '')),
+        //     NodeType::COLLECT_METRICS => CollectMetrics::handleCollectMetrics($node),
+        //     NodeType::CONDITION => Condition::handleCondition($node, $previousResult),
+        //     NodeType::LOG => LogNode::handle($node, $previousResult),
+        // };
 
+        // Берем класс по type ноды
+        $handlerClass = $this->nodeHandlers[$type->value] ?? null;
+
+        if (!$handlerClass) {
+            throw new \Exception("Handler not found for type: {$nodeData->type}");
+        }
+
+        // Создаем экземпляр класса и вызываем метод handle
+        $handler = new $handlerClass($nodeData, $previousResult);
+        $result = $handler->handle();
+        
+        // Сохраняем результат выполнения ноды
         $nodeResults[$nodeId] = $result;
 
+        // Берем следующие ноды из графа и определяем, какую ноду нужно обработать следующей
         $nextIds = $this->graph[$nodeId] ?? [];
         $nextForBroadcast = $this->firstNextId($nextIds);
 
+        // Бродкастим результат текущей ноды, чтобы фронт мог отображать прогресс выполнения
         $this->broadcastInChunks((string) $result, $nodeId, $nextForBroadcast);
 
         $nextNodeIds = $nextIds;
 
-        if ($type === NodeType::CONDITION) {
+        /**
+         * Если нода типа CONDITION, то результатом будет ID следующей ноды, которую нужно выполнить, 
+         * а не массив ID, 
+         * как для остальных типов нод
+        */
+        if ($type->value === NodeType::CONDITION) {
             $nextNodeIds = [$result];
         }
 
+        // Рекурсивное выполнение последующих нод с передачей результата текущей ноды
         foreach ($nextNodeIds ?? [] as $nextNodeId) {
             $this->runNode($nextNodeId, $result, $nodeResults);
         }
@@ -82,6 +111,10 @@ class Runner
         return $result;
     }
 
+    /**
+     * Выборка первого ID следующей нodы для бродкаста, чтобы фронт знал, какой нodе отображать статус "выполняется"
+     * @param array $ids массив ID следующих нod, которые нужно выполнить после текущей нodы
+     */
     protected function firstNextId(array $ids): ?int
     {
         $first = $ids[0] ?? null;
@@ -89,6 +122,12 @@ class Runner
         return $first !== null ? (int) $first : null;
     }
 
+    /**
+     * Бродкаст результата выполнения ноды в чанках, чтобы не перегружать канал большим объемом данных и позволить фронту отображать прогресс выполнения
+     * @param string $result результат выполнения ноды, который нужно отправить на фронт
+     * @param int $currentNodeId ID текущей ноды, результат которой отправляем на фронт
+     * @param int|null $nextNodeId ID следующей ноды,
+     */
     protected function broadcastInChunks(string $result, $currentNodeId, ?int $nextNodeId): void
     {
         if (trim($result) === '') {

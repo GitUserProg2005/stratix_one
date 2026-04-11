@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 
 
 class Gigachat {
-    public function sendRequest($prompt, $jsonFormat = false): mixed {
+    public function sendRequest($prompt, $jsonFormat=false): mixed {
         $accessToken = $this->getAccessToken();
         
         $messages = [

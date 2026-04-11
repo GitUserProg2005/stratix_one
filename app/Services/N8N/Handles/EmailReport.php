@@ -4,21 +4,19 @@ namespace App\Services\N8N\Handles;
 
 use App\Mail\EmailReport as EmailReportMailable;
 use Illuminate\Support\Facades\Mail;
+use App\Services\N8N\BaseNode;
 
-class EmailReport
+class EmailReport extends BaseNode
 {
-    public static function handleEmailReport($node, string $result): string
+    public function handle(): string
     {
-        $config = is_string($node->config)
-            ? json_decode($node->config, true)
-            : $node->config;
-        $email = $config['email'] ?? null;
+        $email = $this->getConfig('email') ?? null;
 
-        if (! $email) {
+        if (!$email) {
             throw new \RuntimeException('Email not set in node config');
         }
 
-        Mail::to($email)->queue(new EmailReportMailable($result));
+        Mail::to($email)->queue(new EmailReportMailable($this->input));
 
         return 'Email успешно отправлен на '.$email;
     }

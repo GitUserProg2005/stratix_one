@@ -68,6 +68,7 @@ function subscribeWorkflowChannel() {
             if (e.result && String(e.result).trim() !== '') {
                 const cleanResult = String(e.result).replace(/\\n/g, '\n');
                 const existingLog = logs.value.find((log) => log.nodeId === e.currentNodeId);
+
                 if (existingLog) {
                     existingLog.body += cleanResult;
                 } else {
@@ -76,6 +77,7 @@ function subscribeWorkflowChannel() {
                         body: `INFO ${e.nextProcessingNodeId || e.currentNodeId}:\n\n${cleanResult}`,
                     });
                 }
+
                 countLogs.value += 1;
             }
 
@@ -96,6 +98,7 @@ function subscribeWorkflowChannel() {
                     ? { ...node, data: { ...node.data, status: 'done' } }
                     : node
             );
+            
             nodes.value = [...nodes.value];
 
             if (nextId) {
@@ -277,10 +280,12 @@ onBeforeUnmount(() => {
 
 <template>  
     <AppLayout>
-        <div class="px-4 md:px-6 flex flex-row items-center justify-between gap-3 mt-4">
-            <h2 class="title-2">Workflow: <span class="label-accent">
-                {{ workflow.name }}</span>
+        <div class="px-4 md:px-6 flex flex-row items-center gap-3 mt-4">
+            <h2 class="title-2">Модуль:
             </h2>
+
+            <span class="label-accent">
+                {{ workflow.name }}</span>
         </div>
 
         <div class="px-4 md:px-6 flex flex-col overflow-y-auto custom-scroll">
