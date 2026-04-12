@@ -15,9 +15,11 @@ const output = ref(props.modelValue ?? {
         {
             type: 'field',
             key: '',
+            data_type: '',
         }
     ]
 });
+
 const emit = defineEmits(['update:modelValue']);
 
 function addGroup(targetGroup=null) {
@@ -52,7 +54,7 @@ function addGroup(targetGroup=null) {
 function addField(targetGroup=null) {
     const field = {
         type: 'field',
-        key: ''
+        key: '',
     };
 
     if (!output.value) {

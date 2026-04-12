@@ -11,14 +11,6 @@ class AiRequest extends BaseNode
     {
         $aiService = app(Gigachat::class);
 
-        // $config = is_string($node->config)
-        //     ? json_decode($node->config, true)
-        //     : $node->config;
-// 
-        // if (! is_array($config)) {
-        //     throw new \RuntimeException('AI node config is invalid JSON');
-        // }
-
         $prompt = $this->getConfig('prompt', 'Пустой промпт');
         $outputSchema = $this->getConfig('output');
 

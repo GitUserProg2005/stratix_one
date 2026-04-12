@@ -44,7 +44,7 @@ onBeforeUnmount(() => {
       h-screen overflow-hidden
       grid grid-cols-1
       lg:grid-cols-[16rem_1fr]
-      
+      select-none
       gap-2
     "
   >

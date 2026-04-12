@@ -1,6 +1,7 @@
 <script setup>
 import UpdateNode from './UpdateNode.vue';
 import RedDot from './RedDot.vue';
+import MapEnvironment from './MapEnvironment.vue';
 import { Handle, Position } from '@vue-flow/core';
 import { ref } from 'vue';
 import { nodeConfigFields } from './nodeConfigFields';
@@ -11,9 +12,12 @@ const props = defineProps({
     data: Object,
     workflowId: Number,
     onWebhookLog: Function,
+    modelValue: Object,
 });
 
-const emit = defineEmits(['nodeUpdated', 'nodeDeleted']);
+const emit = defineEmits(['nodeUpdated', 'nodeDeleted',
+    'open-bottom-panel',
+]);
 
 const showUpdateModal = ref(false);
 const isWebhookLoading = ref(false);
@@ -80,6 +84,14 @@ function isLoadingForButton(buttonConfig) {
 
         <div class="absolute bottom-2 right-3">
             <i v-if="data.status === 'done'" class="fa-solid fa-check text-accent" />
+        </div>
+
+        <div class="absolute -bottom-3 right-1/2 translate-x-1/2 label-accent">
+            <button @click.stop="() => emit('open-bottom-panel', 
+                { component: MapEnvironment, props: { node: data } })"
+            >
+                <i class="fa-regular fa-map"></i>
+            </button>
         </div>
 
         <Handle type="source" :position="Position.Right" />

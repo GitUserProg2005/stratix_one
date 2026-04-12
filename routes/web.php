@@ -12,6 +12,7 @@ use App\Http\Controllers\MapController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\WebhookController;
 use App\Services\Prometheus\Metrics;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -124,5 +125,9 @@ Route::get('/metrics', function (Metrics $metrics) {
     return response($metrics->render(), 200)
         ->header('Content-Type', RenderTextFormat::MIME_TYPE);
 })->withoutMiddleware(['web']);
+
+Route::post('/webhooks/{token}', WebhookController::class)
+    ->withoutMiddleware(['web']);
+
 
 require __DIR__.'/auth.php';

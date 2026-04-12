@@ -3,6 +3,10 @@ import Modal from '@/Components/Modal.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import CreateNode from './Components/CreateNode.vue';
 import CustomNode from './Components/CustomNode.vue';
+import BackButton from '@/Components/BackButton.vue';
+import MapEnvironment from './Components/MapEnvironment.vue';
+import { Link } from '@inertiajs/vue3';
+import BottomPanel from './Components/BottomPanel.vue';
 import RedDot from './Components/RedDot.vue';
 
 import { VueFlow, useVueFlow, Panel } from '@vue-flow/core';
@@ -22,6 +26,9 @@ const props = defineProps({
 
 const emit = defineEmits(['delete']);
 
+const bottomPanelComponent = ref(null);
+const bottomPanelProps = ref({});
+
 /** Один store на строку workflow: тот же id, что у <VueFlow> (@vue-flow/core не экспортирует VueFlowProvider). */
 const vueFlowInstanceId = `workflow-${props.workflow.id}`;
 
@@ -36,7 +43,6 @@ const countLogs = ref(0);
 
 const nodes = ref([]);
 const edges = ref([]);
-const showModal = ref(false);
 const isLoading = ref(false);
 
 let workflowEchoChannel = null;
@@ -62,6 +68,7 @@ function subscribeWorkflowChannel() {
     if (typeof window.Echo === 'undefined') {
         return;
     }
+
     leaveWorkflowChannel();
     workflowEchoChannel = window.Echo.private(`workflow-step.${props.workflow.id}`)
         .listen('WorkflowStep', async (e) => {
@@ -98,7 +105,7 @@ function subscribeWorkflowChannel() {
                     ? { ...node, data: { ...node.data, status: 'done' } }
                     : node
             );
-            
+
             nodes.value = [...nodes.value];
 
             if (nextId) {
@@ -145,6 +152,7 @@ async function getNodes() {
 
 function handleCreatedNode(node) {
     const position = project(node.position);
+
     addNodes({
         id: String(node.id),
         type: 'custom',
@@ -264,6 +272,15 @@ async function workflowObserve() {
     }
 }
 
+function openBottomPanel({ component, props }) {
+    bottomPanelComponent.value = component;
+    bottomPanelProps.value = props;
+}
+
+function closeBottomPanel() {
+  bottomPanelComponent.value = null;
+}
+
 onMounted(() => {
     logs.value = [];
     countLogs.value = 0;
@@ -280,17 +297,20 @@ onBeforeUnmount(() => {
 
 <template>  
     <AppLayout>
-        <div class="px-4 md:px-6 flex flex-row items-center gap-3 mt-4">
-            <h2 class="title-2">Модуль:
-            </h2>
+        <div class="relative">
+            <div class="px-4 md:px-6 flex flex-row items-center gap-3 mt-4 mb-4">
+                <BackButton :backUrl="'workflows.index'" />
 
-            <span class="label-accent">
-                {{ workflow.name }}</span>
-        </div>
+                <h2 class="title-2">
+                    <Link>Workflows </Link>
+                    <span> / </span>
+                    <Link>{{ workflow.name }}</Link>
+                </h2>
+            </div>
 
-        <div class="px-4 md:px-6 flex flex-col overflow-y-auto custom-scroll">
+        <div class="px-4 md:px-6 flex flex-col custom-scroll">
             <div
-                class="dashboard-chart-wrap relative flex w-full flex-col !h-auto min-h-[min(530px,55vh)]"
+                class="dashboard-chart-wrap relative flex w-full flex-col !h-auto min-h-[80vh]"
             >
                 <VueFlow
                     :id="vueFlowInstanceId"
@@ -298,11 +318,11 @@ onBeforeUnmount(() => {
                     v-model:nodes="nodes"
                     v-model:edges="edges"
                     :node-types="nodeTypes"
-                    class="min-h-[min(72vh)] w-full flex-1"
+                    class="h-full w-full flex-1"
                     @node-drag-stop="onNodeDragStop"
                     @connect="onConnect"
                 >
-                    <Background variant="dots" :gap="22" :size="1.5" color="rgba(120,120,152,0.13)" />
+                    <Background variant="dots" :gap="15" :size="2" color="rgba(120,120,152,0.13)" />
                     <template #node-custom="{ data }">
                         <CustomNode
                             :nodes="nodes"
@@ -316,6 +336,7 @@ onBeforeUnmount(() => {
                             "
                             @node-updated="handleUpdatedNode"
                             @node-deleted="handleDeletedNode"
+                            @open-bottom-panel="openBottomPanel"
                         />
                     </template>
 
@@ -327,15 +348,18 @@ onBeforeUnmount(() => {
                                 @click="toggleIsRunning"
                             >
                                 Запустить
+                                <i v-if="!workflowIsRunning" class="fa-solid fa-play"></i>
                                 <span
                                     v-if="workflowIsRunning"
                                     class="inline-block h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"
                                 />
                             </button>
+
                             <CreateNode :workflow-id="workflow.id" :nodes="nodes" @onCreatedNode="handleCreatedNode" />
                         </div>
                         <div class="dashboard-inset hidden max-w-[11rem] sm:block">
                             <div class="dashboard-row-title mb-1">Индикаторы</div>
+
                             <div class="flex items-center gap-2">
                                 <RedDot />
                                 <span class="t-mini">Заполните параметры</span>
@@ -366,6 +390,13 @@ onBeforeUnmount(() => {
                     </Panel>
                 </VueFlow>
             </div>
+        </div>
+
+        <BottomPanel
+                :component="bottomPanelComponent"
+                :componentProps="bottomPanelProps"
+                @close="closeBottomPanel"
+            />
         </div>
     </AppLayout>
 </template>

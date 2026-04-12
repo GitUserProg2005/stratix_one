@@ -25,8 +25,8 @@ const props = defineProps({
 
 <template>
     <div v-if="output.type === 'field'" class="flex items-center gap-2 p-1">
-        <input v-model="output.key" class="input" type="text" placeholder="Ключ" />
-        <button type="button" class="badge badge-pending" @click="deleteElement(output, parent)">-D</button>
+            <input v-model="output.key" class="input" type="text" placeholder="Ключ" />
+            <button type="button" class="badge badge-pending" @click="deleteElement(output, parent)">-D</button>
     </div>
 
     <div v-else-if="output.type === 'group'" class="dashboard-inset mb-2 mt-3">

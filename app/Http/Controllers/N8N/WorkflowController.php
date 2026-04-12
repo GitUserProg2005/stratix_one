@@ -74,7 +74,7 @@ class WorkflowController extends Controller
             'workflow' => $workflow,
         ]);
     }
-
+ 
     public function runWorkflow(Request $request, int $workflowId)
     {
         $workflow = Workflow::with(['nodes', 'nodes.edges'])->findOrFail($workflowId);

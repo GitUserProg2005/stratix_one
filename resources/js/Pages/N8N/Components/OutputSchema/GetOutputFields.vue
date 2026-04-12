@@ -1,6 +1,5 @@
 <script setup>
 import { ref, watch } from 'vue';
-import { parse } from 'vue/compiler-sfc';
 
 const props = defineProps({
     nodes: {

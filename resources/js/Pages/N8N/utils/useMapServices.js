@@ -4,7 +4,7 @@ import { computed } from 'vue';
 const DEFAULTS = {
   tileserverUrl: 'http://localhost:8082',
   osrmUrl: 'http://localhost:5000',
-  tileserverStyle: 'basic-preview',
+  tileserverStyle: 'bright',
 };
 
 /**

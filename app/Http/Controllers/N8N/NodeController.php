@@ -6,7 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Edge;
 use App\Models\Node;
 use App\Models\NodeType;
+use App\Enums\NodeType as NodeTypeEnum;
+use App\Models\Workflow;
+use App\Models\Webhook;
+use App\Services\N8N\NodeHandlerFactory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
 
 class NodeController extends Controller
 {
@@ -49,6 +55,20 @@ class NodeController extends Controller
             'config' => $data['config'] ?? null,
             'position' => $data['position'],
         ]);
+
+        // app(NodeFactory::class)->handle($node, []);
+
+        /*
+        * Если тип создаваемой ноды webhook-trigger - создаем вебхук с токеном для юзера
+        */
+        if ($node->type === NodeTypeEnum::WEBHOOK_TRIGGER->value) {
+            Webhook::create([
+                'workflow_id' => $node->workflow_id,
+                'node_id' => $node->id,
+                'user_id' => auth()->id(),
+                'token' => Str::uuid()
+            ]);
+        }
 
         return response()->json([
             'result' => 'ok',

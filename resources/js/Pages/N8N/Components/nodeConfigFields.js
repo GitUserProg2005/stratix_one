@@ -1,4 +1,9 @@
 export const nodeConfigFields = {
+    webhook_trigger: {
+        builder: 'OutputBuilder',
+        builder_root: 'request',
+        builder_title: 'Настройка вебхука',
+    },
     ai_request: {
         fields: [
             { name: 'prompt', label: 'Ваш промпт', type: 'textarea', required: true },

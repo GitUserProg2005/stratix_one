@@ -12,6 +12,7 @@ class Runner
     protected array $graph = [];
 
     protected array $nodeHandlers = [
+        NodeType::WEBHOOK_TRIGGER->value => \App\Services\N8N\Handles\WebhookTrigger::class,
         NodeType::AI_REQUEST->value => \App\Services\N8N\Handles\AiRequest::class,
         NodeType::AI_AGENT_REQUEST->value => \App\Services\N8N\Handles\AiRequest::class,
         NodeType::EMAIL_REPORT->value => \App\Services\N8N\Handles\EmailReport::class,
@@ -25,10 +26,7 @@ class Runner
         protected $nodes,
         protected $edges,
         protected array $context = [],
-        // protected ?Gigachat $gigachat = null,
     ) {
-        // $this->gigachat = $gigachat ?? app(Gigachat::class);
-
         foreach ($edges as $edge) {
             $this->graph[$edge->source_node_id][] = $edge->target_node_id;
         }
@@ -51,6 +49,14 @@ class Runner
         return implode("\n", $nodeResults);
     }
 
+    public function startFromNode(int $nodeId): array {
+        $nodesResult = [];
+
+        $this->runNode($nodeId, $this->context, $nodesResult);
+
+        return $nodesResult;
+    }
+
     /**
      * Рекурсивное выполнение ноды и всех ее последующих нod в графе    
      * @param int $nodeId ID нodы для выполнения
@@ -61,15 +67,6 @@ class Runner
         // Получаем данные о ноде по ID
         $nodeData = $this->nodes->firstWhere('id', $nodeId);
         $type = NodeType::from($nodeData->type) ?? null;
-
-        // $result = match ($type) {
-        //     NodeType::AI_REQUEST => AiRequest::handleAiRequest($this->gigachat, $node, $previousResult, false),
-        //     NodeType::AI_AGENT_REQUEST => AiRequest::handleAiRequest($this->gigachat, $node, $previousResult, true),
-        //     NodeType::EMAIL_REPORT => EmailReport::handleEmailReport($node, (string) ($previousResult ?? '')),
-        //     NodeType::COLLECT_METRICS => CollectMetrics::handleCollectMetrics($node),
-        //     NodeType::CONDITION => Condition::handleCondition($node, $previousResult),
-        //     NodeType::LOG => LogNode::handle($node, $previousResult),
-        // };
 
         // Берем класс по type ноды
         $handlerClass = $this->nodeHandlers[$type->value] ?? null;
@@ -90,7 +87,13 @@ class Runner
         $nextForBroadcast = $this->firstNextId($nextIds);
 
         // Бродкастим результат текущей ноды, чтобы фронт мог отображать прогресс выполнения
-        $this->broadcastInChunks((string) $result, $nodeId, $nextForBroadcast);
+        $this->broadcastInChunks(
+            is_string($result)
+                ? $result
+                : json_encode($result, JSON_UNESCAPED_UNICODE),
+            $nodeId,
+            $nextForBroadcast
+        );
 
         $nextNodeIds = $nextIds;
 
