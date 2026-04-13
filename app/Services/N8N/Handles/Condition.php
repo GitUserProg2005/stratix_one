@@ -9,6 +9,10 @@ class Condition extends BaseNode
 {
     public function handle(): int
     {
+        if (! $this->hasInput()) {
+            return $this->getConfig('condition.on_false.node_id');
+        }
+
         $conditionTree = $this->getConfig('condition');
         $prevResult = is_string($this->input)
             ? json_decode($this->input, true)

@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+
 enum NodeType: string
 {
     case WEBHOOK_TRIGGER = 'webhook_trigger';   

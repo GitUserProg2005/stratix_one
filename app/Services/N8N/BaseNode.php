@@ -7,7 +7,9 @@ abstract class BaseNode {
     public function __construct(
         protected $node,
         protected mixed $input
-    ) {}
+    ) {
+        $this->validateInput();
+    }
 
     abstract public function handle(): mixed;
 
@@ -15,8 +17,43 @@ abstract class BaseNode {
         return [];
     }
 
-    public function outputSchema(): array {
-        return [];
+    protected function input(string $key=null, $default=null) {
+        return data_get($this->input, "data.$key", $default);
+    }
+
+    protected function validateInput(): void {
+        $schema = $this->inputSchema();
+
+        if (! $schema) {
+            return;
+        }
+
+        foreach ($schema as $key => $type) {
+            $value = $this->input($key);
+
+            if (! $value) {
+                throw new \RuntimeException("Input $key is required");
+            }
+
+            if (! $this->validateType($value, $type)) {
+                throw new \RuntimeException("Input $key must be of type $type");
+            }
+        }
+    }
+
+    protected function validateType($value, string $type): bool {
+        return match ($type) {
+            'string' => is_string($value),
+            'integer' => is_int($value),
+            'boolean' => is_bool($value),
+            'array' => is_array($value),
+            'object' => is_object($value),
+            default => false,
+        };
+    }
+
+    protected function hasInput(): bool {
+        return is_array(data_get($this->input, 'data'));
     }
 
     protected function success(array|int|string|bool|null $data, array $meta=[]): array {

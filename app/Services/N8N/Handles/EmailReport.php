@@ -8,16 +8,28 @@ use App\Services\N8N\BaseNode;
 
 class EmailReport extends BaseNode
 {
-    public function handle(): string
+    public function inputSchema(): array {
+        return [
+            'report' => 'string',
+        ];
+    }
+    
+    public function handle(): array
     {
         $email = $this->getConfig('email') ?? null;
+
+        // Берем данные по ключу и input
+        $report = $this->input('report');
 
         if (!$email) {
             throw new \RuntimeException('Email not set in node config');
         }
+        
+        // Оправка report-а по email через очередь
+        // Mail::to($email)->queue(new EmailReportMailable($report));
 
-        Mail::to($email)->queue(new EmailReportMailable($this->input));
+        Mail::to($email)->send(new EmailReportMailable($report));
 
-        return 'Email успешно отправлен на '.$email;
+        return $this->success(null, ['message' => 'Email успешно отправлен на '.$email]);
     }
 }

@@ -7,7 +7,13 @@ use App\Services\N8N\BaseNode;
 
 class AiRequest extends BaseNode
 {
-    public function handle(): string
+    public function inputSchema(): array {
+        return [
+            'content' => 'string',
+        ];
+    }
+
+    public function handle(): array
     {
         $aiService = app(Gigachat::class);
 
@@ -25,22 +31,26 @@ class AiRequest extends BaseNode
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
             );
         }
-
-        if (!empty($input)) {
-            $inputString = is_array($this->input || is_object($this->input))
-                ? json_encode($this->input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-                : (string) $this->input;
-            $prompt .= "\n\nВходные данные предыдущего шага:\n".$inputString;
-        }
+        
+        // if (!empty($input)) {
+        //     $inputString = is_array($this->input || is_object($this->input))
+        //         ? json_encode($this->input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        //         : (string) $this->input;
+        //     $prompt .= "\n\nВходные данные предыдущего шага:\n".$inputString;
+        // }
+        
+        $prompt .= "\n\nВходные данные предыдущего шага:\n".$this->input('content', 'NONE');
 
         $jsonFormat = $this->node->type === 'ai_agent_request' ? true : false;
 
         $response = $aiService->sendRequest($prompt, $jsonFormat);
 
         if (is_array($response)) {
-            return json_encode($response, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            return $this->success($response);
         }
 
-        return (string) $response;
+        return $this->success([
+            'content' => (string) $response
+        ]);
     }
 }
