@@ -254,7 +254,10 @@ async function getEdges() {
                 target: String(edge.target_node_id),
                 type: edge.type || 'custom',
                 animated: true,
-                data: edge.data || {},
+                data: {
+                    ...edge.data,
+                    transform: edge.transform || {}
+                },
             }));
         }
     } catch (e) {

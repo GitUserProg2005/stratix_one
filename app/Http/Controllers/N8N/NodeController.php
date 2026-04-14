@@ -162,6 +162,17 @@ class NodeController extends Controller
         ]);
     }
 
+    public function updateEdgeTransform(Request $request, int $edgeId) {
+        $edge = Edge::findOrFail($edgeId);
+
+        $edge->transform = $request->transform;
+        $edge->save();
+
+        return response()->json([
+            'result' => 'ok'
+        ]);
+    }
+
     public function getNodeSchemas(NodeRegistry $registry) {
         $schemas = $registry->schemas();
 

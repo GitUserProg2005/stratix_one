@@ -114,6 +114,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/get-edges/{workflowId}', [NodeController::class, 'getEdges'])->name('get.edges');
     Route::post('/create-edge', [NodeController::class, 'createEdge'])->name('create.edge');
     Route::delete('/delete-edge/{edgeId}', [NodeController::class, 'deleteEdge'])->name('delete.edge');
+    Route::post('/transform-edge/{edgeId}', [NodeController::class, 'updateEdgeTransform'])
+        ->name('edge.transform.update');
 
     Route::get('/get-node-schemas', [NodeController::class, 'getNodeSchemas'])->name('get.node.schemas');
 

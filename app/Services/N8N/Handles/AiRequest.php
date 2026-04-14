@@ -26,7 +26,7 @@ class AiRequest extends BaseNode
 
         $prompt = $this->getConfig('prompt', 'Пустой промпт');
 
-        $prompt .= "\n\nВходные данные предыдущего шага:\n".$this->input('content', 'NONE');
+        $prompt .= "\n\nВходные данные предыдущего шага:\n".$this->inputToString('content');
 
         $response = $aiService->sendRequest($prompt, false);
 

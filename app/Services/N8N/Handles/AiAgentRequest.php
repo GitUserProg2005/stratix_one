@@ -38,8 +38,9 @@ class AiAgentRequest extends BaseNode
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
             );
         }
-        
-        $prompt .= "\n\nВходные данные предыдущего шага:\n".$this->input('content', 'NONE');
+
+        $input = $this->inputToString('content');
+        $prompt .= "\n\nВходные данные предыдущего шага:\n".$input;
 
         $response = $aiService->sendRequest($prompt, true);
 

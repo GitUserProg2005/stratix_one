@@ -100,4 +100,21 @@ abstract class BaseNode {
 
         return $config;
     }
+
+    protected function inputToString($key = 'content'): string {
+        $input = $this->input($key);
+
+        if (is_string($input)) {
+            return $input;
+        }
+
+        if (is_array($input)) {
+            return json_encode(
+                $input,
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+            );
+        }
+
+        return (string) $input;
+    }
 }

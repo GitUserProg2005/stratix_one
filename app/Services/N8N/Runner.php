@@ -108,10 +108,54 @@ class Runner
 
         // Рекурсивное выполнение последующих нод с передачей результата текущей ноды
         foreach ($nextNodeIds ?? [] as $nextNodeId) {
-            $this->runNode($nextNodeId, $result, $nodeResults);
+            $mapped = $this->applyMapping($nodeId, $nextNodeId, $result);
+
+            $this->runNode($nextNodeId, $mapped, $nodeResults);
         }
 
         return $result;
+    }
+
+    /**
+     * Трансформация данных между нодами
+     * @param int $sourceId стартовая нода
+     * @param int $targetId конечная нода
+     * @param $data данные для маппинга
+     * @return array новая мутировавшая 
+     * структура с данными от пред. ноды
+     */
+    protected function applyMapping(int $sourceId, int $targetId, $data): array {
+        $edge = collect($this->edges)->first(function ($edge) use ($sourceId, $targetId) {
+            return $edge->source_node_id == $sourceId 
+                && $edge->target_node_id == $targetId;
+        });
+
+        \Log::info('DATA: '. json_encode($data));
+
+        if (! $edge) {
+            return $data;
+        }
+
+        $transform = $edge->transform ?? null;
+
+        if (!$transform || empty($transform['mappings'])) {
+            return $data;
+        }
+
+        $payload = $data['data'] ?? $data;
+        $mapped = [];
+
+        foreach ($transform['mappings'] as $target => $source) {
+            $mapped[$target] = data_get($payload, $source);
+        }
+
+        \Log::info('MAPPED DATA: ' . json_encode($mapped));
+
+        return [
+            'data' => $mapped,
+            'meta' => $data['meta'] ?? [],
+            'error' => $data['error'] ?? null
+        ];
     }
 
     /**

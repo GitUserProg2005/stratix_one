@@ -1,7 +1,8 @@
 <script setup>
 import Modal from '@/Components/Modal.vue';
-import { ref } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { getBezierPath } from '@vue-flow/core';
+import axios from 'axios';
 
 const emit = defineEmits(['add-mapping']);
 
@@ -25,37 +26,25 @@ const props = defineProps({
     edge: Object,
 });
 
-const selectedFrom = ref(null);
-const selectedTo = ref(null);
+const isSaving = ref(false);
 
-const mappings = ref([]);
+const mappings = ref({});
 
-function selectFrom(field) {
-    selectedFrom.value = field;
-}
+const sourceFields = computed(() => 
+    Object.keys(props.sourceSchema?.outputSchema || {})
+);
 
-function selectTo(field) {
-    selectedTo.value = field;
-}
+const targetFields = computed(() =>
+    Object.keys(props.targetSchema?.inputSchema || {})
+);
 
-function addMapping() {
-    if (!selectedFrom.value || !selectedTo.value) return;
-
-    const mapping = {
-        from: selectedFrom.value,
-        to: selectedTo.value,
-    };
-
-    mappings.value.push(mapping);
-
+function updateMapping() {
     emit('add-mapping', {
         edgeId: props.id,
-        mapping,
-        all: mappings.value,
+        mappings: mappings.value
     });
 
-    selectedFrom.value = null;
-    selectedTo.value = null;
+    saveTransform();
 }
 
 const isOpen = ref(false);
@@ -63,6 +52,29 @@ const isOpen = ref(false);
 function toggleModal() {
     isOpen.value = !isOpen.value;
 }
+
+async function saveTransform() {
+    console.log('saving', mappings.value);
+    isSaving.value = true;
+
+    try {
+        await axios.post(route('edge.transform.update', props.id), {
+            transform: {
+                mappings: mappings.value
+            }
+        });
+    } catch (e) {
+        console.error('Ошибка сохранения transform', e);
+    } finally {
+        isSaving.value = false;
+    }
+}
+
+onMounted(() => {
+    if (props.edge?.data?.transform?.mappings) {
+        mappings.value = props.edge.data.transform.mappings;
+    }
+});
 </script>
 
 <template>
@@ -110,54 +122,52 @@ function toggleModal() {
 
             <Modal :show="isOpen" @close="toggleModal">
             <div class="p-4">
-
-                <h3 class="text-lg mb-4">Mapping</h3>
-
-                <div class="grid grid-cols-2 gap-4">
-
-                    <!-- SOURCE -->
-                    <div>
-                        <h4 class="mb-2">FROM</h4>
-
-                        <div
-                            v-for="(type, field) in sourceSchema?.outputSchema"
-                            :key="field"
-                            class="p-2 mb-2 bg-gray-100 cursor-pointer"
-                            :class="{ 'bg-blue-200': selectedFrom === field }"
-                            @click="selectFrom(field)"
-                        >
-                            {{ field }}
-                        </div>
-                    </div>
-
-                    <!-- TARGET -->
-                    <div>
-                        <h4 class="mb-2">TO</h4>
-
-                        <div
-                            v-for="(type, field) in targetSchema?.inputSchema"
-                            :key="field"
-                            class="p-2 mb-2 bg-gray-100 cursor-pointer"
-                            :class="{ 'bg-green-200': selectedTo === field }"
-                            @click="selectTo(field)"
-                        >
-                            {{ field }}
-                        </div>
-                    </div>
-
+                <div class="flex items-center justify-between">
+                    <h3 class="title-2 mb-4">Поток данных</h3>
                 </div>
+                
+                <!--Selection для маппинга-->
+                <div>
+                    <div>
+                        <h4 class="mb-2">Куда</h4>
 
-                <div class="mt-4 flex justify-end gap-2">
-                    <button @click="addMapping" class="px-3 py-1 bg-black text-white">
-                        Add
-                    </button>
+                        <div
+                            v-for="field in targetFields"
+                            :key="field"
+                            class="p-2 bg-content-accent"
+                        >
+                            {{ field }}
+
+                            <select v-model="mappings[field]"
+                                class="select-input text-white"
+                            >
+                                <option value="">
+                                    Не выбрано
+                                </option>
+
+                                <option 
+                                    v-for="source in sourceFields"
+                                    :key="source"
+                                    :value="source"
+                                >
+                                    {{ source }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- DEBUG -->
-                <pre class="mt-4 text-xs">
+                <pre class="text-xs bg-gray-900 my-4 rounded-xl p-4">
                     {{ mappings }}
                 </pre>
 
+                <button
+                    @click="updateMapping"
+                    class="primary-btn"
+                >
+                    {{ isSaving ? 'Идет сохранение...' : 'Сохранить' }}
+                </button>
             </div>
         </Modal>
         </foreignObject>
