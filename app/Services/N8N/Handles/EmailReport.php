@@ -8,9 +8,15 @@ use App\Services\N8N\BaseNode;
 
 class EmailReport extends BaseNode
 {
-    public function inputSchema(): array {
+    public static function inputSchema(): array {
         return [
             'report' => 'string',
+        ];
+    }
+
+    public static function outputSchema(): array {
+        return [
+            'message' => 'string',
         ];
     }
     

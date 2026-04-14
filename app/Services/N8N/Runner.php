@@ -14,7 +14,7 @@ class Runner
     protected array $nodeHandlers = [
         NodeType::WEBHOOK_TRIGGER->value => \App\Services\N8N\Handles\WebhookTrigger::class,
         NodeType::AI_REQUEST->value => \App\Services\N8N\Handles\AiRequest::class,
-        NodeType::AI_AGENT_REQUEST->value => \App\Services\N8N\Handles\AiRequest::class,
+        NodeType::AI_AGENT_REQUEST->value => \App\Services\N8N\Handles\AiAgentRequest::class,
         NodeType::EMAIL_REPORT->value => \App\Services\N8N\Handles\EmailReport::class,
         NodeType::COLLECT_METRICS->value => \App\Services\N8N\Handles\CollectMetrics::class,
         NodeType::CONDITION->value => \App\Services\N8N\Handles\Condition::class,

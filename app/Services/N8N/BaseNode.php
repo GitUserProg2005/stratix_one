@@ -13,7 +13,11 @@ abstract class BaseNode {
 
     abstract public function handle(): mixed;
 
-    public function inputSchema(): array {
+    public static function inputSchema(): array {
+        return [];
+    }
+
+    public static function outputSchema(): array {
         return [];
     }
 
@@ -22,7 +26,7 @@ abstract class BaseNode {
     }
 
     protected function validateInput(): void {
-        $schema = $this->inputSchema();
+        $schema = self::inputSchema();
 
         if (! $schema) {
             return;

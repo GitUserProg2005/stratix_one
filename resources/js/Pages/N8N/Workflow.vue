@@ -3,11 +3,14 @@ import Modal from '@/Components/Modal.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import CreateNode from './Components/CreateNode.vue';
 import CustomNode from './Components/CustomNode.vue';
+import CustomEdge from './Components/CustomEdge.vue';
 import BackButton from '@/Components/BackButton.vue';
 import MapEnvironment from './Components/MapEnvironment.vue';
 import { Link } from '@inertiajs/vue3';
 import BottomPanel from './Components/BottomPanel.vue';
 import RedDot from './Components/RedDot.vue';
+
+import { useNodeSchemas } from './composables/useNodeSchemas';
 
 import { VueFlow, useVueFlow, Panel } from '@vue-flow/core';
 import '@vue-flow/core/dist/style.css';
@@ -32,10 +35,14 @@ const bottomPanelProps = ref({});
 /** Один store на строку workflow: тот же id, что у <VueFlow> (@vue-flow/core не экспортирует VueFlowProvider). */
 const vueFlowInstanceId = `workflow-${props.workflow.id}`;
 
+const { schemas } = useNodeSchemas();
+
 const { addNodes, project } = useVueFlow(vueFlowInstanceId);
 
 const workflowIsRunning = ref(false);
+
 const nodeTypes = { custom: CustomNode };
+const edgeTypes = { custom: CustomEdge };
 
 const showLogsModal = ref(false);
 const logs = ref([]);
@@ -51,7 +58,9 @@ function leaveWorkflowChannel() {
     if (typeof window.Echo === 'undefined' || !props.workflow?.id) {
         return;
     }
+
     const name = `workflow-step.${props.workflow.id}`;
+
     try {
         window.Echo.leave(`private-${name}`);
     } catch {
@@ -61,6 +70,7 @@ function leaveWorkflowChannel() {
             /* noop */
         }
     }
+
     workflowEchoChannel = null;
 }
 
@@ -70,6 +80,7 @@ function subscribeWorkflowChannel() {
     }
 
     leaveWorkflowChannel();
+
     workflowEchoChannel = window.Echo.private(`workflow-step.${props.workflow.id}`)
         .listen('WorkflowStep', async (e) => {
             if (e.result && String(e.result).trim() !== '') {
@@ -202,7 +213,7 @@ async function onConnect({ source, target }) {
         id: tempId,
         source,
         target,
-        type: 'default',
+        type: 'custom',
         animated: true,
     });
     try {
@@ -210,7 +221,7 @@ async function onConnect({ source, target }) {
             workflow_id: props.workflow.id,
             source_node_id: parseInt(source, 10),
             target_node_id: parseInt(target, 10),
-            type: 'default',
+            type: 'custom',
         });
         if (response.data.result === 'ok' && response.data.edge) {
             const edge = response.data.edge;
@@ -220,7 +231,7 @@ async function onConnect({ source, target }) {
                           id: String(edge.id),
                           source: String(edge.source_node_id),
                           target: String(edge.target_node_id),
-                          type: edge.type || 'smoothstep',
+                          type: edge.type || 'custom',
                           animated: true,
                           data: edge.data || {},
                       }
@@ -241,7 +252,7 @@ async function getEdges() {
                 id: String(edge.id),
                 source: String(edge.source_node_id),
                 target: String(edge.target_node_id),
-                type: edge.type || 'smoothstep',
+                type: edge.type || 'custom',
                 animated: true,
                 data: edge.data || {},
             }));
@@ -249,6 +260,15 @@ async function getEdges() {
     } catch (e) {
         console.error('Ошибка загрузки рёбер:', e);
     }
+}
+
+function getNodeById(id) {
+    return nodes.value.find(n => n.id === String(id));
+}
+
+function getSchema(node) {
+    if (!node) return null;
+    return schemas.value[node.data.type];
 }
 
 function toggleIsRunning() {
@@ -315,18 +335,25 @@ onBeforeUnmount(() => {
                 <VueFlow
                     :id="vueFlowInstanceId"
                     :key="`${vueFlowInstanceId}-${nodes.length}`"
+
                     v-model:nodes="nodes"
                     v-model:edges="edges"
+
                     :node-types="nodeTypes"
+                    :edge-types="edgeTypes"
+
                     class="h-full w-full flex-1"
+
                     @node-drag-stop="onNodeDragStop"
                     @connect="onConnect"
                 >
                     <Background variant="dots" :gap="15" :size="2" color="rgba(120,120,152,0.13)" />
+
                     <template #node-custom="{ data }">
                         <CustomNode
                             :nodes="nodes"
                             :data="data"
+                            :schemas="schemas"
                             :workflow-id="workflow.id"
                             :on-webhook-log="
                                 (log) => {
@@ -337,6 +364,22 @@ onBeforeUnmount(() => {
                             @node-updated="handleUpdatedNode"
                             @node-deleted="handleDeletedNode"
                             @open-bottom-panel="openBottomPanel"
+                        />
+                    </template>
+
+                    <template #edge-custom="edgeProps">
+                        <CustomEdge
+                            v-bind="edgeProps"
+                            
+                            :source-node="getNodeById(edgeProps.source)"
+                            :target-node="getNodeById(edgeProps.target)"
+
+                            :source-schema="getSchema(getNodeById(edgeProps.source))"
+                            :target-schema="getSchema(getNodeById(edgeProps.target))"
+
+                            :edge="edges.find(e => e.id === edgeProps.id)"
+
+                            @add-mapping="handleAddMapping"
                         />
                     </template>
 

@@ -6,10 +6,12 @@ import { Handle, Position } from '@vue-flow/core';
 import { ref } from 'vue';
 import { nodeConfigFields } from './nodeConfigFields';
 import { createButtonHandler } from './nodeButtonHandlers';
+import IOSchemas from './IOSchemas.vue';
 
 const props = defineProps({
     nodes: Array,
     data: Object,
+    schemas: Object,
     workflowId: Number,
     onWebhookLog: Function,
     modelValue: Object,
@@ -94,9 +96,14 @@ function isLoadingForButton(buttonConfig) {
             </button>
         </div>
 
+        <div class="absolute -top-5 right-3 label-accent">
+            <IOSchemas :schemas="schemas" :node-type="data.type" />
+        </div>
+
         <Handle type="source" :position="Position.Right" />
     </div>
 
+    <!--Inline-кнопки-->
     <div v-if="buttons.length > 0" class="mt-2 flex flex-col gap-2">
         <button
             v-for="button in buttons"

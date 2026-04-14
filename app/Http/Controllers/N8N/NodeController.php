@@ -9,7 +9,7 @@ use App\Models\NodeType;
 use App\Enums\NodeType as NodeTypeEnum;
 use App\Models\Workflow;
 use App\Models\Webhook;
-use App\Services\N8N\NodeHandlerFactory;
+use App\Services\N8N\Nodes\NodeRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -159,6 +159,15 @@ class NodeController extends Controller
         return response()->json([
             'result' => 'ok',
             'nodeTypes' => $nodeTypes,
+        ]);
+    }
+
+    public function getNodeSchemas(NodeRegistry $registry) {
+        $schemas = $registry->schemas();
+
+        return response()->json([
+            'result' => 'ok',
+            'schemas' => $schemas,
         ]);
     }
 }

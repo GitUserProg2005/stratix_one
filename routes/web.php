@@ -115,6 +115,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/create-edge', [NodeController::class, 'createEdge'])->name('create.edge');
     Route::delete('/delete-edge/{edgeId}', [NodeController::class, 'deleteEdge'])->name('delete.edge');
 
+    Route::get('/get-node-schemas', [NodeController::class, 'getNodeSchemas'])->name('get.node.schemas');
+
+
+
+    
     Route::get('/games/puzzle', [GamesController::class, 'index'])->name('puzzle.index');
 
     # Route::get('map-index', [])

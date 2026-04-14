@@ -14,12 +14,14 @@ class Edge extends Model
         'label',
         'type',
         'data',
+        'transform',
     ];
 
     protected function casts(): array
     {
         return [
             'data' => 'array',
+            'transform' => 'array',
         ];
     }
 
