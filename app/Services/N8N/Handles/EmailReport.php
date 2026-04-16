@@ -10,13 +10,29 @@ class EmailReport extends BaseNode
 {
     public static function inputSchema(): array {
         return [
-            'report' => 'string',
+            'type' => 'group',
+            'name' => 'root',
+            'fields' => [
+                [
+                    'type' => 'field',
+                    'key' => 'report',
+                    'data_type' => 'string'
+                ]
+            ]
         ];
     }
 
     public static function outputSchema(): array {
         return [
-            'message' => 'string',
+            'type' => 'group',
+            'name' => 'root',
+            'fields' => [
+                [
+                    'type' => 'field',
+                    'key' => 'message',
+                    'data_type' => 'string'
+                ]
+            ]
         ];
     }
     

@@ -141,14 +141,21 @@ class Runner
         if (!$transform || empty($transform['mappings'])) {
             return $data;
         }
-
+        
         $payload = $data['data'] ?? $data;
         $mapped = [];
 
-        foreach ($transform['mappings'] as $target => $source) {
-            $mapped[$target] = data_get($payload, $source);
-        }
+        // Data-Mapping
+        $mapped = $this->transformSchema($transform['mappings'], $payload);
 
+
+        // foreach ($transform['mappings'] as $target => $source) {
+        //     $mapped[$target] = data_get($payload, $source);
+        // }
+
+
+
+        // LOG ABOUT RESULT
         \Log::info('MAPPED DATA: ' . json_encode($mapped));
 
         return [
@@ -156,6 +163,66 @@ class Runner
             'meta' => $data['meta'] ?? [],
             'error' => $data['error'] ?? null
         ];
+    }
+
+    protected function resolveSchemaMappings(array $schema, array $mappings, string $prefix=''): array {
+        $name = $schema['name'] ?? $schema['key'] ?? null;
+
+        $path = $prefix 
+            ? "$prefix.$name"
+            : $name;
+
+        if ($schema['type'] === 'field') {
+            if (isset($mappings[$path])) {
+                $schema['from'] = $mappings[$path];
+            }
+
+            return $schema;
+        }
+
+        if ($schema['type'] === 'group') {
+            foreach ($schema['fields'] as &$field) {
+                $field = $this->resolveSchemaMappings($field, $mappings, $path);
+            }
+        }
+
+        if ($schema['type'] === 'array') {
+            $schema['items'] = 
+        }
+    }
+
+    protected function transformSchema(array $schema, $data) {
+        if ($schema['type'] === 'field') {
+            return data_get($data, $schema['from']);
+        }
+
+        if ($schema['type'] === 'group') {
+            $result = [];
+
+            $source = $schema['from']
+                ? data_get($data, $schema['from'])
+                : $data;
+
+            foreach ($schema['fields'] as $field) {
+                $result[$field['name']] = $this->transformSchema(
+                    $field, 
+                    $source
+                );
+            }
+
+            return $result;
+        }
+
+        if ($schema['type'] === 'array') {
+            $items = $schema['from']
+                ? data_get($data, $schema['from'], [])
+                : $data;
+
+            return collect($items)
+                ->map(fn($item) => 
+                    $this->transformSchema($schema['items'], $item)
+                )->toArray(); 
+        }
     }
 
     /**

@@ -2,6 +2,8 @@
 import Modal from '@/Components/Modal.vue';
 import { ref, onMounted, computed, watch } from 'vue';
 import { getBezierPath } from '@vue-flow/core';
+import { flattenSchema } from '../utils/flattenSchema';
+import SchemaTree from './SchemaTree.vue';
 import axios from 'axios';
 
 const emit = defineEmits(['add-mapping']);
@@ -30,19 +32,51 @@ const isSaving = ref(false);
 
 const mappings = ref({});
 
-const sourceFields = computed(() => 
-    Object.keys(props.sourceSchema?.outputSchema || {})
-);
+const resolvedSourceSchema = computed(() => {
+    if (!props.sourceSchema) return null;
 
-const targetFields = computed(() =>
-    Object.keys(props.targetSchema?.inputSchema || {})
-);
+    if (props.sourceSchema.dynamic) {
+        return {
+            ...props.sourceSchema,
+            outputSchema: resolveDynamicSchema(
+                props.sourceNode,
+                'output'
+            )
+        }
+    }
 
-function updateMapping() {
-    emit('add-mapping', {
-        edgeId: props.id,
-        mappings: mappings.value
-    });
+    return props.sourceSchema;
+});
+
+function resolveDynamicSchema(node, type = 'output') {
+    if (!node?.data?.config) return null;
+
+    const config = node.data.config;
+
+    if (type === 'output') {
+        return config.output || config.request || null;
+    }
+
+    return null;
+}
+
+const sourceFields = computed(() => { 
+    //Object.keys(props.sourceSchema?.outputSchema || {})
+    return flattenSchema(resolvedSourceSchema.value?.outputSchema);
+});
+
+// const targetFields = computed(() => {
+//     // Object.keys(props.targetSchema?.inputSchema || {})
+//     return flattenSchema(props.targetSchema?.inputSchema);
+// });
+
+function updateMapping({ target, source }) {
+    // emit('add-mapping', {
+    //     edgeId: props.id,
+    //     mappings: mappings.value
+    // });
+
+    mappings.value[target] = source;
 
     saveTransform();
 }
@@ -121,55 +155,48 @@ onMounted(() => {
             </button>
 
             <Modal :show="isOpen" @close="toggleModal">
-            <div class="p-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="title-2 mb-4">Поток данных</h3>
-                </div>
-                
-                <!--Selection для маппинга-->
-                <div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="title-2 mb-4">Поток данных</h3>
+                    </div>
+                    
+                    <!--Selection для маппинга-->
                     <div>
-                        <h4 class="mb-2">Куда</h4>
+                        <div>
+                            <h4 class="mb-2">Куда</h4>
 
-                        <div
-                            v-for="field in targetFields"
-                            :key="field"
-                            class="p-2 bg-content-accent"
-                        >
-                            {{ field }}
-
-                            <select v-model="mappings[field]"
-                                class="select-input text-white"
-                            >
-                                <option value="">
-                                    Не выбрано
-                                </option>
-
-                                <option 
-                                    v-for="source in sourceFields"
-                                    :key="source"
-                                    :value="source"
-                                >
-                                    {{ source }}
-                                </option>
-                            </select>
+                            <SchemaTree 
+                                :schema="targetSchema?.inputSchema"
+                                :mappings="mappings"
+                                :sourceFields="sourceFields"
+                                @update="updateMapping"
+                            />
                         </div>
                     </div>
+
+                    <!-- DEBUG -->
+                    <pre class="text-xs bg-gray-900 my-4 rounded-xl p-4">
+                        {{ mappings }}
+                    </pre>
+
+                    <pre>
+                        source schema:
+                        {{ resolvedSourceSchema }}
+                    </pre>
+
+                    <pre>
+                        target schema:
+                        {{ targetSchema }}
+                    </pre>
+
+                    <button
+                        @click="updateMapping"
+                        class="primary-btn"
+                    >
+                        {{ isSaving ? 'Идет сохранение...' : 'Сохранить' }}
+                    </button>
                 </div>
-
-                <!-- DEBUG -->
-                <pre class="text-xs bg-gray-900 my-4 rounded-xl p-4">
-                    {{ mappings }}
-                </pre>
-
-                <button
-                    @click="updateMapping"
-                    class="primary-btn"
-                >
-                    {{ isSaving ? 'Идет сохранение...' : 'Сохранить' }}
-                </button>
-            </div>
-        </Modal>
+            </Modal>
         </foreignObject>
     </g>  
 </template>

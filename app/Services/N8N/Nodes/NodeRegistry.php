@@ -2,6 +2,7 @@
 
 namespace App\Services\N8N\Nodes;
 
+use App\Enums\NodeStructureSchema;
 use App\Services\N8N\Handles\AiRequest;
 use App\Services\N8N\Handles\AiAgentRequest;
 use App\Services\N8N\Handles\EmailReport;
@@ -24,6 +25,7 @@ class NodeRegistry {
             $result[$type] = [
                 'inputSchema' => $class::inputSchema(),
                 'outputSchema' => $class::outputSchema(),
+                'dynamic' => $class::nodeStructureSchema()  === NodeStructureSchema::DYNAMIC
             ];
         }
 

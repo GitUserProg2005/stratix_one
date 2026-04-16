@@ -2,6 +2,8 @@
 
 namespace App\Services\N8N;
 
+use App\Enums\NodeStructureSchema;
+
 
 abstract class BaseNode {
     public function __construct(
@@ -19,6 +21,38 @@ abstract class BaseNode {
 
     public static function outputSchema(): array {
         return [];
+    }
+
+    public static function nodeStructureSchema(): NodeStructureSchema  {
+        return NodeStructureSchema::STATIC;
+    }
+
+    public function resolveOutputSchema(): ?array {
+        if (static::nodeStructureSchema() === NodeStructureSchema::DYNAMIC) {
+            return $this->dynamicOutputSchema();
+        }
+
+        return static::outputSchema();
+    }
+
+    protected function dynamicOutputSchema(): ?array {
+        return null;
+    }
+
+    protected static function field(string $key, string $type = null): array {
+        return [
+            'type' => 'field',
+            'key' => $key,
+            'data_type' => $type
+        ];
+    }
+
+    protected static function group(string $name, array $fields): array {
+        return [
+            'type' => 'group',
+            'name' => $name,
+            'fields' => $fields
+        ];
     }
 
     protected function input(string $key=null, $default=null) {

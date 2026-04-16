@@ -2,21 +2,43 @@
 
 namespace App\Services\N8N\Handles;
 
+use App\Enums\NodeStructureSchema;
 use App\Services\AI\Gigachat;
 use App\Services\N8N\BaseNode;
 
 
 class AiRequest extends BaseNode
-{
-    public static function inputSchema(): array {
-        return [
-            'content' => 'string',
-        ];
+{   
+    public static function nodeStructureSchema(): NodeStructureSchema
+    {
+        return NodeStructureSchema::STATIC;
     }
 
     public static function outputSchema(): array {
         return [
-            'content' => 'string',
+            'type' => 'group',
+            'name' => 'root',
+            'fields' => [
+                [
+                    'type' => 'field',
+                    'key' => 'content',
+                    'data_type' => 'string'
+                ]
+            ]
+        ];
+    }
+
+    public static function inputSchema(): array {
+        return [
+            'type' => 'group',
+            'name' => 'root',
+            'fields' => [
+                [
+                    'type' => 'field',
+                    'key' => 'content',
+                    'data_type' => 'string'
+                ]
+            ]
         ];
     }
 
