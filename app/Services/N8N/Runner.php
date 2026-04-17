@@ -138,7 +138,7 @@ class Runner
 
         $transform = $edge->transform ?? null;
 
-        if (!$transform || empty($transform['mappings'])) {
+        if (!$transform || empty($transform['ast'])) {
             return $data;
         }
         
@@ -146,9 +146,10 @@ class Runner
         $mapped = [];
 
         // Data-Mapping
-        $mapped = $this->transformSchema($transform['mappings'], $payload);
+        $mapped = $this->transformSchema($transform['ast'], $payload);
+        
 
-
+        
         // foreach ($transform['mappings'] as $target => $source) {
         //     $mapped[$target] = data_get($payload, $source);
         // }
@@ -165,35 +166,11 @@ class Runner
         ];
     }
 
-    protected function resolveSchemaMappings(array $schema, array $mappings, string $prefix=''): array {
-        $name = $schema['name'] ?? $schema['key'] ?? null;
-
-        $path = $prefix 
-            ? "$prefix.$name"
-            : $name;
-
-        if ($schema['type'] === 'field') {
-            if (isset($mappings[$path])) {
-                $schema['from'] = $mappings[$path];
-            }
-
-            return $schema;
-        }
-
-        if ($schema['type'] === 'group') {
-            foreach ($schema['fields'] as &$field) {
-                $field = $this->resolveSchemaMappings($field, $mappings, $path);
-            }
-        }
-
-        if ($schema['type'] === 'array') {
-            $schema['items'] = 
-        }
-    }
-
     protected function transformSchema(array $schema, $data) {
         if ($schema['type'] === 'field') {
-            return data_get($data, $schema['from']);
+            return [
+                $schema['key'] => data_get($data, $schema['from'])
+            ];
         }
 
         if ($schema['type'] === 'group') {
@@ -204,9 +181,9 @@ class Runner
                 : $data;
 
             foreach ($schema['fields'] as $field) {
-                $result[$field['name']] = $this->transformSchema(
-                    $field, 
-                    $source
+                $result = array_merge(
+                    $result,
+                    $this->transformSchema($field, $source)
                 );
             }
 
@@ -218,11 +195,16 @@ class Runner
                 ? data_get($data, $schema['from'], [])
                 : $data;
 
-            return collect($items)
-                ->map(fn($item) => 
-                    $this->transformSchema($schema['items'], $item)
-                )->toArray(); 
+            return [
+                $schema['name'] => collect($items)
+                    ->map(fn($item) =>
+                        $this->transformSchema($schema['items'], $item)
+                    )
+                    ->toArray()
+            ];
         }
+
+        return [];
     }
 
     /**

@@ -20,17 +20,19 @@ class AiAgentRequest extends BaseNode
     }
 
     public static function inputSchema(): array {
-        return [
-            'type' => 'group',
-            'name' => 'root',
-            'fields' => [
-                [
-                    'type' => 'field',
-                    'key' => 'content',
-                    'data_type' => 'string'
-                ]
-            ]
-        ];
+        // return [
+        //     'type' => 'group',
+        //     'name' => 'root',
+        //     'fields' => [
+        //         [
+        //             'type' => 'field',
+        //             'key' => 'content',
+        //             'data_type' => 'string'
+        //         ]
+        //     ]
+        // ];
+
+        return self::field('content');
     }
 
     public function handle(): array

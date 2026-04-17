@@ -3,6 +3,7 @@ import Modal from '@/Components/Modal.vue';
 import { ref, onMounted, computed, watch } from 'vue';
 import { getBezierPath } from '@vue-flow/core';
 import { flattenSchema } from '../utils/flattenSchema';
+import { buildAST } from '../utils/buildAST';
 import SchemaTree from './SchemaTree.vue';
 import axios from 'axios';
 
@@ -89,12 +90,18 @@ function toggleModal() {
 
 async function saveTransform() {
     console.log('saving', mappings.value);
+
     isSaving.value = true;
 
     try {
+        const ast = buildAST(
+            props.targetSchema?.inputSchema,
+            mappings.value
+        );
+
         await axios.post(route('edge.transform.update', props.id), {
             transform: {
-                mappings: mappings.value
+                ast: ast
             }
         });
     } catch (e) {

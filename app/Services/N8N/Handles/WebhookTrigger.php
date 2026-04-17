@@ -18,8 +18,8 @@ class WebhookTrigger extends BaseNode
     }
 
     public function handle(): array {
-        if ($this->input) {
-            return $this->success($this->input);
+        if ($this->rawInput) {
+            return $this->success($this->rawInput);
         }
 
         return $this->error('No input provided');

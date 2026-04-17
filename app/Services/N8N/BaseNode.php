@@ -4,11 +4,10 @@ namespace App\Services\N8N;
 
 use App\Enums\NodeStructureSchema;
 
-
 abstract class BaseNode {
     public function __construct(
         protected $node,
-        protected mixed $input
+        protected mixed $rawInput
     ) {
         $this->validateInput();
     }
@@ -47,7 +46,15 @@ abstract class BaseNode {
         ];
     }
 
-    protected static function group(string $name, array $fields): array {
+    protected static function array(string $name, array $items): array {
+        return [
+            'type' => 'array',
+            'name' => $name,
+            'items' => $items
+        ];
+    }
+
+    protected static function group(?string $name, array $fields): array {
         return [
             'type' => 'group',
             'name' => $name,
@@ -56,25 +63,90 @@ abstract class BaseNode {
     }
 
     protected function input(string $key=null, $default=null) {
-        return data_get($this->input, "data.$key", $default);
+        return data_get(
+            $this->rawInput,
+            "data.$key",
+            $default
+        );
     }
 
     protected function validateInput(): void {
-        $schema = self::inputSchema();
+        $schema = static::inputSchema();
 
         if (! $schema) {
             return;
         }
 
-        foreach ($schema as $key => $type) {
-            $value = $this->input($key);
+        $this->validateSchema($schema);
+    }
 
-            if (! $value) {
-                throw new \RuntimeException("Input $key is required");
+    protected function validateSchema(array $schema, $data = null, $prefix = ''): void {
+        $data ??= data_get($this->rawInput, 'data', []);
+
+        $type = $schema['type'];
+
+        if ($type === 'field') {
+            $key = $schema['key'] ?? $schema['name'];
+
+            $path = $prefix
+                ? "$prefix.$key"
+                : $key;
+
+            $value = data_get($data, $key, null);
+
+            if ($value === null) {
+                throw new \RuntimeException("Input $path is required");
             }
 
-            if (! $this->validateType($value, $type)) {
-                throw new \RuntimeException("Input $key must be of type $type");
+            if (isset($schema['data_type'])) {
+                if (! $this->validateType($value, $schema['data_type'])) {
+                    throw new \RuntimeException(
+                        "Input $path must be {$schema['data_type']}"
+                    );
+                }
+            }
+
+            return;
+        }
+
+        if ($type === 'group') {
+            $name = $schema['name'] ?? null;
+
+            $groupData = $name
+                ? data_get($data, $name, [])
+                : $data;
+
+            $path = $prefix && $name
+                ? "$prefix.$name"
+                : ($name ?? $prefix);
+
+            foreach ($schema['fields'] as $field) {
+                $this->validateSchema($field, $groupData, $path);
+            }
+
+            return;
+        }
+
+        if ($type === 'array') {
+            $name = $schema['name'];
+
+            $items = data_get($data, $name);
+
+            if (! is_array($items)) {
+                throw new \RuntimeException("Input $name must be array");
+            }
+
+            foreach ($items as $index => $item) {
+
+                $path = $prefix
+                    ? "$prefix.$name.$index"
+                    : "$name.$index";
+
+                $this->validateSchema(
+                    $schema['items'],
+                    $item,
+                    $path
+                );
             }
         }
     }
@@ -91,7 +163,7 @@ abstract class BaseNode {
     }
 
     protected function hasInput(): bool {
-        return is_array(data_get($this->input, 'data'));
+        return is_array(data_get($this->rawInput, 'data'));
     }
 
     protected function success(array|int|string|bool|null $data, array $meta=[]): array {
@@ -116,14 +188,9 @@ abstract class BaseNode {
         ];
     }
 
-    /**
-     * Возвращает значение по ключу или сам конфиг
-     * @param string $key=null ключ в конфиге ноды
-     * @param default=null что вернет по дефолту
-     */
     protected function getConfig(?string $key=null, $default=null) {
         $config = is_string($this->node->config) 
-            ? json_decode($this->node->config, true) // проверка на валидность
+            ? json_decode($this->node->config, true)
             : (array) $this->node->config;
 
         $config = is_array($config) ? $config : [];

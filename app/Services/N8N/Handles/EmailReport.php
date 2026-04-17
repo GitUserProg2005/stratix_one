@@ -9,31 +9,35 @@ use App\Services\N8N\BaseNode;
 class EmailReport extends BaseNode
 {
     public static function inputSchema(): array {
-        return [
-            'type' => 'group',
-            'name' => 'root',
-            'fields' => [
-                [
-                    'type' => 'field',
-                    'key' => 'report',
-                    'data_type' => 'string'
-                ]
-            ]
-        ];
+        // return [
+        //     'type' => 'group',
+        //     'name' => 'root',
+        //     'fields' => [
+        //         [
+        //             'type' => 'field',
+        //             'key' => 'report',
+        //             'data_type' => 'string'
+        //         ]
+        //     ]
+        // ];
+
+        return self::field('report');
     }
 
     public static function outputSchema(): array {
-        return [
-            'type' => 'group',
-            'name' => 'root',
-            'fields' => [
-                [
-                    'type' => 'field',
-                    'key' => 'message',
-                    'data_type' => 'string'
-                ]
-            ]
-        ];
+        // return [
+        //     'type' => 'group',
+        //     'name' => 'root',
+        //     'fields' => [
+        //         [
+        //             'type' => 'field',
+        //             'key' => 'message',
+        //             'data_type' => 'string'
+        //         ]
+        //     ]
+        // ];
+
+        return self::field('message');
     }
     
     public function handle(): array
