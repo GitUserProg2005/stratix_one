@@ -32,7 +32,7 @@ class AiAgentRequest extends BaseNode
         //     ]
         // ];
 
-        return self::field('content');
+        return self::field('content', 'string', false);
     }
 
     public function handle(): array

@@ -27,7 +27,7 @@ class AiRequest extends BaseNode
         //     ]
         // ];
 
-        return self::field('content');
+        return self::field('content', 'string', true);
     }
 
     public static function inputSchema(): array {
@@ -43,7 +43,7 @@ class AiRequest extends BaseNode
         //     ]
         // ];
 
-        return self::field('content');
+        return self::field('content', 'string', false);
     }
 
     public function handle(): array

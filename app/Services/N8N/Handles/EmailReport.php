@@ -21,7 +21,7 @@ class EmailReport extends BaseNode
         //     ]
         // ];
 
-        return self::field('report');
+        return self::field('report', 'string', true);
     }
 
     public static function outputSchema(): array {
@@ -37,7 +37,7 @@ class EmailReport extends BaseNode
         //     ]
         // ];
 
-        return self::field('message');
+        return self::field('message', 'string', true);
     }
     
     public function handle(): array
@@ -48,7 +48,8 @@ class EmailReport extends BaseNode
         $report = $this->input('report');
 
         if (!$email) {
-            throw new \RuntimeException('Email not set in node config');
+            $this->broadcastError($this->workflowId, $this->node->id, 'Email not set in node config');
+            // throw new \RuntimeException('Email not set in node config');
         }
         
         // Оправка report-а по email через очередь

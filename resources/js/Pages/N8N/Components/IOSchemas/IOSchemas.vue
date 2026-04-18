@@ -1,5 +1,6 @@
 <script setup>
 import Modal from '@/Components/Modal.vue';
+import SchemaTree from './SchemaTree.vue';
 import { ref, computed } from 'vue';
 
 const props = defineProps({
@@ -66,14 +67,10 @@ function toggleModal() {
                         v-else
                         class="flex flex-wrap items-center gap-2"
                     >
-                        <div
-                            v-for="(type, field) in nodeSchema.inputSchema"
-                            :key="field"
-                            class="dashboard-progress-fill--info p-2 rounded-lg flex items-center gap-2"
-                        >
-                            <span>
-                                {{ field }} -> {{ type }}
-                            </span>
+                        <div v-if="nodeSchema.inputSchema">
+                            <SchemaTree
+                                :schema="nodeSchema.inputSchema"
+                            />
                         </div>
                     </div>
                 </section>
@@ -95,14 +92,10 @@ function toggleModal() {
                         v-else
                         class="flex flex-wrap items-center gap-2"
                     >
-                        <div
-                            v-for="(type, field) in nodeSchema.outputSchema"
-                            :key="field"
-                            class="dashboard-progress-fill--success p-2 rounded-lg flex items-center gap-2"
-                        >
-                            <span>
-                                {{ field }} -> {{ type }}
-                            </span>
+                        <div v-if="nodeSchema.outputSchema">
+                            <SchemaTree
+                                :schema="nodeSchema.outputSchema"
+                            />
                         </div>
                     </div>
                 </section>

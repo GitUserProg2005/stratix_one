@@ -40,6 +40,7 @@ const { schemas } = useNodeSchemas();
 const { addNodes, project } = useVueFlow(vueFlowInstanceId);
 
 const workflowIsRunning = ref(false);
+const workflowFailed = ref(null);
 
 const nodeTypes = { custom: CustomNode };
 const edgeTypes = { custom: CustomEdge };
@@ -129,7 +130,30 @@ function subscribeWorkflowChannel() {
             } else {
                 workflowIsRunning.value = false;
             }
+        })
+    .listen('WorkflowFailed', (e) => {
+        console.log('WORKFLOW FAILED: ', e);
+
+        nodes.value = nodes.value.map((node) => 
+            node.id === String(e.currentNodeId)
+                ? {...node, data: {
+                    ...node.data, status: 'failed'
+                }}
+                : node
+        );
+        nodes.value = [...nodes.value];
+
+        logs.value.push({
+            nodeId: e.currentNodeId,
+            body: e.error
         });
+        countLogs.value++;
+
+        console.log(nodes.value.filter(node => node.id === String(e.currentNodeId)));
+
+        workflowIsRunning.value = false;
+        workflowFailed.value.errorText = e.error;
+    });
 }
 
 function toggleLogsModal() {

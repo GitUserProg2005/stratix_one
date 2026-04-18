@@ -3,9 +3,12 @@
 namespace App\Services\N8N;
 
 use App\Enums\NodeStructureSchema;
+use App\Events\WorkflowFailed;
+
 
 abstract class BaseNode {
     public function __construct(
+        protected $workflowId,
         protected $node,
         protected mixed $rawInput
     ) {
@@ -38,10 +41,11 @@ abstract class BaseNode {
         return null;
     }
 
-    protected static function field(string $key, string $type = null): array {
+    protected static function field(string $key, string $type = null, bool $is_required=true): array {
         return [
             'type' => 'field',
             'key' => $key,
+            'required' => $is_required,
             'data_type' => $type
         ];
     }
@@ -93,18 +97,24 @@ abstract class BaseNode {
                 : $key;
 
             $value = data_get($data, $key, null);
+            $required = $schema['required'] ?? true;
 
             if ($value === null) {
-                throw new \RuntimeException("Input $path is required");
-            }
+                if ($required) {
+                    $error = "Input $path is required";
 
-            if (isset($schema['data_type'])) {
-                if (! $this->validateType($value, $schema['data_type'])) {
-                    throw new \RuntimeException(
-                        "Input $path must be {$schema['data_type']}"
-                    );
+                    $this->broadcastError($error);
+                    // throw new \RuntimeException($error);
                 }
             }
+
+            // if (isset($schema['data_type'])) {
+            //     if (! $this->validateType($value, $schema['data_type'])) {
+            //         throw new \RuntimeException(
+            //             "Input $path must be {$schema['data_type']}"
+            //         );
+            //     }
+            // }
 
             return;
         }
@@ -134,6 +144,7 @@ abstract class BaseNode {
 
             if (! is_array($items)) {
                 throw new \RuntimeException("Input $name must be array");
+                $this->broadcastError("Input $name must be array");
             }
 
             foreach ($items as $index => $item) {
@@ -179,6 +190,8 @@ abstract class BaseNode {
     }
 
     protected function error(string $message): array {
+        $this->broadcastError($message);
+
         return [
             'data' => [],
             'meta' => [],
@@ -186,6 +199,15 @@ abstract class BaseNode {
                 'message' => $message
             ]
         ];
+    }
+
+    protected function broadcastError(string $error) {
+        broadcast(new WorkflowFailed(
+                $this->workflowId, 
+                $this->node->id,
+                $error,
+            )
+        );
     }
 
     protected function getConfig(?string $key=null, $default=null) {

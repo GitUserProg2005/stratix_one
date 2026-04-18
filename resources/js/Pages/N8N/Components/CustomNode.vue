@@ -6,7 +6,7 @@ import { Handle, Position } from '@vue-flow/core';
 import { ref } from 'vue';
 import { nodeConfigFields } from './nodeConfigFields';
 import { createButtonHandler } from './nodeButtonHandlers';
-import IOSchemas from './IOSchemas.vue';
+import IOSchemas from './IOSchemas/IOSchemas.vue';
 
 const props = defineProps({
     nodes: Array,
@@ -52,6 +52,7 @@ function isLoadingForButton(buttonConfig) {
             'dashboard-inset': data.status === 'idle' || !data.status,
             'content-badge-in-progress !p-4': data.status === 'running',
             'content-badge-completed !p-4': data.status === 'done',
+            'content-badge-pending !p-4': data.status === 'failed',
         }"
         @dblclick="showUpdateModal = true"
     >
@@ -79,6 +80,7 @@ function isLoadingForButton(buttonConfig) {
                     <span v-if="data.status === 'idle'" class="badge badge-pending">{{ data.status }}</span>
                     <span v-else-if="data.status === 'running'" class="badge badge-in-progress">{{ data.status }}</span>
                     <span v-else-if="data.status === 'done'" class="badge badge-completed">{{ data.status }}</span>
+                    <span v-else-if="data.status === 'failed'" class="badge badge-pending">{{ data.status }}</span>
                 </div>
                 <span class="t-mini truncate">{{ data.type }}</span>
             </div>

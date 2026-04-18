@@ -4,6 +4,8 @@ namespace App\Services\N8N;
 
 use App\Enums\NodeType;
 use App\Events\WorkflowStep;
+use App\Events\WorkflowFailed;
+
 
 class Runner
 {
@@ -73,11 +75,26 @@ class Runner
 
         if (!$handlerClass) {
             throw new \Exception("Handler not found for type: {$nodeData->type}");
+            $this->error($nodeId);
         }
 
         // Создаем экземпляр класса и вызываем метод handle
-        $handler = new $handlerClass($nodeData, $previousResult);
+        $handler = new $handlerClass($this->workflowId, $nodeData, $previousResult);
         $result = $handler->handle();
+
+        // if (isset($result['data']['condition_data'])) {
+        //     $condition = $result['data']['condition_data'];
+// 
+        //     $nextNodeId = $condition['next_id'];
+// 
+        //     $result = [
+        //         'data' => $condition['saved_data'],
+        //         'meta' => $result['meta'] ?? [],
+        //         'error' => $result['error'] ?? null
+        //     ];
+// 
+        //     return [$nextNodeId, $result];
+        // }
         
         // Сохраняем результат выполнения ноды
         $nodeResults[$nodeId] = $result;
@@ -102,8 +119,19 @@ class Runner
          * а не массив ID, 
          * как для остальных типов нод
         */
-        if ($type->value === NodeType::CONDITION) {
-            $nextNodeIds = [$result];
+        if (
+            $type->value === NodeType::CONDITION
+            && isset($result['data']['condition_data'])
+        ) {
+            $condition = $result['data']['condition_data'];
+
+            $nextNodeIds = [$condition['next_id']];
+
+            $result = [
+                'data' => $condition['saved_data'],
+                'meta' => $result['meta'] ?? [],
+                'error' => $result['error'] ?? null
+            ];
         }
 
         // Рекурсивное выполнение последующих нод с передачей результата текущей ноды
@@ -216,6 +244,10 @@ class Runner
         $first = $ids[0] ?? null;
 
         return $first !== null ? (int) $first : null;
+    }
+
+    protected function error(int $nodeId) {
+        broadcast(new WorkflowFailed($this->workflowId, $nodeId));
     }
 
     /**

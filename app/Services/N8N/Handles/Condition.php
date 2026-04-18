@@ -2,29 +2,60 @@
 
 namespace App\Services\N8N\Handles;
 
+use App\Enums\NodeStructureSchema;
 use App\Services\N8N\BaseNode;
 
 
 class Condition extends BaseNode
 {
-    public function handle(): int
+    // public static function outputSchema(): array {
+    //     return self::field('')
+    // }
+
+    public static function nodeStructureSchema(): NodeStructureSchema
+    {
+        return NodeStructureSchema::DYNAMIC;
+    }
+
+    protected function dynamicOutputSchema(): ?array
+    {
+        return $this->rawInput;
+    }
+
+    public function handle(): array
     {
         if (! $this->hasInput()) {
             return $this->getConfig('condition.on_false.node_id');
         }
 
+        \Log::info($this->rawInput['data']);
+
         $conditionTree = $this->getConfig('condition');
-        $prevResult = is_string($this->input)
-            ? json_decode($this->input, true)
-            : $this->input;
+        $prevResult = is_string($this->rawInput['data'])
+            ? json_decode($this->rawInput['data'], true)
+            : $this->rawInput['data'];
 
         if (! is_array($prevResult)) {
+            \Log::info('!!!');
             return $conditionTree['on_false']['node_id'];
         }
 
-        return self::evaluateCondition($conditionTree, $prevResult)
+        $nextNodeId = self::evaluateCondition($conditionTree, $prevResult)
             ? $conditionTree['on_true']['node_id']
             : $conditionTree['on_false']['node_id'];
+
+        return $this->buildResult($nextNodeId);
+    }
+
+    protected function buildResult(int $nodeId): array {
+        return [
+            'data' => [
+                'condition_data' => [
+                    'next_id' => $nodeId,
+                    'saved_data' => $this->rawInput['data'] ?? []
+                ]
+            ]
+        ];
     }
 
     protected static function evaluateCondition(array $condition, array $data): bool
