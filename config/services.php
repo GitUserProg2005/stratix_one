@@ -49,6 +49,10 @@ return [
         'user_agent' => env('NOMINATIM_USER_AGENT', 'DriveeApp/1.0'),
     ],
 
+    'osrm' => [
+        'url' => env('OSRM_URL', 'http://localhost:5000')
+    ],
+
     'map' => [
         'tileserver_url' => env('TILESERVER_URL', 'http://localhost:8082'),
         'osrm_url' => env('OSRM_URL', 'http://localhost:5000'),

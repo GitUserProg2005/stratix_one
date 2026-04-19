@@ -99,6 +99,8 @@ async function saveTransform() {
             mappings.value
         );
 
+        console.log('AST: ', ast);
+
         await axios.post(route('edge.transform.update', props.id), {
             transform: {
                 ast: ast
@@ -184,16 +186,6 @@ onMounted(() => {
                     <!-- DEBUG -->
                     <pre class="text-xs bg-gray-900 my-4 rounded-xl p-4">
                         {{ mappings }}
-                    </pre>
-
-                    <pre>
-                        source schema:
-                        {{ resolvedSourceSchema }}
-                    </pre>
-
-                    <pre>
-                        target schema:
-                        {{ targetSchema }}
                     </pre>
 
                     <button

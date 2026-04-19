@@ -7,7 +7,7 @@ export function buildAST(schema, mappings, prefix='') {
         ? `${prefix}.${name}`
         : name;
 
-    if (schema.type ===' group') {
+    if (schema.type === 'group') {
         return {
             type: 'group',
             name: name || null,

@@ -108,6 +108,7 @@ async function deleteNode() {
             </div>
 
             <div class="grid grid-cols-1 gap-4">
+
                 <div>
                     <h3 class="title-2">
                         Название

@@ -132,13 +132,17 @@ async function createNode() {
                                 </div>
                             </section>
 
+                            <div v-else class="mt-2 ">
+                                <h4 class="context">Не принимает параметров</h4>
+                            </div>
+
                             <component
                                 v-if="nodeConfigFields[nodeType].builder"
                                 :is="buildersMap[nodeConfigFields[nodeType].builder]"
                                 v-model="config[nodeConfigFields[nodeType].builder_root]"
                                 :nodes="nodes"
                             />
-                        </div>
+                        </div>     
                     </div>
 
                     <div>

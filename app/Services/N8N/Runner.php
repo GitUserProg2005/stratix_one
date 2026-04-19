@@ -18,6 +18,7 @@ class Runner
         NodeType::AI_REQUEST->value => \App\Services\N8N\Handles\AiRequest::class,
         NodeType::AI_AGENT_REQUEST->value => \App\Services\N8N\Handles\AiAgentRequest::class,
         NodeType::EMAIL_REPORT->value => \App\Services\N8N\Handles\EmailReport::class,
+        NodeType::OSRM->value => \App\Services\N8N\Handles\OSRM::class,
         NodeType::COLLECT_METRICS->value => \App\Services\N8N\Handles\CollectMetrics::class,
         NodeType::CONDITION->value => \App\Services\N8N\Handles\Condition::class,
         NodeType::LOG->value => \App\Services\N8N\Handles\LogNode::class,
@@ -194,41 +195,54 @@ class Runner
         ];
     }
 
+    /**
+     * Строит фрагмент входных данных целевой ноды по AST ребра.
+     *
+     * У leaf-узлов type=field есть «from» — путь в данных источника (как в data_get).
+     * У group/array «from» опционален: если задан, сужает $data до поддерева перед дочерними полями;
+     * если нет — вниз передаётся тот же $data (типичный случай: только у field в AST есть пути).
+     *
+     * Группа с name оборачивает результат детей в один ключ (вложенный объект), иначе дети сливаются
+     * в один ассоциативный массив (корень без имени).
+     */
     protected function transformSchema(array $schema, $data) {
         if ($schema['type'] === 'field') {
             return [
-                $schema['key'] => data_get($data, $schema['from'])
+                $schema['key'] => data_get($data, $schema['from'] ?? null),
             ];
         }
 
         if ($schema['type'] === 'group') {
-            $result = [];
-
-            $source = $schema['from']
+            $source = (isset($schema['from']) && $schema['from'] !== '')
                 ? data_get($data, $schema['from'])
                 : $data;
 
-            foreach ($schema['fields'] as $field) {
-                $result = array_merge(
-                    $result,
-                    $this->transformSchema($field, $source)
-                );
+            $inner = [];
+
+            foreach ($schema['fields'] ?? [] as $field) {
+                $inner = array_merge($inner, $this->transformSchema($field, $source));
             }
 
-            return $result;
+            if (! empty($schema['name'])) {
+                return [$schema['name'] => $inner];
+            }
+
+            return $inner;
         }
 
         if ($schema['type'] === 'array') {
-            $items = $schema['from']
+            $items = (isset($schema['from']) && $schema['from'] !== '')
                 ? data_get($data, $schema['from'], [])
                 : $data;
 
+            if (! is_array($items)) {
+                $items = [];
+            }
+
             return [
                 $schema['name'] => collect($items)
-                    ->map(fn($item) =>
-                        $this->transformSchema($schema['items'], $item)
-                    )
-                    ->toArray()
+                    ->map(fn ($item) => $this->transformSchema($schema['items'], $item))
+                    ->toArray(),
             ];
         }
 

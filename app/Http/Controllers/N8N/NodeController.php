@@ -163,6 +163,7 @@ class NodeController extends Controller
     }
 
     public function updateEdgeTransform(Request $request, int $edgeId) {
+        \Log::info('REQUEST UPDATER EDGE TRANSFORM: '.$request);
         $edge = Edge::findOrFail($edgeId);
 
         $edge->transform = $request->transform;

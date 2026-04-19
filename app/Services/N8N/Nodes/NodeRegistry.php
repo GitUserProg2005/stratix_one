@@ -7,6 +7,8 @@ use App\Services\N8N\Handles\AiRequest;
 use App\Services\N8N\Handles\AiAgentRequest;
 use App\Services\N8N\Handles\EmailReport;
 use App\Services\N8N\Handles\WebhookTrigger;
+use App\Services\N8N\Handles\OSRM;
+
 
 class NodeRegistry {
     public function all(): array {
@@ -15,6 +17,7 @@ class NodeRegistry {
             'ai_request' => AiRequest::class,
             'ai_agent_request' => AiAgentRequest::class,
             'email_report' => EmailReport::class,
+            'osrm' => OSRM::class,
         ];
     }
 
