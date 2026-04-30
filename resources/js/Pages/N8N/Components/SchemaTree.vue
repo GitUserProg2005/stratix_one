@@ -1,5 +1,6 @@
 <script setup>
 import SchemaTree from './SchemaTree.vue';
+import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -26,6 +27,14 @@ const path = computed(() => {
 
 const label = computed(() => {
     return props.schema?.name || props.schema?.key || '';
+});
+
+const sourceOptions = computed(() => {
+    const options = [{ value: '', label: 'Не выбрано' }];
+    for (const source of props.sourceFields || []) {
+        options.push({ value: source, label: source });
+    }
+    return options;
 });
 
 function update(value) {
@@ -66,19 +75,12 @@ function update(value) {
     <div v-else-if="schema.type === 'field'" class="ml-2">
         <span class="mb-2">{{ label }}</span>
 
-        <select
-            :value="mappings[path]"
-            @change="update($event.target.value)"
-        >
-            <option value="">Не выбрано</option>
-
-            <option 
-                v-for="source in sourceFields" 
-                :key="source"
-                :value="source"
-            >
-                {{ source }}
-            </option>
-        </select>
+        <HeadlessSelect
+            :model-value="mappings?.[path] ?? ''"
+            :options="sourceOptions"
+            button-class="select-input mt-2 w-full"
+            placeholder="Не выбрано"
+            @update:model-value="update"
+        />
     </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
+import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 
 const props = defineProps({
     nodes: {
@@ -13,6 +14,22 @@ const emit = defineEmits(['update:modelValue']);
 const selectedNodeId = ref('');
 const availableFields = ref([]);
 const selectedField = ref(props.modelValue ?? '');
+
+const nodeOptions = computed(() => {
+    const options = [{ value: '', label: 'Выберите ноду' }];
+    for (const node of props.nodes) {
+        options.push({ value: node.id, label: node.data.label });
+    }
+    return options;
+});
+
+const fieldOptions = computed(() => {
+    const options = [{ value: '', label: 'Выберите поле' }];
+    for (const field of availableFields.value) {
+        options.push({ value: field.path, label: field.path });
+    }
+    return options;
+});
 
 function extractFields(output, basePath = '') {
     if (!output) return [];
@@ -116,31 +133,23 @@ watch(selectedField, (path) => {
 
 <template>
     <div v-if="nodes.length" class="t-small">
-        <select v-model="selectedNodeId" class="select-input mt-3 w-full min-w-[8rem]">
-            <option value="">Выберите ноду</option>
-            <option 
-                v-for="node in nodes"
-                :key="node.id"
-                :value="node.id"
-            >
-                {{ node.data.label }}
-            </option>
-        </select>
+        <HeadlessSelect
+            v-model="selectedNodeId"
+            :options="nodeOptions"
+            button-class="select-input mt-3 w-full min-w-[8rem]"
+            placeholder="Выберите ноду"
+        />
 
         <div 
             v-if="availableFields.length" 
             class="mt-3"
         >
-            <select v-model="selectedField" class="select-input w-full min-w-[8rem]">
-                <option value="">Выберите поле</option>
-                <option 
-                    v-for="field in availableFields"
-                    :key="field.key"
-                    :value="field.path"
-                    >
-                        {{ field.path }}
-                    </option>
-            </select>
+            <HeadlessSelect
+                v-model="selectedField"
+                :options="fieldOptions"
+                button-class="select-input w-full min-w-[8rem]"
+                placeholder="Выберите поле"
+            />
         </div>
     </div>
 </template>

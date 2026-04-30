@@ -31,6 +31,7 @@ async function handleButtonClick(buttonConfig) {
     const handler = createButtonHandler(
         buttonConfig.key,
         props.workflowId,
+        props.data.id,
         props.onWebhookLog,
         buttonConfig.requiresLoading ? isWebhookLoading : null
     );
@@ -72,6 +73,12 @@ function isLoadingForButton(buttonConfig) {
             >
             <img v-if="data.type === 'email_report'" src="/img/nodes/yandex_mail.png" 
                 class="w-12 h-12 object-contain select-none pointer-events-none" alt="Gigachat"
+            >
+            <img v-if="data.type === 'webhook_trigger'" src="/img/nodes/webhook.png" 
+                class="w-8 object-contain select-none pointer-events-none" alt="Gigachat"
+            >
+            <img v-if="data.type === 'osrm'" src="/img/nodes/osrm.png" 
+                class="w-8 object-contain select-none pointer-events-none" alt="Gigachat"
             >
             
             <div class="flex min-w-0 flex-col gap-1">

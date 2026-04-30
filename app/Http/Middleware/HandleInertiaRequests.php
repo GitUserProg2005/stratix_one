@@ -46,10 +46,6 @@ class HandleInertiaRequests extends Middleware
                     'phone' => $user->phone,
                     'avatar_url' => $user->avatar_url,
                     'role' => $user->role?->value ?? 'passenger',
-                    'lat' => $user->lat ? (float) $user->lat : null,
-                    'lng' => $user->lng ? (float) $user->lng : null,
-                    'is_online' => (bool) $user->is_online,
-                    'orders_count' => $user->ordersAsCustomer()->count(),
                 ] : null,
             ],
         ];

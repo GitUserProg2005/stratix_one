@@ -3,6 +3,13 @@ export const nodeConfigFields = {
         builder: 'OutputBuilder',
         builder_root: 'request',
         builder_title: 'Настройка вебхука',
+        buttons: [
+            {
+                label: 'URL-токен',
+                key: 'copy_webhook_token',
+                requiresLoading: false,
+            }
+        ],
     },
     ai_request: {
         fields: [
@@ -41,6 +48,12 @@ export const nodeConfigFields = {
         builder_root: 'condition',
         builder_title: 'Структура условий',
         fields: [],
+        buttons: [],
+    },
+    schedule: {
+        fields: [
+            { name: 'timing', label: 'Cron-выражение', type: 'text', required: true },
+        ],
         buttons: [],
     },
     log: {

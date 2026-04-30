@@ -13,4 +13,5 @@ enum NodeType: string
     case LOG = 'log';
     case COLLECT_METRICS = 'collect_metrics';
     case CONDITION = 'condition';
+    case SCHEDULE = 'schedule';
 }

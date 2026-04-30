@@ -128,8 +128,9 @@ async function deleteNode() {
                         <span class="badge badge-pending">Обязательно</span>
                     </h3>
                     <div class="label-content mt-2 inline-flex">{{ nodeType }}</div>
-                    <ChoiceNodeType @onSelectedNodeType="(type) => (nodeType = type)" />
                 </div>
+
+                <ChoiceNodeType @onSelectedNodeType="(type) => (nodeType = type)" />
 
                 <div>
                     <h3 class="title-2">

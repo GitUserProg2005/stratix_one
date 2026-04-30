@@ -3,6 +3,7 @@ import ChoiceNodeType from './ChoiceNodeType.vue';
 import ConditionBuilder from './Conditions/ConditionBuilder.vue';
 import OutputBuilder from './OutputSchema/OutputBuilder.vue';
 import Modal from '@/Components/Modal.vue';
+import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 
 import { nodeConfigFields } from './nodeConfigFields';
 import { useNodeTypeWatcher } from '../utils/selectionWatch';
@@ -123,11 +124,12 @@ async function createNode() {
                                         <textarea v-model="config[field.name]" class="input mt-2 w-full" :placeholder="field.label" />
                                     </template>
                                     <template v-else-if="field.type === 'select'">
-                                        <select v-model="config[field.name]" class="select-input mt-2 w-full">
-                                            <option v-for="opt in backendOptions[field.name] || []" :key="opt.value" :value="opt.value">
-                                                {{ opt.label }}
-                                            </option>
-                                        </select>
+                                        <HeadlessSelect
+                                            v-model="config[field.name]"
+                                            :options="backendOptions[field.name] || []"
+                                            button-class="select-input mt-2 w-full"
+                                            :placeholder="field.label"
+                                        />
                                     </template>
                                 </div>
                             </section>

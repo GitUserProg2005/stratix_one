@@ -19,6 +19,7 @@ class NodeTypeSeeder extends Seeder
             ['name' => 'Log', 'type' => 'log', 'description' => 'Запись в лог приложения'],
             ['name' => 'Collect Metrics', 'type' => 'collect_metrics', 'description' => 'Сбор метрик (заглушка)'],
             ['name' => 'Condition', 'type' => 'condition', 'description' => 'Условное ветвление'],
+            ['name' => 'Schedule', 'type' => 'schedule', 'description' => 'Расписание выполнения'],
         ];
 
         foreach ($types as $row) {

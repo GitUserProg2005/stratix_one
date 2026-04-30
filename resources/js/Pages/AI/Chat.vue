@@ -1,6 +1,7 @@
 <script setup>
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import JsonTree from '@/Components/AI/JsonTree.vue';
+import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import { Head } from '@inertiajs/vue3';
 import { nextTick, ref } from 'vue';
 import axios from 'axios';
@@ -10,6 +11,10 @@ const isLoading = ref(false);
 const messages = ref([]);
 const messagesContainer = ref(null);
 const jsonMode = ref('false');
+const jsonModeOptions = [
+    { value: 'false', label: 'false' },
+    { value: 'true', label: 'true' },
+];
 
 const scrollToBottom = async () => {
     await nextTick();
@@ -118,14 +123,13 @@ const sendMessage = async () => {
                 >
                     <label class="inline-flex items-center gap-2 text-sm text-gray-700 select-none md:min-w-[190px]">
                         <span class="font-semibold">JSON mode</span>
-                        <select
+                        <HeadlessSelect
                             v-model="jsonMode"
-                            class="select-input w-[108px]"
+                            :options="jsonModeOptions"
+                            button-class="select-input w-[108px]"
+                            placeholder="false"
                             :disabled="isLoading"
-                        >
-                            <option value="false">false</option>
-                            <option value="true">true</option>
-                        </select>
+                        />
                     </label>
 
                     <input

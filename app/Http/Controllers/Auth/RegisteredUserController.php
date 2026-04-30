@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Vehicle;
 use App\Models\User;
 use App\Enums\UserRole;
 use Illuminate\Auth\Events\Registered;
@@ -38,17 +37,8 @@ class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'phone' => 'nullable|string|max:20',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => 'required|in:passenger,driver',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ];
-
-        if ($request->input('role') === 'driver') {
-            $rules['vehicle_picture'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
-            $rules['vehicle_license_plate'] = 'nullable|string|max:20';
-            $rules['vehicle_brand'] = 'nullable|string|max:100';
-            $rules['vehicle_model'] = 'nullable|string|max:100';
-            $rules['vehicle_color'] = 'nullable|string|max:50';
-        }
 
         $request->validate($rules);
 
@@ -63,30 +53,14 @@ class RegisteredUserController extends Controller
             'phone' => $request->phone ?: null,
             'password' => Hash::make($request->password),
             'avatar' => $avatarPath,
-            'role' => $request->role === 'driver' ? UserRole::Driver : UserRole::Passenger,
+            'role' => UserRole::Passenger,
         ]);
-
-        if ($user->role === UserRole::Driver) {
-            $vehiclePicturePath = null;
-            if ($request->hasFile('vehicle_picture')) {
-                $vehiclePicturePath = $this->uploadToS3($request->file('vehicle_picture'), 'vehicles/');
-            }
-
-            Vehicle::create([
-                'driver_id' => $user->id,
-                'picture' => $vehiclePicturePath,
-                'brand' => $request->vehicle_brand ?: null,
-                'model' => $request->vehicle_model ?: null,
-                'color' => $request->vehicle_color ?: null,
-                'license_plate' => $request->vehicle_license_plate ?: null,
-            ]);
-        }
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('map', absolute: false));
+        return redirect(route('home', absolute: false));
     }
 
     private function uploadToS3($file, string $prefix): ?string

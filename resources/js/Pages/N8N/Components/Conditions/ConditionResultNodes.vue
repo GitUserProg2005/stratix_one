@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
+import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 
 const props = defineProps({
     nodes: {
@@ -16,6 +17,22 @@ const emit = defineEmits([
 const selectedTrueNodeId = ref(null);
 const selectedFalseNodeId = ref(null);
 
+const trueNodeOptions = computed(() => {
+    const options = [{ value: null, label: 'Условие ИСТИНА' }];
+    for (const node of props.nodes) {
+        options.push({ value: node.id, label: node.data.label });
+    }
+    return options;
+});
+
+const falseNodeOptions = computed(() => {
+    const options = [{ value: null, label: 'Условие ЛОЖЬ' }];
+    for (const node of props.nodes) {
+        options.push({ value: node.id, label: node.data.label });
+    }
+    return options;
+});
+
 watch(selectedTrueNodeId, (val) => {
     emit('update:trueNode', val);
 });
@@ -27,26 +44,18 @@ watch(selectedFalseNodeId, (val) => {
 
 <template>
     <div class="flex items-center gap-2">
-        <select v-model="selectedTrueNodeId" class="select-input min-w-[10rem] flex-1">
-            <option :value="null">Условие ИСТИНА</option>
-            <option 
-                v-for="node in nodes"
-                :key="node.id"
-                :value="node.id"
-            >
-                {{ node.data.label }}
-            </option>
-        </select>
+        <HeadlessSelect
+            v-model="selectedTrueNodeId"
+            :options="trueNodeOptions"
+            button-class="select-input min-w-[10rem] flex-1"
+            placeholder="Условие ИСТИНА"
+        />
 
-        <select v-model="selectedFalseNodeId" class="select-input min-w-[10rem] flex-1">
-            <option :value="null">Условие ЛОЖЬ</option>
-            <option 
-                v-for="node in nodes"
-                :key="node.id"
-                :value="node.id"
-            >
-                {{ node.data.label }}
-            </option>
-        </select>
+        <HeadlessSelect
+            v-model="selectedFalseNodeId"
+            :options="falseNodeOptions"
+            button-class="select-input min-w-[10rem] flex-1"
+            placeholder="Условие ЛОЖЬ"
+        />
     </div>
 </template>

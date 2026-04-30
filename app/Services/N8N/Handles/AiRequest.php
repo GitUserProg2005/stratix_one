@@ -14,36 +14,12 @@ class AiRequest extends BaseNode
         return NodeStructureSchema::STATIC;
     }
 
-    public static function outputSchema(): array {
-        // return [
-        //     'type' => 'group',
-        //     'name' => 'root',
-        //     'fields' => [
-        //         [
-        //             'type' => 'field',
-        //             'key' => 'content',
-        //             'data_type' => 'string'
-        //         ]
-        //     ]
-        // ];
-
-        return self::field('content', 'string', true);
+    public static function inputSchema(): array {
+        return self::field('content', 'string', false);
     }
 
-    public static function inputSchema(): array {
-        // return [
-        //     'type' => 'group',
-        //     'name' => 'root',
-        //     'fields' => [
-        //         [
-        //             'type' => 'field',
-        //             'key' => 'content',
-        //             'data_type' => 'string'
-        //         ]
-        //     ]
-        // ];
-
-        return self::field('content', 'string', false);
+    public static function outputSchema(): array {
+        return self::field('content', 'string', true);
     }
 
     public function handle(): array
@@ -51,7 +27,6 @@ class AiRequest extends BaseNode
         $aiService = app(Gigachat::class);
 
         $prompt = $this->getConfig('prompt', 'Пустой промпт');
-
         $prompt .= "\n\nВходные данные предыдущего шага:\n".$this->inputToString('content');
 
         $response = $aiService->sendRequest($prompt, false);

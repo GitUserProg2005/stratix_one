@@ -77,6 +77,8 @@ function updateMapping({ target, source }) {
     //     mappings: mappings.value
     // });
 
+    if (!target) return;
+
     mappings.value[target] = source;
 
     saveTransform();
@@ -103,7 +105,8 @@ async function saveTransform() {
 
         await axios.post(route('edge.transform.update', props.id), {
             transform: {
-                ast: ast
+                ast: ast,
+                mappings: mappings.value,
             }
         });
     } catch (e) {
@@ -113,9 +116,50 @@ async function saveTransform() {
     }
 }
 
+function astToMappings(ast, prefix = '', output = {}) {
+    if (!ast) return output;
+
+    if (ast.type === 'group') {
+        const current = ast.name ? (prefix ? `${prefix}.${ast.name}` : ast.name) : prefix;
+
+        for (const field of ast.fields || []) {
+            astToMappings(field, current, output);
+        }
+
+        return output;
+    }
+
+    if (ast.type === 'array') {
+        const current = ast.name ? (prefix ? `${prefix}.${ast.name}[]` : `${ast.name}[]`) : prefix;
+        astToMappings(ast.items, current, output);
+
+        return output;
+    }
+
+    if (ast.type === 'field') {
+        const path = ast.key ? (prefix ? `${prefix}.${ast.key}` : ast.key) : null;
+
+        if (path && ast.from) {
+            output[path] = ast.from;
+        }
+    }
+
+    return output;
+}
+
 onMounted(() => {
-    if (props.edge?.data?.transform?.mappings) {
-        mappings.value = props.edge.data.transform.mappings;
+    console.log('EDGE: ', props.edge);
+
+    const transform = props.edge?.data?.transform;
+    if (!transform) return;
+
+    if (transform.mappings && typeof transform.mappings === 'object') {
+        mappings.value = transform.mappings;
+        return;
+    }
+
+    if (transform.ast) {
+        mappings.value = astToMappings(transform.ast);
     }
 });
 </script>
@@ -184,14 +228,11 @@ onMounted(() => {
                     </div>
 
                     <!-- DEBUG -->
-                    <pre class="text-xs bg-gray-900 my-4 rounded-xl p-4">
+                    <pre class="text-xs bg-content my-4 rounded-xl p-4">
                         {{ mappings }}
                     </pre>
 
-                    <button
-                        @click="updateMapping"
-                        class="primary-btn"
-                    >
+                    <button @click="saveTransform" class="primary-btn">
                         {{ isSaving ? 'Идет сохранение...' : 'Сохранить' }}
                     </button>
                 </div>

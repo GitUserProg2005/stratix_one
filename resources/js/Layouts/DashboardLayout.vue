@@ -58,7 +58,7 @@ onBeforeUnmount(() => {
     <main class="overflow-y-auto bg-content">
       <header class="sticky top-0 z-50 backdrop-blur-xl px-4">
         <div class="py-6">
-          <div class="flex items-center gap-6 w-full">
+          <div class="flex justify-between items-center gap-6 w-full">
             <!-- Mobile burger -->
             <button
               class="lg:hidden w-10 h-10 rounded-full bg-[#e97358]/10 text-[#e97358] flex flex-col p-3 items-center justify-center"
@@ -69,12 +69,8 @@ onBeforeUnmount(() => {
               <span class="block w-5 h-[2px] bg-[#e97358] mt-1"></span>
             </button>
 
-            <h2 class="hidden lg:flex title-2 truncate">
-              Добро пожаловать, Дмитрий!
-            </h2>
-
             <!-- Wide search -->
-            <div class="flex-1 min-w-0 max-w-2xl">
+            <div class="flex-1 min-w-0 w-full">
               <Search :search-fn="searchFn" />
             </div>
 

@@ -8,6 +8,7 @@ use App\Models\Node;
 use App\Models\NodeType;
 use App\Enums\NodeType as NodeTypeEnum;
 use App\Models\Workflow;
+use App\Models\WorkflowTimer;
 use App\Models\Webhook;
 use App\Services\N8N\Nodes\NodeRegistry;
 use Illuminate\Http\Request;
@@ -70,6 +71,11 @@ class NodeController extends Controller
             ]);
         }
 
+        $this->syncWorkflowTimers(
+            workflowId: (int) $node->workflow_id,
+            nodesPayload: $request->input('nodes')
+        );
+
         return response()->json([
             'result' => 'ok',
             'node' => $node,
@@ -101,6 +107,11 @@ class NodeController extends Controller
         $node = Node::findOrFail($nodeId);
         $node->update($data);
 
+        $this->syncWorkflowTimers(
+            workflowId: (int) $node->workflow_id,
+            nodesPayload: $request->input('nodes')
+        );
+
         return response()->json([
             'result' => 'ok',
             'node' => $node,
@@ -109,7 +120,12 @@ class NodeController extends Controller
 
     public function deleteNode(int $nodeId)
     {
-        Node::where('id', $nodeId)->delete();
+        $node = Node::findOrFail($nodeId);
+        $workflowId = (int) $node->workflow_id;
+
+        $node->delete();
+
+        $this->syncWorkflowTimers($workflowId);
 
         return response()->json([
             'result' => 'ok',
@@ -181,5 +197,37 @@ class NodeController extends Controller
             'result' => 'ok',
             'schemas' => $schemas,
         ]);
+    }
+
+    protected function syncWorkflowTimers(int $workflowId, ?array $nodesPayload = null): void
+    {
+        WorkflowTimer::where('workflow_id', $workflowId)->delete();
+
+        $nodes = is_array($nodesPayload)
+            ? $nodesPayload
+            : Node::query()
+                ->where('workflow_id', $workflowId)
+                ->get(['id', 'type', 'config'])
+                ->map(fn (Node $node) => [
+                    'id' => $node->id,
+                    'type' => $node->type,
+                    'data' => $node->config ?? [],
+                ])
+                ->all();
+
+        foreach ($nodes as $node) {
+            $type = data_get($node, 'type');
+            $cron = trim((string) data_get($node, 'data.timing', ''));
+
+            if ($type !== 'schedule' || $cron === '') {
+                continue;
+            }
+
+            WorkflowTimer::create([
+                'workflow_id' => $workflowId,
+                'node_id' => (string) data_get($node, 'id'),
+                'cron' => $cron,
+            ]);
+        }
     }
 }

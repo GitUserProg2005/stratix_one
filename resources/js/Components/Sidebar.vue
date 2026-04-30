@@ -46,7 +46,9 @@ const closeSidebar = () => {
           <div class="p-0">
             <div class="flex items-center justify-between lg:justify-center">
               <div class="flex items-center justify-center gap-3">
-                <span class="title-font-3">STRATIX</span>
+                <span class="title-font-3">STRTX</span>
+                <img src="/img/stratix_one.png" class="w-8 object-contain" alt="">
+                <span class="title-font-3">ID</span>
               </div>
 
               <!-- Mobile close -->
@@ -92,42 +94,6 @@ const closeSidebar = () => {
                     <i class="fa-solid fa-diagram-project text-sm"></i>
                     Workflows
                   </Link>
-
-                  <Link
-                    :href="route('rates')"
-                    class="sidebar-nav-link-nested"
-                    @click="closeSidebar"
-                  >
-                    <i class="fa-solid fa-credit-card text-sm"></i>
-                    Оплата
-                  </Link>
-
-                  <Link
-                    :href="route('rates')"
-                    class="sidebar-nav-link-nested"
-                    @click="closeSidebar"
-                  >
-                    <i class="fa-solid fa-cart-shopping text-sm"></i>
-                    Заказы
-                  </Link>
-
-                  <Link
-                    :href="route('rates')"
-                    class="sidebar-nav-link-nested"
-                    @click="closeSidebar"
-                  >
-                    <i class="fa-solid fa-users text-sm"></i>
-                    Пользователи
-                  </Link>
-
-                  <a
-                    href="#"
-                    class="sidebar-nav-link-nested"
-                    @click.prevent="closeSidebar"
-                  >
-                    <i class="fa-solid fa-cubes text-sm"></i>
-                    Компоненты
-                  </a>
                 </div>
               </div>
             </div>

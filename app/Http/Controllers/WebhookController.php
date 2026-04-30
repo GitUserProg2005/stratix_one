@@ -12,10 +12,11 @@ use App\Services\N8N\Runner;
 
 class WebhookController extends Controller
 {
-    public function __invoke(string $token, Request $request) {
+    public function trigger(string $token, Request $request)
+    {
         $webhook = Webhook::where('token', $token)
             ->firstOrFail();
-        
+
         $workflow = Workflow::with('nodes', 'nodes.edges')
             ->findOrFail($webhook->workflow_id);
 
@@ -32,6 +33,19 @@ class WebhookController extends Controller
 
         return response()->json([
             'result' => 'ok',
+        ]);
+    }
+
+    public function tokenByNode(int $nodeId)
+    {
+        $webhook = Webhook::query()
+            ->where('node_id', $nodeId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        return response()->json([
+            'result' => 'ok',
+            'token' => $webhook->token,
         ]);
     }
 }

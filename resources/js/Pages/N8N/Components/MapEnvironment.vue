@@ -10,6 +10,7 @@ export default {
 <script setup>
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useMap } from '@/composables/useMap';
+import { drawRoute, clearRoute } from '@/composables/useRouteLayer';
 
 const mapContainer = ref(null);
 
@@ -43,8 +44,6 @@ onMounted(async () => {
   >
     <div class="p-4">
       <h2>Окружение</h2>
-
-
     </div>
 
     <div ref="mapContainer" class="relative w-full overflow-hidden" />

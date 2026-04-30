@@ -8,17 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tournaments', function (Blueprint $table) {
+        Schema::create('workflow_timers', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->integer('prize_d_coins');
+            $table->foreignId('workflow_id')->constrained()->cascadeOnDelete();
+            $table->string('node_id');
+            $table->string('cron');
             $table->timestamps();
+
+            $table->index('workflow_id');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('tournaments');
+        Schema::dropIfExists('workflow_timers');
     }
 };
-

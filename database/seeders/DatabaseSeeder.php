@@ -23,7 +23,5 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(NodeTypeSeeder::class);
-        $this->call(TournamentSeeder::class);
-        $this->call(TournamentDriversSeeder::class);
     }
 }
