@@ -43,7 +43,7 @@ const label = computed(() => (isDark.value ? 'Светлая тема' : 'Тём
     <!-- Вне #app: иначе fixed обрезается overflow/transform у предков Inertia -->
     <Teleport to="body">
         <div
-            class="pointer-events-none fixed inset-x-0 bottom-6 z-[9999] flex justify-center px-4"
+            class="pointer-events-none fixed inset-x-0 bottom-6 z-[9999] flex justify-end px-4"
             aria-live="polite"
         >
         <button

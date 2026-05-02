@@ -67,6 +67,16 @@ class User extends Authenticatable
         return $this->belongsTo(\App\Models\Rate::class);
     }
 
+    public function rooms(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Room::class, 'owner_id');
+    }
+
+    public function messages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Message::class);
+    }
+
     /**
      * Генерируем url к аватару пользователя
      */

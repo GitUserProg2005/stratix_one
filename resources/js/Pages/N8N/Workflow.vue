@@ -6,6 +6,7 @@ import CustomNode from './Components/CustomNode.vue';
 import CustomEdge from './Components/CustomEdge.vue';
 import BackButton from '@/Components/BackButton.vue';
 import MapEnvironment from './Components/MapEnvironment.vue';
+import AiChat from './AiChat/AiChat.vue';
 import { Link } from '@inertiajs/vue3';
 import BottomPanel from './Components/BottomPanel.vue';
 import RedDot from './Components/RedDot.vue';
@@ -54,6 +55,28 @@ const edges = ref([]);
 const isLoading = ref(false);
 
 let workflowEchoChannel = null;
+
+let workflowDiffEchoChannel = null;
+
+function leaveWorkflowDiffChannel() {
+    if (typeof window.Echo === 'undefined' || !props.workflow?.id) {
+        return;
+    }
+
+    const name = `workflow-diff-applied.${props.workflow.id}`;
+
+    try {
+        window.Echo.leave(`private-${name}`);
+    } catch {
+        try {
+            window.Echo.leave(name);
+        } catch {
+            /* noop */
+        }
+    }
+
+    workflowDiffEchoChannel = null;
+}
 
 function leaveWorkflowChannel() {
     if (typeof window.Echo === 'undefined' || !props.workflow?.id) {
@@ -154,6 +177,135 @@ function subscribeWorkflowChannel() {
         workflowIsRunning.value = false;
         workflowFailed.value.errorText = e.error;
     });
+}
+
+function rawNodeToVueFlow(raw) {
+    const idNum = Number(raw.id);
+    const pos = raw.position && typeof raw.position === 'object'
+        ? { x: Number(raw.position.x ?? 100), y: Number(raw.position.y ?? 100) }
+        : { x: 100, y: 100 };
+
+    return {
+        id: String(idNum),
+        type: 'custom',
+        position: pos,
+        data: {
+            id: idNum,
+            label: raw.title ?? '',
+            type: raw.type ?? '',
+            config: typeof raw.config === 'object' && raw.config !== null ? raw.config : {},
+            status: 'idle',
+        },
+    };
+}
+
+function rawEdgeToVueFlow(raw) {
+    return {
+        id: String(raw.id),
+        source: String(raw.source_node_id),
+        target: String(raw.target_node_id),
+        type: raw.type || 'custom',
+        animated: true,
+        data: {
+            ...(typeof raw.data === 'object' && raw.data !== null ? raw.data : {}),
+            transform: typeof raw.transform === 'object' && raw.transform !== null ? raw.transform : {},
+        },
+    };
+}
+
+/** Пэйлоад с backend: workflowId, action_type, nodes, edges, removed_node_ids, removed_edge_ids */
+function applyWorkflowDiff(e) {
+    if (Number(e.workflowId) !== Number(props.workflow.id)) {
+        return;
+    }
+
+    const action = e.action_type;
+
+    if (action === 'create') {
+        for (const raw of e.nodes || []) {
+            const next = rawNodeToVueFlow(raw);
+            if (nodes.value.some((n) => n.id === next.id)) {
+                continue;
+            }
+            
+            addNodes(next);
+        }
+
+        let nextEdges = [...edges.value];
+        for (const raw of e.edges || []) {
+            const edge = rawEdgeToVueFlow(raw);
+            if (!nextEdges.some((x) => x.id === edge.id)) {
+                nextEdges.push(edge);
+            }
+        }
+        edges.value = nextEdges;
+
+        return;
+    }
+
+    if (action === 'update') {
+        nodes.value = nodes.value.map((node) => {
+            const raw = (e.nodes || []).find(
+                (n) => String(n.id) === node.id || Number(n.id) === Number(node.data?.id)
+            );
+            if (!raw) {
+                return node;
+            }
+
+            const pos = raw.position && typeof raw.position === 'object'
+                ? { x: Number(raw.position.x), y: Number(raw.position.y) }
+                : node.position;
+
+            return {
+                ...node,
+                position: pos,
+                data: {
+                    ...node.data,
+                    label: raw.title ?? node.data.label,
+                    type: raw.type ?? node.data.type,
+                    config: typeof raw.config === 'object' && raw.config !== null ? raw.config : node.data.config,
+                },
+            };
+        });
+
+        let nextEdges = [...edges.value];
+        for (const raw of e.edges || []) {
+            const edge = rawEdgeToVueFlow(raw);
+            const idx = nextEdges.findIndex((x) => x.id === edge.id);
+            if (idx >= 0) {
+                nextEdges[idx] = { ...nextEdges[idx], ...edge };
+            } else {
+                nextEdges.push(edge);
+            }
+        }
+        edges.value = nextEdges;
+
+        return;
+    }
+
+    if (action === 'delete') {
+        const nIds = new Set((e.removed_node_ids || e.node_ids || []).map((id) => String(id)));
+        const eIds = new Set((e.removed_edge_ids || e.edge_ids || []).map((id) => String(id)));
+
+        if (nIds.size) {
+            nodes.value = nodes.value.filter((n) => !nIds.has(n.id));
+        }
+
+        if (eIds.size) {
+            edges.value = edges.value.filter((edge) => !eIds.has(edge.id));
+        }
+    }
+}
+
+function subscribeWorkflowDiffChannel() {
+    if (typeof window.Echo === 'undefined') {
+        return;
+    }
+
+    leaveWorkflowDiffChannel();
+
+    workflowDiffEchoChannel = window.Echo.private(`workflow-diff-applied.${props.workflow.id}`)
+        .listen('WorkflowDiffApplied', applyWorkflowDiff);
 }
 
 function toggleLogsModal() {
@@ -334,10 +486,12 @@ onMounted(() => {
     getNodes();
     getEdges();
     subscribeWorkflowChannel();
+    subscribeWorkflowDiffChannel();
 });
 
 onBeforeUnmount(() => {
     leaveWorkflowChannel();
+    leaveWorkflowDiffChannel();
     workflowIsRunning.value = false;
 });
 </script>
@@ -434,6 +588,20 @@ onBeforeUnmount(() => {
                                 <RedDot />
                                 <span class="t-mini">Заполните параметры</span>
                             </div>
+                        </div>
+                    </Panel>
+
+                    <Panel position="top-right" class="!m-3 flex max-w-[min(100%,28rem)] flex-col gap-2">
+                        <div class="dashboard-inset flex flex-wrap items-center gap-2">
+                            <button class="primary-btn" @click.stop="openBottomPanel({ component: AiChat, 
+                                props: { 
+                                    workflowId: workflow.id,
+                                }
+                            })"
+                            >
+                                AI-STRTX 
+                                <i class="fa-solid fa-robot ml-2"></i>
+                            </button>
                         </div>
                     </Panel>
 

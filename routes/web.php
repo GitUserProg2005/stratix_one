@@ -65,8 +65,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/ai-chat', [AiChatController::class, 'index'])->name('ai-chat.index');
-    Route::post('/ai-chat/prompt-response', [AiChatController::class, 'promptResponse'])->name('ai-chat.prompt-response');
+    Route::get('/ai-chat/rooms', [AiChatController::class, 'getRooms'])->name('ai-chat.rooms');
+    Route::post('/ai-chat/rooms', [AiChatController::class, 'createRoom'])->name('ai-chat.rooms.create');
+    Route::delete('/ai-chat/rooms/{room}', [AiChatController::class, 'deleteRoom'])->name('ai-chat.rooms.delete');
+    Route::get('/ai-chat/rooms/{room}/messages', [AiChatController::class, 'getMessages'])->name('ai-chat.messages');
+    Route::post('/ai-chat/rooms/{room}/process-message', [AiChatController::class, 'processMessage'])->name('ai-chat.process-message');
+    Route::get('/ai-chat/rooms/{room}/context', [AiChatController::class, 'getContext'])->name('ai-chat.context');
+    Route::post('/ai-chat/context', [AiChatController::class, 'createContext'])->name('ai-chat.context.create');
 
     Route::get('/workflows', function () {
         return Inertia::render('N8N/Workflows');
