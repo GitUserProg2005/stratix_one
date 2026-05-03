@@ -47,7 +47,7 @@ const closeSidebar = () => {
             <div class="flex items-center justify-between lg:justify-center">
               <div class="flex items-center justify-center gap-3">
                 <span class="title-font-3">STRTX</span>
-                <img src="/img/stratix_one.png" class="w-8 object-contain" alt="">
+                <img src="/img/stratix_logo.png" class="w-8 object-contain" alt="">
                 <span class="title-font-3">ID</span>
               </div>
 
@@ -75,6 +75,15 @@ const closeSidebar = () => {
                   >
                     <i class="fa-solid fa-grid-2 text-sm"></i>
                     Дашборд
+                  </Link>
+
+                  <Link
+                    :href="route('dashboard')"
+                    class="sidebar-nav-link-nested"
+                    @click="closeSidebar"
+                  >
+                    <i class="fa-solid fa-chart-column text-sm"></i>
+                    Метрики/Отчеты
                   </Link>
 
                   <Link

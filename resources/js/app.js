@@ -2,6 +2,8 @@ import '../css/app.css';
 import './bootstrap';
 import './echo';
 
+import '../css/custom.css';
+
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';

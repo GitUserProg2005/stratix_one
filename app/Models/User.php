@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
 use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
@@ -77,11 +76,19 @@ class User extends Authenticatable
         return $this->hasMany(\App\Models\Message::class);
     }
 
+    public function createdDashboards(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Dashboard::class, 'creator_id');
+    }
+
     /**
      * Генерируем url к аватару пользователя
      */
-    public function getAvatarUrlAttribute() : ?string {
-        if (!$this->avatar) return null;
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar) {
+            return null;
+        }
 
         // Если путь уже является полным URL, возвращаем как есть
         if (filter_var($this->avatar, FILTER_VALIDATE_URL)) {
@@ -94,8 +101,9 @@ class User extends Authenticatable
         } catch (\Exception $e) {
             \Log::warning('Failed to get avatar URL from S3', [
                 'avatar' => $this->avatar,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }

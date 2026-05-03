@@ -1,7 +1,21 @@
 <script setup>
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import axios from 'axios';
+
+marked.use({
+    breaks: true,
+    gfm: true,
+});
+
+function renderAiMarkdown(source) {
+    const raw = typeof source === 'string' ? source : '';
+    const html = marked.parse(raw);
+
+    return DOMPurify.sanitize(html);
+}
 
 const props = defineProps({
     roomId: {
@@ -44,6 +58,8 @@ const modeOptions = [
 const messages = ref([]);
 const inputText = ref('');
 const isLoading = ref(false);
+
+const isProcessing = ref(false);
 const messagesContainer = ref(null);
 
 const graphSyncHint = ref('');
@@ -123,11 +139,12 @@ const getMessages = async () => {
 const sendMessage = async () => {
     const text = inputText.value.trim();
     const id = resolvedRoomId.value;
-    if (!text || isLoading.value || !id) {
+    if (!text || isLoading.value || isProcessing.value || !id) {
         return;
     }
 
     isLoading.value = true;
+    isProcessing.value = true;
     try {
         await axios.post(route('ai-chat.process-message', { room: id }), {
             text,
@@ -142,12 +159,19 @@ const sendMessage = async () => {
         console.error('Failed to send message', error);
     } finally {
         isLoading.value = false;
+        isProcessing.value = false;
     }
 };
 
 watch(messages, () => {
     scrollToBottom();
 }, { deep: true });
+
+watch(isProcessing, async (on) => {
+    if (on) {
+        await scrollToBottom();
+    }
+});
 
 watch(resolvedRoomId, async () => {
     try {
@@ -184,7 +208,7 @@ onBeforeUnmount(() => {
             <p v-if="!resolvedRoomId" class="context">
                 Создайте комнату и выберите ее справа.
             </p>
-            <p v-else-if="!messages.length" class="context">
+            <p v-else-if="!messages.length && !isProcessing" class="context">
                 Сообщений пока нет. Напишите первое сообщение.
             </p>
 
@@ -199,12 +223,19 @@ onBeforeUnmount(() => {
                     :class="roleIsAi(message) ? 'items-stretch' : 'items-end'"
                 >
                     <div
-                        class="rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap break-words"
+                        class="rounded-2xl px-3 py-2 text-sm break-words"
                         :class="roleIsAi(message)
                             ? 'bg-content-glass text-[var(--content-primary)] rounded-bl-sm'
-                            : 'bg-[var(--accent)] text-white rounded-br-sm'"
+                            : 'bg-[var(--accent)] text-white rounded-br-sm whitespace-pre-wrap'"
                     >
-                        {{ message.text }}
+                        <div
+                            v-if="roleIsAi(message)"
+                            class="prose prose-sm prose-neutral max-w-none dark:prose-invert prose-p:my-1.5 prose-headings:mb-2 prose-headings:mt-3 prose-headings:text-[var(--content-primary)] prose-p:text-[var(--content-primary)] prose-li:text-[var(--content-primary)] prose-strong:text-[var(--content-primary)] prose-a:text-[var(--accent)] prose-a:no-underline hover:prose-a:underline prose-pre:max-h-64 prose-pre:overflow-auto prose-pre:rounded-lg prose-pre:border prose-pre:border-[var(--border-input)] prose-pre:bg-black/[0.08] dark:prose-pre:bg-white/[0.06] prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-code:text-[var(--content-primary)] prose-code:before:content-none prose-code:after:content-none prose-code:bg-black/10 dark:prose-code:bg-white/10"
+                            v-html="renderAiMarkdown(message.text)"
+                        />
+                        <template v-else>
+                            {{ message.text }}
+                        </template>
                     </div>
 
                     <div
@@ -229,6 +260,31 @@ onBeforeUnmount(() => {
                                 <span>{{ item.title }}</span>
                             </li>
                         </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                v-if="isProcessing"
+                class="flex w-full justify-start"
+                aria-live="polite"
+                aria-busy="true"
+            >
+                <div class="relative max-w-[82%] overflow-hidden rounded-2xl rounded-bl-sm bg-content-glass px-3 py-3">
+                    <div
+                        class="pointer-events-none absolute inset-0 overflow-hidden"
+                        aria-hidden="true"
+                    >
+                        <div
+                            class="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent dark:via-white/10 animate-shimmer-slide"
+                        />
+                    </div>
+                    <div class="relative flex items-center gap-2.5 text-sm text-[var(--content-primary)]">
+                        <i
+                            class="fa-solid fa-spinner fa-spin shrink-0 text-base text-[var(--accent)]"
+                            aria-hidden="true"
+                        />
+                        <span>Обрабатываю...</span>
                     </div>
                 </div>
             </div>

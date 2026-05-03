@@ -20,4 +20,9 @@ class Workflow extends Model
     {
         return $this->hasMany(Node::class)->orderBy('order');
     }
+
+    public function dashboards(): HasMany
+    {
+        return $this->hasMany(Dashboard::class);
+    }
 }

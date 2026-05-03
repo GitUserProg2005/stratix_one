@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AiChatController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CounterController;
 use App\Http\Controllers\N8N\NodeController;
 use App\Http\Controllers\N8N\WorkflowController;
@@ -53,9 +54,13 @@ Route::get('/welcome', function () {
     ]);
 })->name('welcome');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+Route::get('/dashboard/widgets', [DashboardController::class, 'widgets'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.widgets');
 
 // Публичный просмотр профиля по id (нужен для Avatar в Sidebar и др.)
 Route::get('/profile/{user}', [ProfileController::class, 'profile'])->name('user.profile')->middleware('auth');
