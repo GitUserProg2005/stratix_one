@@ -58,9 +58,25 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::get('/dashboard/widgets', [DashboardController::class, 'widgets'])
+Route::get('/dashboard/{dashboard}', [DashboardController::class, 'show'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.show');
+
+Route::get('/dashboard/{dashboard}/widgets', [DashboardController::class, 'widgets'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard.widgets');
+
+Route::post('/dashboard', [DashboardController::class, 'createDashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.create');
+
+Route::post('/dashboard/{dashboard}/widgets', [DashboardController::class, 'createWidget'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.widgets.create');
+
+Route::post('/dashboard/widgets/{widget}/position', [DashboardController::class, 'updateWidgetPosition'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.widgets.position');
 
 // Публичный просмотр профиля по id (нужен для Avatar в Sidebar и др.)
 Route::get('/profile/{user}', [ProfileController::class, 'profile'])->name('user.profile')->middleware('auth');

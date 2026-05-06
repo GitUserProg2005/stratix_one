@@ -1,76 +1,47 @@
 <script setup>
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
+import CreateDashboard from './CreateDashboard.vue';
+import { Head, Link } from '@inertiajs/vue3';
 
-import { nextTick, onMounted, ref } from 'vue';
-import { Head } from '@inertiajs/vue3';
-
-import { GridStack } from 'gridstack';
-import 'gridstack/dist/gridstack.css';
-
-import axios from 'axios';
-
-const gridContainer = ref(null);
-let grid = null;
-
-const widgets = ref([
-  { id: 1, x: 0, y: 0, w: 2, h: 2, content: 'График продаж' },
-  { id: 2, x: 2, y: 1, w: 2, h: 2, content: 'Инсайт от AI' }
-]);
-
-async function loadWidgets() {
-    try {
-        await axios.get(route('dashboard.widgets'));
-    } catch (e) {
-        console.error(e);
-    }
-}
-
-onMounted(async () => {
-    loadWidgets();
-
-    await nextTick();
-
-    grid = GridStack.init(
-        {
-            column: 4,
-            cellHeight: 200,
-            margin: 12,
-            float: true,
-        },
-        gridContainer.value,
-    );
-
-    grid.on('change', (event, items) => {
-        console.log('Новые позиции для сохранения в БД:', items);
-    });
+defineProps({
+    dashboards: {
+        type: Array,
+        default: () => [],
+    },
 });
 </script>
 
 <template>
-    <Head title="Дашборд метрик" />
+    <Head title="Дашборды" />
 
     <DashboardLayout>
-        <div class="p-4">
-            <h2 class="title">Дашборды / Продажи</h2>
+        <div class="p-4 space-y-4">
+            <div class="flex items-center justify-between gap-3">
+                <h2 class="title">Метрики/Отчеты</h2>
+                <CreateDashboard />
+            </div>
 
-            <section class="mt-4">
-                <div class="grid-stack min-h-[200px]" ref="gridContainer">
-                    <div
-                        v-for="w in widgets"
-                        :key="w.id"
-                        :gs-id="w.id"
-                        :gs-x="w.x"
-                        :gs-y="w.y"
-                        :gs-w="w.w"
-                        :gs-h="w.h"
-                        class="grid-stack-item"
-                    >
-                        <div class="grid-stack-item-content content-glass p-4">
-                            {{ w.content }}
-                        </div>
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <Link
+                    v-for="d in dashboards"
+                    :key="d.id"
+                    :href="route('dashboard.show', d.id)"
+                    class="content-glass rounded-2xl p-4 border border-transparent hover:border-[var(--border-input)] transition"
+                >
+                    <div class="context font-semibold truncate">
+                        {{ d.title || `Дашборд #${d.id}` }}
                     </div>
+
+                    <div class="context text-xs opacity-70 mt-1 truncate">
+                        <span v-if="d.workflow">Workflow: {{ d.workflow.name }}</span>
+                        <span v-else>Без workflow</span>
+                    </div>
+                </Link>
+
+                <div v-if="!dashboards.length" class="context opacity-70">
+                    Дашбордов пока нет
                 </div>
-            </section>
+            </div>
         </div>
     </DashboardLayout>
 </template>

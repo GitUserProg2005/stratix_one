@@ -11,6 +11,7 @@ class Dashboard extends Model
     protected $fillable = [
         'creator_id',
         'workflow_id',
+        'title',
         'layout_config',
     ];
 
