@@ -134,6 +134,7 @@ function isLoadingForButton(buttonConfig) {
         :show="showUpdateModal"
         :node-data="data"
         :nodes="nodes"
+        :workflow-id="workflowId"
         @close="showUpdateModal = false"
         @onUpdatedNode="(updatedNode) => emit('nodeUpdated', updatedNode)"
         @onDeletedNode="(deletedNodeId) => emit('nodeDeleted', deletedNodeId)"

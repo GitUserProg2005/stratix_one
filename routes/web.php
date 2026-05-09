@@ -78,6 +78,10 @@ Route::post('/dashboard/widgets/{widget}/position', [DashboardController::class,
     ->middleware(['auth', 'verified'])
     ->name('dashboard.widgets.position');
 
+Route::get('/get-metrics/{workflow}', [DashboardController::class, 'getMetrics'])
+    ->middleware(['auth', 'verified'])
+    ->name('get.metrics');
+
 // Публичный просмотр профиля по id (нужен для Avatar в Sidebar и др.)
 Route::get('/profile/{user}', [ProfileController::class, 'profile'])->name('user.profile')->middleware('auth');
 

@@ -12,6 +12,7 @@ enum NodeType: string
     case OSRM = 'osrm';
     case LOG = 'log';
     case COLLECT_METRICS = 'collect_metrics';
+    case UPDATE_METRIC = 'update_metric';
     case CONDITION = 'condition';
     case SCHEDULE = 'schedule';
 }

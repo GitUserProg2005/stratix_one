@@ -20,6 +20,7 @@ class Runner
         NodeType::EMAIL_REPORT->value => \App\Services\N8N\Handles\EmailReport::class,
         NodeType::OSRM->value => \App\Services\N8N\Handles\OSRM::class,
         NodeType::COLLECT_METRICS->value => \App\Services\N8N\Handles\CollectMetrics::class,
+        NodeType::UPDATE_METRIC->value => \App\Services\N8N\Handles\UpdateMetric::class,
         NodeType::CONDITION->value => \App\Services\N8N\Handles\Condition::class,
         NodeType::LOG->value => \App\Services\N8N\Handles\LogNode::class,
         NodeType::SCHEDULE->value => \App\Services\N8N\Handles\Schedule::class,

@@ -2,11 +2,13 @@
 import ChoiceNodeType from './ChoiceNodeType.vue';
 import Modal from '@/Components/Modal.vue';
 import { nodeConfigFields } from './nodeConfigFields';
+import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import ConfigQueriesConfigure from './ConfigQueriesConfigure.vue';
 
 import ConditionBuilder from './Conditions/ConditionBuilder.vue';
 import OutputBuilder from './OutputSchema/OutputBuilder.vue';
 
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -22,11 +24,18 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    workflowId: {
+        type: Number,
+        default: null,
+    },
 });
+
+console.log(props.nodeData);
 
 const buildersMap = {
     ConditionBuilder,
     OutputBuilder,
+    ConfigQueriesConfigure,
 };
 
 const nodeId = () => props.nodeData?.id;
@@ -34,6 +43,16 @@ const config = ref({});
 
 const nodeType = ref(props.nodeData?.type || '');
 const title = ref(props.nodeData?.label || '');
+
+const backendOptions = ref({});
+const backendLoading = ref({});
+
+const resolvedWorkflowId = computed(() => {
+    const fromProp = Number(props.workflowId);
+    if (Number.isFinite(fromProp) && fromProp > 0) return fromProp;
+    const fromNode = Number(props.nodeData?.workflow_id);
+    return Number.isFinite(fromNode) && fromNode > 0 ? fromNode : null;
+});
 
 const emit = defineEmits(['close', 'onUpdatedNode', 'onDeletedNode']);
 
@@ -56,6 +75,57 @@ watch(
         config.value = { ...cfg };
     },
     { immediate: true }
+);
+
+async function fetchBackendOptionsForField(field) {
+    const req = field?.backend_request;
+    if (!req) return;
+
+    const routeConfig = req.route;
+    let routeName = null;
+    let params = [];
+
+    if (typeof routeConfig === 'string') {
+        routeName = routeConfig;
+    } else if (routeConfig && typeof routeConfig === 'object') {
+        routeName = routeConfig.name ?? null;
+        if (routeConfig.zoomable) {
+            params = resolvedWorkflowId.value ? [resolvedWorkflowId.value] : [];
+        }
+    }
+
+    if (!routeName) return;
+
+    backendLoading.value[field.name] = true;
+    try {
+        const res = await axios.get(route(routeName, ...params));
+        const map = req.response_map;
+        const items = map ? (res.data?.[map.root] || []) : [];
+
+        backendOptions.value[field.name] = Array.isArray(items)
+            ? items.map((item) => ({
+                  label: item?.[map.label],
+                  value: item?.[map.value],
+              }))
+            : [];
+    } catch (e) {
+        console.error(`Ошибка загрузки опций для поля ${field.name}`, e);
+        backendOptions.value[field.name] = [];
+    } finally {
+        backendLoading.value[field.name] = false;
+    }
+}
+
+watch(
+    () => [nodeType.value, resolvedWorkflowId.value],
+    async () => {
+        const fields = nodeConfigFields[nodeType.value]?.fields ?? [];
+        for (const field of fields) {
+            if (!field.backend_request) continue;
+            await fetchBackendOptionsForField(field);
+        }
+    },
+    { immediate: true },
 );
 
 async function updateNode() {
@@ -91,6 +161,10 @@ async function deleteNode() {
     } catch (e) {
         console.error('ОШИБКА ПРИ УДАЛЕНИИ НОДЫ: ', e);
     }
+}
+
+async function getQueries() {
+    
 }
 </script>
 
@@ -142,7 +216,17 @@ async function deleteNode() {
                         <div v-for="field in nodeConfigFields[nodeType].fields || []" :key="field.name">
                             <h4 class="dashboard-row-title mt-3 text-sm">{{ field.label }}</h4>
 
-                            <template v-if="field.type === 'text'">
+                            <template v-if="field.backend_request">
+                                <HeadlessSelect
+                                    v-model="config[field.name]"
+                                    :options="backendOptions[field.name] || []"
+                                    :disabled="backendLoading[field.name]"
+                                    button-class="select-input mt-2 w-full"
+                                    :placeholder="backendLoading[field.name] ? 'Загрузка...' : field.label"
+                                />
+                            </template>
+
+                            <template v-else-if="field.type === 'text'">
                                 <input v-model="config[field.name]" class="input mt-2 w-full" type="text" :placeholder="field.label" />
                             </template>
 
@@ -157,6 +241,9 @@ async function deleteNode() {
                         :is="buildersMap[nodeConfigFields[nodeType].builder]"
                         v-model="config[nodeConfigFields[nodeType].builder_root]"
                         :nodes="nodes"
+                        :node-id="nodeId()"
+                        :workflow-id="resolvedWorkflowId"
+                        :on-save="updateNode"
                     />
                 </div>
 

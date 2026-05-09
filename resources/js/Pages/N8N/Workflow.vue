@@ -10,6 +10,7 @@ import AiChat from './AiChat/AiChat.vue';
 import { Link } from '@inertiajs/vue3';
 import BottomPanel from './Components/BottomPanel.vue';
 import RedDot from './Components/RedDot.vue';
+import HandContoller from './HandContoller.vue';
 
 import { useNodeSchemas } from './composables/useNodeSchemas';
 
@@ -513,6 +514,7 @@ onBeforeUnmount(() => {
             <div
                 class="dashboard-chart-wrap relative flex w-full flex-col !h-auto min-h-[80vh]"
             >
+                <HandContoller :vue-flow-id="vueFlowInstanceId" />
                 <VueFlow
                     :id="vueFlowInstanceId"
                     :key="`${vueFlowInstanceId}-${nodes.length}`"

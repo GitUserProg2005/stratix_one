@@ -43,6 +43,12 @@ export const nodeConfigFields = {
         ],
         buttons: [],
     },
+    update_metric: {
+        builder: 'ConfigQueriesConfigure',
+        builder_root: 'updatable_metrics',
+        fields: [],
+        buttons: []
+    },
     condition: {
         builder: 'ConditionBuilder',
         builder_root: 'condition',

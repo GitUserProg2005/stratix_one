@@ -18,6 +18,7 @@ class NodeTypeSeeder extends Seeder
             ['name' => 'OSRM', 'type' => 'osrm', 'description' => 'Построение оптимального маршрута по A -> B'],
             ['name' => 'Log', 'type' => 'log', 'description' => 'Запись в лог приложения'],
             ['name' => 'Collect Metrics', 'type' => 'collect_metrics', 'description' => 'Сбор метрик (заглушка)'],
+            ['name' => 'Update Metric', 'type' => 'update_metric', 'description' => 'Увеличение значений метрик (дашборд виджеты)'],
             ['name' => 'Condition', 'type' => 'condition', 'description' => 'Условное ветвление'],
             ['name' => 'Schedule', 'type' => 'schedule', 'description' => 'Расписание выполнения'],
         ];

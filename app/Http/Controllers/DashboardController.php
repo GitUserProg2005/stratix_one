@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\DashboardWidgetType;
 use App\Models\Dashboard;
 use App\Models\DashboardWidget;
+use App\Models\Workflow;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -57,6 +58,34 @@ class DashboardController extends Controller
             ->get();
 
         return response()->json($widgets);
+    }
+
+    public function getMetrics(Workflow $workflow): JsonResponse
+    {
+        $dashboards = Dashboard::query()
+            ->where('creator_id', auth()->id())
+            ->where('workflow_id', $workflow->id)
+            ->get();
+
+        $metrics = DashboardWidget::query()
+            ->whereIn('dashboard_id', $dashboards->pluck('id'))
+            ->get()
+            ->map(function (DashboardWidget $w) {
+                $labels = data_get($w->content, 'labels', []);
+                $title = data_get($w->content, 'datasets.0.title', 'Метрика');
+
+                return [
+                    'id' => $w->id,
+                    'title' => $title,
+                    'labels' => is_array($labels) ? $labels : [],
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'metrics' => $metrics,
+        ]);
     }
 
     public function createDashboard(Request $request): JsonResponse
