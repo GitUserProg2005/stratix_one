@@ -3,6 +3,7 @@ import '../../css/custom.css';
 
 import Sidebar from '@/Components/Sidebar.vue';
 import RightInfo from '@/Pages/RightInfo.vue';
+import PointerEngine from '@/Components/PointerEngine.vue';
 import Search from '@/Components/Search/Search.vue';
 import Avatar from '@/Components/Avatar.vue';
 

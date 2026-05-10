@@ -514,7 +514,7 @@ onBeforeUnmount(() => {
             <div
                 class="dashboard-chart-wrap relative flex w-full flex-col !h-auto min-h-[80vh]"
             >
-                <HandContoller :vue-flow-id="vueFlowInstanceId" />
+                <HandContoller />
                 <VueFlow
                     :id="vueFlowInstanceId"
                     :key="`${vueFlowInstanceId}-${nodes.length}`"
