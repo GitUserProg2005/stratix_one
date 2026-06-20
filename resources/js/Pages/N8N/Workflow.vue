@@ -5,12 +5,14 @@ import CreateNode from './Components/CreateNode.vue';
 import CustomNode from './Components/CustomNode.vue';
 import CustomEdge from './Components/CustomEdge.vue';
 import BackButton from '@/Components/BackButton.vue';
-import MapEnvironment from './Components/MapEnvironment.vue';
+// import MapEnvironment from './Components/MapEnvironment.vue';
 import AiChat from './AiChat/AiChat.vue';
 import { Link } from '@inertiajs/vue3';
 import BottomPanel from './Components/BottomPanel.vue';
 import RedDot from './Components/RedDot.vue';
+
 import HandContoller from './HandContoller.vue';
+// import SmartBlur from '@/Components/SmartBlur.vue';
 
 import { useNodeSchemas } from './composables/useNodeSchemas';
 
@@ -30,6 +32,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['delete']);
+
+const isPrivacyViolated = ref(false);
 
 const bottomPanelComponent = ref(null);
 const bottomPanelProps = ref({});
@@ -514,7 +518,11 @@ onBeforeUnmount(() => {
             <div
                 class="dashboard-chart-wrap relative flex w-full flex-col !h-auto min-h-[80vh]"
             >
-                <HandContoller />
+                <!--<HandContoller />-->
+                <!--<SmartBlur v-model="isBlurred" />-->
+
+                <div v-if="isBlurred" class="absolute inset-0 bg-black/50"></div>
+                
                 <VueFlow
                     :id="vueFlowInstanceId"
                     :key="`${vueFlowInstanceId}-${nodes.length}`"

@@ -32,6 +32,7 @@ class UpdateMetric extends BaseNode
             if (!is_array($row)) {
                 continue;
             }
+
             $widgetId = $row['widget_id'] ?? null;
             $label = $row['label'] ?? null;
             $amount = $row['amount'] ?? null;
@@ -62,6 +63,7 @@ class UpdateMetric extends BaseNode
             $content = is_array($widget->content) ? $widget->content : [];
             $labels = isset($content['labels']) && is_array($content['labels']) ? $content['labels'] : [];
             $values = data_get($content, 'datasets.0.values', []);
+            
             if (!is_array($values)) {
                 $values = [];
             }

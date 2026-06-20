@@ -55,6 +55,7 @@ function smoothScreen(label, x, y) {
 
     prev.x = prev.x * (1 - SMOOTH_ALPHA) + x * SMOOTH_ALPHA;
     prev.y = prev.y * (1 - SMOOTH_ALPHA) + y * SMOOTH_ALPHA;
+    
     return prev;
 }
 

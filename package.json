@@ -28,7 +28,9 @@
     "dependencies": {
         "@headlessui/vue": "^1.7.23",
         "@mediapipe/drawing_utils": "^0.3.1675466124",
+        "@mediapipe/face_detection": "^0.4.1646425229",
         "@mediapipe/hands": "^0.4.1675469240",
+        "@mediapipe/tasks-vision": "^0.10.35",
         "@tensorflow/tfjs-backend-webgl": "^4.22.0",
         "@tensorflow/tfjs-converter": "^4.22.0",
         "@tensorflow/tfjs-core": "^4.22.0",
