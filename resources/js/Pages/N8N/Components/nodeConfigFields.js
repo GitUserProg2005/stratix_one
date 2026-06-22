@@ -68,4 +68,21 @@ export const nodeConfigFields = {
         ],
         buttons: [],
     },
+    page_loader: {
+        fields: [
+            { name: 'url_source', label: 'URL страницы', type: 'text', required: true },
+            {
+                name: 'compression_level',
+                label: 'Уровень сжатия',
+                type: 'simple_select',
+                required: true,
+                options: [
+                    { name: 'Script + Style', value: 'script_style' },
+                    { name: 'Script + Style + Head + Footer + Nav + Sidebar', value: 'extended' },
+                    { name: 'Только текст', value: 'text_only' },
+                ],
+            },
+        ],
+        buttons: [],
+    },
 };

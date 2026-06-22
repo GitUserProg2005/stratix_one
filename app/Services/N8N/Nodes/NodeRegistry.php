@@ -3,9 +3,8 @@
 namespace App\Services\N8N\Nodes;
 
 use App\Enums\NodeStructureSchema;
-
 use App\Enums\NodeType;
-
+use App\Services\N8N\BaseNode;
 
 class NodeRegistry {
     public function all(): array {
@@ -20,6 +19,7 @@ class NodeRegistry {
             NodeType::CONDITION->value => \App\Services\N8N\Handles\Condition::class,
             NodeType::LOG->value => \App\Services\N8N\Handles\LogNode::class,
             NodeType::SCHEDULE->value => \App\Services\N8N\Handles\Schedule::class,
+            NodeType::PAGE_LOADER->value => \App\Services\N8N\Handles\PageLoader::class,
         ];
     }
 
@@ -32,9 +32,14 @@ class NodeRegistry {
 
         foreach ($this->all() as $type => $class) {
             $result[$type] = [
-                'inputSchema' => $class::inputSchema(),
-                'outputSchema' => $class::outputSchema(),
-                'dynamic' => $class::nodeStructureSchema()  === NodeStructureSchema::DYNAMIC
+                'inputSchema' => is_callable([$class, 'inputSchema'])
+                    ? $class::inputSchema()
+                    : BaseNode::inputSchema(),
+                'outputSchema' => is_callable([$class, 'outputSchema'])
+                    ? $class::outputSchema()
+                    : BaseNode::outputSchema(),
+                'dynamic' => is_callable([$class, 'nodeStructureSchema'])
+                    && $class::nodeStructureSchema() === NodeStructureSchema::DYNAMIC,
             ];
         }
 

@@ -131,6 +131,14 @@ async function createNode() {
                                             :placeholder="field.label"
                                         />
                                     </template>
+                                    <template v-else-if="field.type === 'simple_select'">
+                                        <HeadlessSelect
+                                            v-model="config[field.name]"
+                                            :options="(field.options || []).map((option) => ({ label: option.name, value: option.value ?? option.name }))"
+                                            button-class="select-input mt-2 w-full"
+                                            :placeholder="field.label"
+                                        />
+                                    </template>
                                 </div>
                             </section>
 

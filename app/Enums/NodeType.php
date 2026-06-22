@@ -15,4 +15,5 @@ enum NodeType: string
     case UPDATE_METRIC = 'update_metric';
     case CONDITION = 'condition';
     case SCHEDULE = 'schedule';
+    case PAGE_LOADER = 'page_loader';
 }

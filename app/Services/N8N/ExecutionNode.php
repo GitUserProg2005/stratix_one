@@ -19,6 +19,7 @@ class ExecutionNode
         NodeType::CONDITION->value => \App\Services\N8N\Handles\Condition::class,
         NodeType::LOG->value => \App\Services\N8N\Handles\LogNode::class,
         NodeType::SCHEDULE->value => \App\Services\N8N\Handles\Schedule::class,
+        NodeType::PAGE_LOADER->value => \App\Services\N8N\Handles\PageLoader::class,
     ];
 
     protected $handler;
@@ -36,7 +37,13 @@ class ExecutionNode
         }
 
         if (is_array($nodeData)) {
+            $id = $nodeData['id'] ?? null;
             $nodeData = Node::make($nodeData);
+
+            if ($id !== null) {
+                $nodeData->setAttribute('id', $id);
+                $nodeData->exists = true;
+            }
         }
 
         $type = NodeType::from($nodeData->type);
@@ -46,7 +53,7 @@ class ExecutionNode
             throw new \RuntimeException("Handler not found for type: {$nodeData->type}");
         }
 
-        $this->handler = new $handlerClass($this->workflowId, $nodeData, $this->input);
+        $this->handler = new $handlerClass($this->workflowId, $nodeData, $this->input, $this->nodeId);
     }
 
     public function execute(): mixed

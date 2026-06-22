@@ -4,6 +4,7 @@ namespace App\Services\N8N;
 
 use App\Jobs\RunNode;
 
+
 class Runner
 {
     protected array $graph = [];

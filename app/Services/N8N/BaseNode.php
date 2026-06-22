@@ -10,7 +10,8 @@ abstract class BaseNode {
     public function __construct(
         protected $workflowId,
         protected $node,
-        protected mixed $rawInput
+        protected mixed $rawInput,
+        protected ?int $nodeId = null,
     ) {
         $this->validateInput();
     }
@@ -202,9 +203,17 @@ abstract class BaseNode {
     }
 
     protected function broadcastError(string $error) {
+        $currentNodeId = $this->nodeId ?? $this->node->id ?? null;
+
+        if ($currentNodeId === null) {
+            \Log::error($error);
+
+            return;
+        }
+
         broadcast(new WorkflowFailed(
-                $this->workflowId, 
-                $this->node->id,
+                $this->workflowId,
+                (int) $currentNodeId,
                 $error,
             )
         );

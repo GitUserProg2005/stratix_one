@@ -46,12 +46,12 @@ function update(value) {
 </script>
 
 <template>
-    <div v-if="schema.type === 'group'" class="ml-2">
+    <div v-if="schema?.type === 'group'" class="ml-2">
         <span class="mb-2">{{ label }}</span>
 
         <SchemaTree 
-            v-for="field in schema.fields"
-            :key="field.name || field.key"
+            v-for="field in schema.fields || []"
+            :key="field?.name || field?.key"
             :schema="field"
             :prefix="path"
             :mappings="mappings"
@@ -60,7 +60,7 @@ function update(value) {
         />  
     </div>
 
-    <div v-else-if="schema.type === 'array'" class="ml-2">
+    <div v-else-if="schema?.type === 'array'" class="ml-2">
         <span class="mb-2">{{ label }}[]</span>
 
         <SchemaTree 
@@ -72,7 +72,7 @@ function update(value) {
         /> 
     </div>
 
-    <div v-else-if="schema.type === 'field'" class="ml-2">
+    <div v-else-if="schema?.type === 'field'" class="ml-2">
         <span class="mb-2">{{ label }}</span>
 
         <HeadlessSelect

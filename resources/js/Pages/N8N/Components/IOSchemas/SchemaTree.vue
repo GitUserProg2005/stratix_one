@@ -13,7 +13,7 @@ const props = defineProps({
         
         <!-- FIELD -->
         <div
-            v-if="schema.type === 'field'"
+            v-if="schema?.type === 'field'"
             class="flex items-center gap-2 p-2 rounded-lg border border-white/10"
             :style="{ marginLeft: `${level * 16}px` }"
         >
@@ -40,7 +40,7 @@ const props = defineProps({
 
         <!-- GROUP -->
         <div
-            v-else-if="schema.type === 'group'"
+            v-else-if="schema?.type === 'group'"
             class="space-y-2"
         >
             <div
@@ -51,7 +51,7 @@ const props = defineProps({
             </div>
 
             <SchemaTree
-                v-for="(field, i) in schema.fields"
+                v-for="(field, i) in schema.fields || []"
                 :key="i"
                 :schema="field"
                 :level="level + 1"
@@ -61,7 +61,7 @@ const props = defineProps({
 
         <!-- ARRAY -->
         <div
-            v-else-if="schema.type === 'array'"
+            v-else-if="schema?.type === 'array'"
             class="space-y-2"
         >
             <div

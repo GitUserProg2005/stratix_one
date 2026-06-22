@@ -4,6 +4,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { getBezierPath } from '@vue-flow/core';
 import { flattenSchema } from '../utils/flattenSchema';
 import { buildAST } from '../utils/buildAST';
+import { isValidSchema } from '../utils/isValidSchema';
 import SchemaTree from './SchemaTree.vue';
 import axios from 'axios';
 
@@ -66,6 +67,11 @@ const sourceFields = computed(() => {
     return flattenSchema(resolvedSourceSchema.value?.outputSchema);
 });
 
+const targetInputSchema = computed(() => {
+    const schema = props.targetSchema?.inputSchema;
+    return isValidSchema(schema) ? schema : null;
+});
+
 // const targetFields = computed(() => {
 //     // Object.keys(props.targetSchema?.inputSchema || {})
 //     return flattenSchema(props.targetSchema?.inputSchema);
@@ -97,7 +103,7 @@ async function saveTransform() {
 
     try {
         const ast = buildAST(
-            props.targetSchema?.inputSchema,
+            targetInputSchema.value,
             mappings.value
         );
 
@@ -218,8 +224,16 @@ onMounted(() => {
                         <div>
                             <h4 class="mb-2">Куда</h4>
 
-                            <SchemaTree 
-                                :schema="targetSchema?.inputSchema"
+                            <div
+                                v-if="!targetInputSchema"
+                                class="opacity-70"
+                            >
+                                Нет входных данных для маппинга
+                            </div>
+
+                            <SchemaTree
+                                v-else
+                                :schema="targetInputSchema"
                                 :mappings="mappings"
                                 :sourceFields="sourceFields"
                                 @update="updateMapping"

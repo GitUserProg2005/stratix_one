@@ -21,6 +21,7 @@ class NodeTypeSeeder extends Seeder
             ['name' => 'Update Metric', 'type' => 'update_metric', 'description' => 'Увеличение значений метрик (дашборд виджеты)'],
             ['name' => 'Condition', 'type' => 'condition', 'description' => 'Условное ветвление'],
             ['name' => 'Schedule', 'type' => 'schedule', 'description' => 'Расписание выполнения'],
+            ['name' => 'Page Loader', 'type' => 'page_loader', 'description' => 'Загрузка страницы и конвертация в markdown'],
         ];
 
         foreach ($types as $row) {
