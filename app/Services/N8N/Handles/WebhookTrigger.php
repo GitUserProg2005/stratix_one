@@ -18,10 +18,12 @@ class WebhookTrigger extends BaseNode
     }
 
     public function handle(): array {
-        if ($this->rawInput) {
-            return $this->success($this->rawInput);
+        if (! $this->rawInput) {
+            return $this->error('No input provided');
         }
 
-        return $this->error('No input provided');
+        $data = is_array($this->rawInput) ? $this->rawInput : [];
+
+        return $this->success($data);
     }
 }

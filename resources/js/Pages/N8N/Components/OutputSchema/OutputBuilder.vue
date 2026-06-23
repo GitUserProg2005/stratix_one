@@ -55,6 +55,36 @@ function addField(targetGroup=null) {
     const field = {
         type: 'field',
         key: '',
+        data_type: 'string',
+        required: true,
+    };
+
+    if (!output.value) {
+        output.value = field;
+        return;
+    }
+
+    if (targetGroup?.type === 'group') {
+        targetGroup.fields.push(field);
+        return;
+    }
+
+    output.value = {
+        type: 'group',
+        name: '',
+        fields: [
+            structuredClone(toRaw(output.value)),
+            field
+        ]
+    };
+}
+
+function addFileField(targetGroup=null) {
+    const field = {
+        type: 'field',
+        key: '',
+        data_type: 'file',
+        required: true,
     };
 
     if (!output.value) {
@@ -101,6 +131,7 @@ watch(output, (val) => {
         :output="output"
         :add-group="addGroup"
         :add-field="addField"
+        :add-file-field="addFileField"
         :delete-element="deleteElement"
     />
 </template>

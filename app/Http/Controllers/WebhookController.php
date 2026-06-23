@@ -7,12 +7,13 @@ use Illuminate\Http\Request;
 use App\Models\Workflow;
 use App\Models\Webhook;
 
+use App\Services\N8N\IncomingDataNormalizer;
 use App\Services\N8N\Runner;
 
 
 class WebhookController extends Controller
 {
-    public function trigger(string $token, Request $request)
+    public function trigger(string $token, Request $request, IncomingDataNormalizer $normalizer)
     {
         $webhook = Webhook::where('token', $token)
             ->firstOrFail();
@@ -22,11 +23,26 @@ class WebhookController extends Controller
 
         $edges = $workflow->nodes->flatMap(fn ($node) => $node->edges ?? []);
 
+        $webhookNode = $workflow->nodes->firstWhere('id', $webhook->node_id);
+        $nodeConfig = is_string($webhookNode?->config)
+            ? json_decode($webhookNode->config, true)
+            : (array) ($webhookNode?->config ?? []);
+        $requestSchema = $nodeConfig['request'] ?? null;
+
+        try {
+            $context = $normalizer->normalizeRequest($request, $requestSchema);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'result' => 'error',
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+
         $runner = new Runner(
             workflowId: $workflow->id,
             nodes: $workflow->nodes,
             edges: $edges,
-            context: $request->all()
+            context: $context,
         );
 
         $runner->startFromNode($webhook->node_id);

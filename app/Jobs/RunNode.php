@@ -34,6 +34,8 @@ class RunNode implements ShouldQueue
 
         $input = $this->input ?? $snapshot['context'] ?? [];
 
+        \Log::info('INPUT: ' . json_encode($input));
+
         $result = (new ExecutionNode($workflowId, $nodes, $this->nodeId, $input))->execute();
 
         $nodeData = $nodes->firstWhere('id', $this->nodeId);
