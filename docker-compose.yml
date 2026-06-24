@@ -133,6 +133,16 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+  
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: whisper-http
+    environment:
+      - ASR_MODEL=base
+      - ASR_ENGINE=openai_whisper
+    ports:
+      - "9001:9000"
+    restart: unless-stopped
 
   # app:
   #   build:

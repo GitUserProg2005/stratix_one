@@ -1,0 +1,111 @@
+<?php
+
+namespace App\Services\Ai;
+
+use App\Services\ApiRequest;
+use Illuminate\Support\Facades\Storage;
+
+class Mistral 
+{
+    /**
+     * Универсальный метод для работы с текстом и изображениями (LLM & Pixtral)
+     */
+    public static function chat(string $model, string $prompt, ?string $content = null, ?string $s3Key = null, bool $responseJson = false): string 
+    {
+        $url = 'https://mistral.ai';
+        
+        // Формируем контент пользователя (массив объектов для Pixtral или строка для LLM)
+        if ($s3Key && Storage::disk('s3')->exists($s3Key)) {
+            $fileBytes = Storage::disk('s3')->get($s3Key);
+            $mimeType = Storage::disk('s3')->mimeType($s3Key);
+            $base64Image = base64_encode($fileBytes);
+
+            $userContent = [
+                [
+                    "type" => "text",
+                    "text" => $prompt . ($content ? "\n\nКонтекст: " . $content : "")
+                ],
+                [
+                    "type" => "image_url",
+                    "image_url" => [
+                        "url" => "data:{$mimeType};base64,{$base64Image}"
+                    ]
+                ]
+            ];
+        } else {
+            // Если файла нет, используем классический текстовый контент
+            $userContent = $content ? $prompt . "\n\nКонтекст: " . $content : $prompt;
+        }
+
+        $body = [
+            'model' => $model,
+            'response_format' => $responseJson ? ['type' => 'json_object'] : false,
+            'messages' => [
+                [
+                    'role' => 'user',
+                    'content' => $userContent
+                ]
+            ]
+        ];
+
+        $response = ApiRequest::post($url, $body, env('AI_TOKEN'));
+
+        if ($response->successful()) {
+            $result = $response->json();
+            \Log::info("Mistral Chat ({$model}) Response: ", $result);
+
+            return $result['choices'][0]['message']['content'] ?? 'Упс! Ответ не найден.';
+        }
+
+        return self::handleError('Chat Request failed', $response);
+    }
+
+    /**
+     * Специализированный метод для распознавания документов (Mistral OCR)
+     */
+    public static function ocr(string $s3Key): string 
+    {
+        if (empty($s3Key) || !Storage::disk('s3')->exists($s3Key)) {
+            return 'Упс! Файл не найден в хранилище S3.';
+        }
+
+        $url = 'https://mistral.ai';
+        $fileBytes = Storage::disk('s3')->get($s3Key);
+
+        $body = [
+            'model' => 'mistral-ocr-latest',
+            'document' => [
+                'type' => 'base64',
+                'value' => base64_encode($fileBytes),
+                'name' => basename($s3Key)
+            ]
+        ];
+
+        $response = ApiRequest::post($url, $body, env('AI_TOKEN'));
+
+        if ($response->successful()) {
+            $result = $response->json();
+            \Log::info('Mistral OCR Response: ', $result);
+
+            // Склеиваем Markdown со всех страниц документа
+            return collect($result['pages'] ?? [])
+                ->map(fn($page) => $page['markdown'] ?? '')
+                ->implode("\n\n---\n\n") ?: 'Текст не распознан.';
+        }
+
+        return self::handleError('OCR Request failed', $response);
+    }
+
+    /**
+     * Внутренний хелпер логирования ошибок
+     */
+    private static function handleError(string $message, $response): string 
+    {
+        \Log::error("Mistral Service: {$message}", [
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+
+        return 'Упс! Что-то пошло не так при запросе к Mistral AI.';
+    }
+}

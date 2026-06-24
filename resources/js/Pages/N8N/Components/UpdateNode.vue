@@ -3,6 +3,8 @@ import ChoiceNodeType from './ChoiceNodeType.vue';
 import Modal from '@/Components/Modal.vue';
 import { nodeConfigFields } from './nodeConfigFields';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import PasswordField from '@/Components/PasswordField.vue';
+import RangeField from '@/Components/RangeField.vue';
 import ConfigQueriesConfigure from './ConfigQueriesConfigure.vue';
 
 import ConditionBuilder from './Conditions/ConditionBuilder.vue';
@@ -216,7 +218,14 @@ async function getQueries() {
                         <div v-for="field in nodeConfigFields[nodeType].fields || []" :key="field.name">
                             <h4 class="dashboard-row-title mt-3 text-sm">{{ field.label }}</h4>
 
-                            <template v-if="field.backend_request">
+                            <template v-if="field.security">
+                                <PasswordField
+                                    v-model="config[field.name]"
+                                    :placeholder="field.label"
+                                />
+                            </template>
+
+                            <template v-else-if="field.backend_request">
                                 <HeadlessSelect
                                     v-model="config[field.name]"
                                     :options="backendOptions[field.name] || []"
@@ -232,6 +241,27 @@ async function getQueries() {
 
                             <template v-else-if="field.type === 'textarea'">
                                 <textarea v-model="config[field.name]" class="input mt-2 w-full" :placeholder="field.label" />
+                            </template>
+
+                            <template v-else-if="field.type === 'number'">
+                                <input
+                                    v-model="config[field.name]"
+                                    class="input mt-2 w-full"
+                                    type="number"
+                                    :placeholder="field.label"
+                                    :step="field.step || '1'"
+                                    :min="field.min"
+                                    :max="field.max"
+                                />
+                            </template>
+
+                            <template v-else-if="field.type === 'range'">
+                                <RangeField
+                                    v-model="config[field.name]"
+                                    :min="field.min ?? 0"
+                                    :max="field.max ?? 100"
+                                    :step="field.step || '1'"
+                                />
                             </template>
 
                             <template v-else-if="field.type === 'simple_select'">

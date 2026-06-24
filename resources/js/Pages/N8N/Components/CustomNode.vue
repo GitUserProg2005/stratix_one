@@ -80,6 +80,18 @@ function isLoadingForButton(buttonConfig) {
             <img v-if="data.type === 'osrm'" src="/img/nodes/osrm.png" 
                 class="w-8 object-contain select-none pointer-events-none" alt="Gigachat"
             >
+            <img v-if="data.type === 'go_whisper'" src="/img/nodes/go-whisper.png" 
+                class="w-8 object-contain select-none pointer-events-none" alt="Gigachat"
+            >
+            <img v-if="data.type === 'mistral_text'" src="/img/nodes/mistral_text.png"
+                class="w-12 h-12 object-contain select-none pointer-events-none" alt="Mistral Text"
+            >
+            <img v-if="data.type === 'mistral_picture'" src="/img/nodes/pixtral.png"
+                class="w-12 h-12 object-contain select-none pointer-events-none" alt="Mistral Picture"
+            >
+            <img v-if="data.type === 'mistral_ocr'" src="/img/nodes/mistral_ocr.png"
+                class="w-12 h-12 object-contain select-none pointer-events-none" alt="Mistral OCR"
+            >
             
             <div class="flex min-w-0 flex-col gap-1">
                 <div class="flex flex-wrap items-center gap-2">
