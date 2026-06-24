@@ -1297,6 +1297,15 @@ html.dark .content-badge-pending,
 }
 
 /* Minimal scrollbar */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
 .custom-scroll::-webkit-scrollbar,
 html::-webkit-scrollbar {
     width: 4px;
