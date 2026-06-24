@@ -20,6 +20,10 @@ class NodeRegistry {
             NodeType::LOG->value => \App\Services\N8N\Handles\LogNode::class,
             NodeType::SCHEDULE->value => \App\Services\N8N\Handles\Schedule::class,
             NodeType::PAGE_LOADER->value => \App\Services\N8N\Handles\PageLoader::class,
+            NodeType::GO_WHISPER->value => \App\Services\N8N\Handles\GoWhisper::class,
+            NodeType::MISTRAL_TEXT->value => \App\Services\N8N\Handles\MistralText::class,
+            NodeType::MISTRAL_PICTURE->value => \App\Services\N8N\Handles\MistralPicture::class,
+            NodeType::MISTRAL_OCR->value => \App\Services\N8N\Handles\MistralOcr::class,
         ];
     }
 

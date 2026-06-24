@@ -22,6 +22,10 @@ class NodeTypeSeeder extends Seeder
             ['name' => 'Condition', 'type' => 'condition', 'description' => 'Условное ветвление'],
             ['name' => 'Schedule', 'type' => 'schedule', 'description' => 'Расписание выполнения'],
             ['name' => 'Page Loader', 'type' => 'page_loader', 'description' => 'Загрузка страницы и конвертация в markdown'],
+            ['name' => 'Go Whisper', 'type' => 'go_whisper', 'description' => 'Распознавание речи через Whisper ASR'],
+            ['name' => 'Mistral Text', 'type' => 'mistral_text', 'description' => 'Текстовый запрос к Mistral AI'],
+            ['name' => 'Mistral Picture', 'type' => 'mistral_picture', 'description' => 'Анализ изображения через Mistral Pixtral'],
+            ['name' => 'Mistral OCR', 'type' => 'mistral_ocr', 'description' => 'OCR документов через Mistral'],
         ];
 
         foreach ($types as $row) {

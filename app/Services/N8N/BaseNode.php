@@ -4,6 +4,7 @@ namespace App\Services\N8N;
 
 use App\Enums\NodeStructureSchema;
 use App\Events\WorkflowFailed;
+use App\Services\FileStorageService;
 
 
 abstract class BaseNode {
@@ -170,8 +171,14 @@ abstract class BaseNode {
             'boolean' => is_bool($value),
             'array' => is_array($value),
             'object' => is_object($value),
+            'file' => is_string($value) && $value !== '',
             default => false,
         };
+    }
+
+    protected function fileFromPath(string $path): ?string
+    {
+        return app(FileStorageService::class)->get($path);
     }
 
     protected function hasInput(): bool {

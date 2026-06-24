@@ -4,6 +4,8 @@ import ConditionBuilder from './Conditions/ConditionBuilder.vue';
 import OutputBuilder from './OutputSchema/OutputBuilder.vue';
 import Modal from '@/Components/Modal.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import PasswordField from '@/Components/PasswordField.vue';
+import RangeField from '@/Components/RangeField.vue';
 
 import { nodeConfigFields } from './nodeConfigFields';
 import { useNodeTypeWatcher } from '../utils/selectionWatch';
@@ -117,11 +119,36 @@ async function createNode() {
                                         <span v-if="field.required" class="badge badge-pending">Обязательно</span>
                                     </h4>
 
-                                    <template v-if="field.type === 'text'">
+                                    <template v-if="field.security">
+                                        <PasswordField
+                                            v-model="config[field.name]"
+                                            :placeholder="field.label"
+                                        />
+                                    </template>
+                                    <template v-else-if="field.type === 'text'">
                                         <input v-model="config[field.name]" class="input mt-2 w-full" type="text" :placeholder="field.label" />
                                     </template>
                                     <template v-else-if="field.type === 'textarea'">
                                         <textarea v-model="config[field.name]" class="input mt-2 w-full" :placeholder="field.label" />
+                                    </template>
+                                    <template v-else-if="field.type === 'number'">
+                                        <input
+                                            v-model="config[field.name]"
+                                            class="input mt-2 w-full"
+                                            type="number"
+                                            :placeholder="field.label"
+                                            :step="field.step || '1'"
+                                            :min="field.min"
+                                            :max="field.max"
+                                        />
+                                    </template>
+                                    <template v-else-if="field.type === 'range'">
+                                        <RangeField
+                                            v-model="config[field.name]"
+                                            :min="field.min ?? 0"
+                                            :max="field.max ?? 100"
+                                            :step="field.step || '1'"
+                                        />
                                     </template>
                                     <template v-else-if="field.type === 'select'">
                                         <HeadlessSelect

@@ -59,4 +59,16 @@ return [
         'tileserver_style' => env('TILESERVER_STYLE', 'basic-preview'),
     ],
 
+    'whisper' => [
+        'url' => env('WHISPER_URL', 'http://localhost:9001'),
+        'model' => env('WHISPER_MODEL', 'base'),
+        'language' => env('WHISPER_LANGUAGE', 'ru'),
+        'timeout' => env('WHISPER_TIMEOUT', 120),
+    ],
+
+    'mistral' => [
+        'base_url' => env('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1'),
+        'timeout' => env('MISTRAL_TIMEOUT', 120),
+    ],
+
 ];

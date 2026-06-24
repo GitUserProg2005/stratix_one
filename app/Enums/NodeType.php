@@ -16,4 +16,8 @@ enum NodeType: string
     case CONDITION = 'condition';
     case SCHEDULE = 'schedule';
     case PAGE_LOADER = 'page_loader';
+    case GO_WHISPER = 'go_whisper';
+    case MISTRAL_TEXT = 'mistral_text';
+    case MISTRAL_PICTURE = 'mistral_picture';
+    case MISTRAL_OCR = 'mistral_ocr';
 }

@@ -1,3 +1,9 @@
+const mistralCommonFields = [
+    { name: 'api_key', label: 'API ключ Mistral', type: 'text', security: true, required: true },
+    { name: 'temperature', label: 'Temperature', type: 'range', required: false, step: '0.1', min: 0, max: 2 },
+    { name: 'max_tokens', label: 'Max tokens', type: 'number', required: false, min: 1 },
+];
+
 export const nodeConfigFields = {
     webhook_trigger: {
         builder: 'OutputBuilder',
@@ -82,6 +88,30 @@ export const nodeConfigFields = {
                     { name: 'Только текст', value: 'text_only' },
                 ],
             },
+        ],
+        buttons: [],
+    },
+    go_whisper: {
+        fields: [],
+        buttons: [],
+    },
+    mistral_text: {
+        fields: [
+            ...mistralCommonFields,
+            { name: 'prompt', label: 'Промпт', type: 'textarea', required: true },
+        ],
+        buttons: [],
+    },
+    mistral_picture: {
+        fields: [
+            ...mistralCommonFields,
+            { name: 'prompt', label: 'Промпт', type: 'textarea', required: true },
+        ],
+        buttons: [],
+    },
+    mistral_ocr: {
+        fields: [
+            ...mistralCommonFields,
         ],
         buttons: [],
     },

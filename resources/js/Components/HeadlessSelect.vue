@@ -38,14 +38,32 @@ const selectedOption = computed(() => {
 const selectedLabel = computed(() => {
     return selectedOption.value?.label ?? props.placeholder;
 });
+
+const selectedToneClass = computed(() => {
+    const tone = selectedOption.value?.tone;
+
+    if (tone === 'file') {
+        return 'text-sky-500';
+    }
+
+    return '';
+});
 </script>
 
 <template>
     <Listbox :model-value="modelValue" :disabled="disabled" @update:model-value="(value) => emit('update:modelValue', value)">
         <div class="relative">
             <ListboxButton :class="[buttonClass, 'flex items-center justify-between gap-2 text-left disabled:opacity-60 disabled:cursor-not-allowed']">
-                <span class="truncate">
-                    {{ selectedLabel }}
+                <span class="flex min-w-0 items-center gap-1.5 truncate" :class="selectedToneClass">
+                    <i
+                        v-if="selectedOption?.icon"
+                        :class="selectedOption.icon"
+                        class="shrink-0 text-xs"
+                        aria-hidden="true"
+                    />
+                    <span class="truncate">
+                        {{ selectedLabel }}
+                    </span>
                 </span>
                 <span class="pointer-events-none text-xs opacity-70">▼</span>
             </ListboxButton>
@@ -64,13 +82,20 @@ const selectedLabel = computed(() => {
                 >
                     <ListboxOption v-for="option in options" :key="`opt-${String(option.value)}`" v-slot="{ active, selected }" :value="option.value" as="template">
                         <li
-                            class="cursor-pointer select-none px-3 py-2 text-sm"
+                            class="flex cursor-pointer select-none items-center gap-1.5 px-3 py-2 text-sm"
                             :class="[
                                 active ? 'bg-[rgba(233,115,88,0.16)]' : '',
                                 selected ? 'font-semibold text-[var(--accent)]' : 'text-[var(--content-primary)]',
+                                option.tone === 'file' ? 'text-sky-500' : '',
                             ]"
                         >
-                            {{ option.label }}
+                            <i
+                                v-if="option.icon"
+                                :class="option.icon"
+                                class="shrink-0 text-xs"
+                                aria-hidden="true"
+                            />
+                            <span>{{ option.label }}</span>
                         </li>
                     </ListboxOption>
                 </ListboxOptions>

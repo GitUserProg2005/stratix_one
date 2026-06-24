@@ -1041,6 +1041,125 @@ html.dark .select-input,
     background-clip: padding-box, border-box;
 }
 
+/* Range slider */
+.range-field {
+    @apply rounded-lg border-2 px-4 py-4;
+    background-color: var(--bg-card);
+    border-color: var(--border-input);
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.range-field__header {
+    @apply mb-3 flex items-center justify-between gap-3;
+}
+
+.range-field__value {
+    @apply min-w-[3rem] justify-center font-mono tabular-nums;
+}
+
+.range-input {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: 0.375rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    background: linear-gradient(
+        to right,
+        var(--accent) 0%,
+        var(--accent) var(--range-progress, 0%),
+        color-mix(in srgb, var(--border-input) 85%, transparent) var(--range-progress, 0%),
+        color-mix(in srgb, var(--border-input) 85%, transparent) 100%
+    );
+    outline: none;
+    transition: box-shadow 0.2s ease;
+}
+
+.range-input:focus-visible {
+    box-shadow: 0 0 0 2px var(--bg-main), 0 0 0 4px var(--accent);
+}
+
+.range-input::-webkit-slider-runnable-track {
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: transparent;
+}
+
+.range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: -0.4375rem;
+    border-radius: 9999px;
+    border: 2px solid var(--bg-main);
+    background-color: var(--accent);
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.18),
+        0 0 0 0 color-mix(in srgb, var(--accent) 30%, transparent);
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background-color 0.15s ease;
+}
+
+.range-input::-webkit-slider-thumb:hover {
+    transform: scale(1.08);
+    background-color: var(--accent-hover);
+    box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.range-input::-moz-range-track {
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--border-input) 85%, transparent);
+}
+
+.range-input::-moz-range-progress {
+    height: 0.375rem;
+    border-radius: 9999px;
+    background-color: var(--accent);
+}
+
+.range-input::-moz-range-thumb {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    border: 2px solid var(--bg-main);
+    background-color: var(--accent);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background-color 0.15s ease;
+}
+
+.range-input::-moz-range-thumb:hover {
+    transform: scale(1.08);
+    background-color: var(--accent-hover);
+    box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+html.dark .range-field,
+.dark .range-field {
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(180deg, var(--bg-card), var(--bg-card)),
+        var(--border-hairline-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
 /* Tags / interactive chips */
 .tag {
     @apply rounded-lg px-4 py-2 select-none;
@@ -1178,6 +1297,15 @@ html.dark .content-badge-pending,
 }
 
 /* Minimal scrollbar */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
 .custom-scroll::-webkit-scrollbar,
 html::-webkit-scrollbar {
     width: 4px;

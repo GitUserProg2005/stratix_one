@@ -44,7 +44,7 @@ onBeforeUnmount(() => {
     class="
       h-screen overflow-hidden
       grid grid-cols-1
-      lg:grid-cols-[16rem_1fr]
+      lg:grid-cols-[16rem_1fr_16rem]
       select-none
       gap-2
     "
@@ -56,7 +56,7 @@ onBeforeUnmount(() => {
     />
 
     <!-- Main -->
-    <main class="overflow-y-auto bg-content">
+    <main class="min-h-0 overflow-y-auto overflow-x-hidden bg-content no-scrollbar">
       <header class="sticky top-0 z-50 backdrop-blur-xl px-4">
         <div class="py-6">
           <div class="flex justify-between items-center gap-6 w-full">
@@ -160,6 +160,9 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </main>
+
+    <!-- Right sidebar -->
+    <RightInfo class="hidden lg:flex min-h-0 h-full overflow-hidden" />
   </div>
 </template>
 

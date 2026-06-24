@@ -319,6 +319,7 @@ function toggleLogsModal() {
 
 async function getNodes() {
     isLoading.value = true;
+    
     try {
         const response = await axios.get(route('get.nodes', props.workflow.id));
         if (response.data.result === 'ok') {
