@@ -2,13 +2,15 @@
 
 namespace App\Services\N8N;
 
+use App\Models\Run;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 class WorkflowSnapshot
 {
     const TTL = 10;
 
-    protected string $runId;
+    protected ?string $runId = null;
 
     protected array $snapshot;
 
@@ -19,8 +21,6 @@ class WorkflowSnapshot
         protected $edges,
         protected array $context = [],
     ) {
-        $this->runId = uniqid();
-
         $this->snapshot = [
             'workflow_id' => $workflowId,
             'graph' => $graph,
@@ -28,6 +28,19 @@ class WorkflowSnapshot
             'edges' => collect($edges)->map(fn ($edge) => is_array($edge) ? $edge : $edge->toArray())->values()->all(),
             'context' => $context,
         ];
+    }
+
+    public function createRun(): string
+    {
+        $run = Run::create([
+            'workflow_id' => $this->workflowId,
+        ]);
+
+        $this->runId = $run->id;
+
+        Redis::hset("run:{$this->runId}", '_workflow_id', (string) $this->workflowId);
+
+        return $this->runId;
     }
 
     public function create(): string

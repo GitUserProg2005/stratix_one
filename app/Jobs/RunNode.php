@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Enums\NodeType;
+use App\Events\WorkflowCompleted;
+use App\Models\Run;
 use App\Services\N8N\BroadcastChunks;
 use App\Services\N8N\DataTransform;
 use App\Services\N8N\ExecutionNode;
@@ -12,6 +14,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Redis;
+
 
 class RunNode implements ShouldQueue
 {
@@ -36,12 +40,17 @@ class RunNode implements ShouldQueue
 
         \Log::info('INPUT: ' . json_encode($input));
 
-        $result = (new ExecutionNode($workflowId, $nodes, $this->nodeId, $input))->execute();
+        $result = (new ExecutionNode($workflowId, $this->runId, $nodes, $this->nodeId, $input))->execute();
 
         $nodeData = $nodes->firstWhere('id', $this->nodeId);
         $type = NodeType::from(is_array($nodeData) ? $nodeData['type'] : $nodeData->type);
 
         $nextIds = $graph[$this->nodeId] ?? [];
+
+        if ($this->isGraphEnd($nextIds)) {
+            $this->persistRunResults();
+        }
+
         $nextForBroadcast = isset($nextIds[0]) ? (int) $nextIds[0] : null;
 
         BroadcastChunks::send(
@@ -75,6 +84,36 @@ class RunNode implements ShouldQueue
             $mapped = $transformer->applyMapping($this->nodeId, (int) $nextNodeId, $downstreamResult);
 
             self::dispatch($this->runId, (int) $nextNodeId, $mapped);
+        }
+    }
+
+    private function isGraphEnd(array $nextIds): bool
+    {
+        return $nextIds === [];
+    }
+
+    private function persistRunResults(): void
+    {
+        $hash = Redis::hgetall("run:{$this->runId}");
+
+        if ($hash === []) {
+            return;
+        }
+
+        unset($hash['_workflow_id']);
+
+        $nodesRuntime = collect($hash)
+            ->mapWithKeys(fn (string $json, string $nodeId) => [$nodeId => json_decode($json, true)])
+            ->all();
+
+        Run::where('id', $this->runId)->update(['nodes_runtime' => $nodesRuntime]);
+
+        Redis::del("run:{$this->runId}");
+
+        $run = Run::find($this->runId);
+
+        if ($run) {
+            broadcast(new WorkflowCompleted($run));
         }
     }
 }

@@ -21,13 +21,16 @@ class Runner
             $this->graph[$edge->source_node_id][] = $edge->target_node_id;
         }
 
-        $this->runId = (new WorkflowSnapshot(
+        $snapshot = new WorkflowSnapshot(
             workflowId: $this->workflowId,
             graph: $this->graph,
             nodes: $this->nodes,
             edges: $this->edges,
             context: $this->context,
-        ))->create();
+        );
+
+        $snapshot->createRun();
+        $this->runId = $snapshot->create();
     }
 
     public function commitPoints(): string

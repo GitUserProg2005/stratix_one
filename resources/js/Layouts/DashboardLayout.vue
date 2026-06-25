@@ -42,9 +42,9 @@ onBeforeUnmount(() => {
 <template>
   <div
     class="
-      h-screen overflow-hidden
+      h-screen min-h-0 overflow-hidden
       grid grid-cols-1
-      lg:grid-cols-[16rem_1fr_16rem]
+      lg:grid-cols-[16rem_minmax(0,1fr)_16rem]
       select-none
       gap-2
     "
@@ -162,7 +162,7 @@ onBeforeUnmount(() => {
     </main>
 
     <!-- Right sidebar -->
-    <RightInfo class="hidden lg:flex min-h-0 h-full overflow-hidden" />
+    <RightInfo class="hidden lg:block min-h-0 h-full overflow-hidden" />
   </div>
 </template>
 

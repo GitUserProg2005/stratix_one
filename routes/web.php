@@ -4,6 +4,7 @@ use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CounterController;
 use App\Http\Controllers\N8N\NodeController;
+use App\Http\Controllers\N8N\RunController;
 use App\Http\Controllers\N8N\WorkflowController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
@@ -118,6 +119,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/delete-node/{nodeId}', [NodeController::class, 'deleteNode'])->name('delete.node');
 
     Route::get('/get-edges/{workflowId}', [NodeController::class, 'getEdges'])->name('get.edges');
+    Route::get('/get-runs/{workflowId}', [RunController::class, 'getRuns'])->name('get.runs');
     Route::post('/create-edge', [NodeController::class, 'createEdge'])->name('create.edge');
     Route::delete('/delete-edge/{edgeId}', [NodeController::class, 'deleteEdge'])->name('delete.edge');
     Route::post('/transform-edge/{edgeId}', [NodeController::class, 'updateEdgeTransform'])

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import ForceGraph3D from '3d-force-graph';
 import { useVueFlow } from '@vue-flow/core';
 import * as THREE from 'three';
@@ -156,15 +156,18 @@ function maybeFitView() {
         return;
     }
 
-    graphInstance.zoomToFit(400, 40);
+    graphInstance.zoomToFit(200, 40);
     hasInitialFit = true;
 }
 
-onMounted(() => {
+onMounted(async () => {
+    await nextTick();
     initGraph();
 
     if (graphContainer.value && typeof ResizeObserver !== 'undefined') {
-        resizeObserver = new ResizeObserver(syncGraphSize);
+        resizeObserver = new ResizeObserver(() => {
+            syncGraphSize();
+        });
         resizeObserver.observe(graphContainer.value);
     }
 });
@@ -185,7 +188,21 @@ watch(graphSignature, () => {
 </script>
 
 <template>
-    <div class="relative h-full w-full min-h-0 overflow-hidden rounded-2xl bg-content">
-        <div ref="graphContainer" class="h-full w-full touch-none" />
+    <div class="graph-root relative size-full min-h-0 overflow-hidden rounded-bl-2xl bg-content">
+        <div ref="graphContainer" class="size-full min-h-0 touch-none" />
     </div>
 </template>
+
+<style scoped>
+.graph-root :deep(.scene-container) {
+    position: absolute !important;
+    inset: 0;
+    overflow: hidden;
+}
+
+.graph-root :deep(canvas) {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
+</style>

@@ -25,4 +25,9 @@ class Workflow extends Model
     {
         return $this->hasMany(Dashboard::class);
     }
+
+    public function runs(): HasMany
+    {
+        return $this->hasMany(Run::class);
+    }
 }

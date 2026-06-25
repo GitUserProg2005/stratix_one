@@ -15,3 +15,7 @@ Broadcast::channel('workflow-diff-applied.{workflowId}', function ($user, $workf
     return $user !== null;
 });
 
+Broadcast::channel('workflow-completed.{workflowId}', function ($user, $workflowId) {
+    return $user !== null;
+});
+
