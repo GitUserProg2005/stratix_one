@@ -1,5 +1,6 @@
 <script setup>
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import Text from '@/Components/Skeleton/Text.vue';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -58,6 +59,7 @@ const modeOptions = [
 const messages = ref([]);
 const inputText = ref('');
 const isLoading = ref(false);
+const isMessagesLoading = ref(false);
 
 const isProcessing = ref(false);
 const messagesContainer = ref(null);
@@ -132,8 +134,16 @@ const getMessages = async () => {
         return;
     }
 
-    const { data } = await axios.get(route('ai-chat.messages', { room: id }));
-    messages.value = Array.isArray(data) ? data : [];
+    isMessagesLoading.value = true;
+    try {
+        const { data } = await axios.get(route('ai-chat.messages', { room: id }));
+        messages.value = Array.isArray(data) ? data : [];
+    } catch (error) {
+        console.error('Failed to load messages', error);
+        messages.value = [];
+    } finally {
+        isMessagesLoading.value = false;
+    }
 };
 
 const sendMessage = async () => {
@@ -208,16 +218,36 @@ onBeforeUnmount(() => {
             <p v-if="!resolvedRoomId" class="context">
                 Создайте комнату и выберите ее справа.
             </p>
+
+            <div
+                v-else-if="isMessagesLoading"
+                class="space-y-3"
+                aria-busy="true"
+                aria-label="Загрузка сообщений"
+            >
+                <div class="flex w-full justify-end">
+                    <div class="max-w-[70%] rounded-2xl rounded-br-sm bg-content-glass p-3">
+                        <Text :lines="2" line-height="0.625rem" last-line-width="50%" />
+                    </div>
+                </div>
+                <div class="flex w-full justify-start">
+                    <div class="max-w-[75%] rounded-2xl rounded-bl-sm bg-content-glass p-3">
+                        <Text :lines="4" line-height="0.625rem" last-line-width="40%" />
+                    </div>
+                </div>
+            </div>
+
             <p v-else-if="!messages.length && !isProcessing" class="context">
                 Сообщений пока нет. Напишите первое сообщение.
             </p>
 
-            <div
-                v-for="message in messages"
-                :key="message.id"
-                class="flex w-full"
-                :class="roleIsAi(message) ? 'justify-start' : 'justify-end'"
-            >
+            <template v-if="!isMessagesLoading && resolvedRoomId">
+                <div
+                    v-for="message in messages"
+                    :key="message.id"
+                    class="flex w-full"
+                    :class="roleIsAi(message) ? 'justify-start' : 'justify-end'"
+                >
                 <div
                     class="flex max-w-[82%] flex-col gap-2"
                     :class="roleIsAi(message) ? 'items-stretch' : 'items-end'"
@@ -262,7 +292,8 @@ onBeforeUnmount(() => {
                         </ul>
                     </div>
                 </div>
-            </div>
+                </div>
+            </template>
 
             <div
                 v-if="isProcessing"

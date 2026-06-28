@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import axios from 'axios';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 
 const props = defineProps({
     modelValue: {
@@ -105,15 +106,21 @@ function updateAmount(index, value) {
 <template>
     <div class="mt-3 space-y-3">
         <div class="dashboard-inset p-3 space-y-3">
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div v-if="isLoading" class="grid grid-cols-1 gap-3 md:grid-cols-3" aria-busy="true" aria-label="Загрузка метрик">
+                <div v-for="i in 3" :key="i" class="md:col-span-1 space-y-2">
+                    <Rectangle height="0.875rem" width="4rem" rounded="rounded-md" />
+                    <Rectangle height="2.5rem" rounded="rounded-xl" />
+                </div>
+            </div>
+
+            <div v-else class="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <div class="md:col-span-1">
                     <div class="dashboard-row-title text-sm">Виджет</div>
                     <HeadlessSelect
                         v-model="selectedWidgetId"
                         :options="widgetOptions"
-                        :disabled="isLoading"
                         button-class="select-input mt-2 w-full"
-                        :placeholder="isLoading ? 'Загрузка...' : 'Выберите виджет'"
+                        placeholder="Выберите виджет"
                     />
                 </div>
 
@@ -122,7 +129,7 @@ function updateAmount(index, value) {
                     <HeadlessSelect
                         v-model="selectedLabel"
                         :options="labelOptions"
-                        :disabled="isLoading || !selectedWidgetId"
+                        :disabled="!selectedWidgetId"
                         button-class="select-input mt-2 w-full"
                         placeholder="Выберите label"
                     />

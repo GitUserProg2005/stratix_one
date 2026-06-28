@@ -115,4 +115,15 @@ export const nodeConfigFields = {
         ],
         buttons: [],
     },
+    point_in_polygon: {
+        fields: [
+            {
+                name: 'polygon',
+                label: 'Область проверки',
+                customField: 'PointCheck',
+                required: true,
+            },
+        ],
+        buttons: [],
+    },
 };

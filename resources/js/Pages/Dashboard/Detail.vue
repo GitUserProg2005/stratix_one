@@ -2,6 +2,7 @@
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import CreateMetric from './CreateMetric.vue';
 import BackButton from '@/Components/BackButton.vue';
+import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head } from '@inertiajs/vue3';
@@ -25,6 +26,7 @@ const gridContainer = ref(null);
 let grid = null;
 
 const widgets = ref([]);
+const isWidgetsLoading = ref(true);
 
 const canvasByWidgetId = new Map();
 const chartByWidgetId = new Map();
@@ -143,6 +145,7 @@ function renderCharts() {
 }
 
 async function loadWidgets() {
+    isWidgetsLoading.value = true;
     try {
         const { data } = await axios.get(route('dashboard.widgets', props.dashboard.id));
 
@@ -167,6 +170,8 @@ async function loadWidgets() {
         });
     } catch (e) {
         console.error(e);
+    } finally {
+        isWidgetsLoading.value = false;
     }
 }
 
@@ -256,7 +261,23 @@ onBeforeUnmount(() => {
             </div>
 
             <section class="mt-4">
-                <div class="grid-stack min-h-[200px]" ref="gridContainer">
+                <div
+                    v-if="isWidgetsLoading"
+                    class="grid grid-cols-1 gap-3 md:grid-cols-2"
+                    aria-busy="true"
+                    aria-label="Загрузка виджетов"
+                >
+                    <div
+                        v-for="i in 4"
+                        :key="i"
+                        class="content-glass rounded-2xl p-4"
+                    >
+                        <Rectangle height="1rem" width="45%" rounded="rounded-md" />
+                        <Rectangle class="mt-4" height="8.125rem" rounded="rounded-xl" />
+                    </div>
+                </div>
+
+                <div v-else class="grid-stack min-h-[200px]" ref="gridContainer">
                     <div
                         v-for="w in widgets"
                         :key="w.id"

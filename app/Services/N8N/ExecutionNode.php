@@ -7,6 +7,7 @@ use App\Models\Node;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Redis;
 
+
 class ExecutionNode
 {
     protected array $nodeHandlers = [
@@ -25,6 +26,7 @@ class ExecutionNode
         NodeType::MISTRAL_TEXT->value => \App\Services\N8N\Handles\MistralText::class,
         NodeType::MISTRAL_PICTURE->value => \App\Services\N8N\Handles\MistralPicture::class,
         NodeType::MISTRAL_OCR->value => \App\Services\N8N\Handles\MistralOcr::class,
+        NodeType::POINT_IN_POLYGON->value => \App\Services\N8N\Handles\PointInPolygon::class,
     ];
 
     protected $handler;

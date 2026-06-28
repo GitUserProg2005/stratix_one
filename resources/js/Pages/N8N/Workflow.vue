@@ -10,6 +10,7 @@ import AiChat from './AiChat/AiChat.vue';
 import { Link } from '@inertiajs/vue3';
 import BottomPanel from './Components/BottomPanel.vue';
 import RedDot from './Components/RedDot.vue';
+import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 
 import HandContoller from './HandContoller.vue';
 // import SmartBlur from '@/Components/SmartBlur.vue';
@@ -41,7 +42,7 @@ const bottomPanelProps = ref({});
 /** Один store на строку workflow: тот же id, что у <VueFlow> (@vue-flow/core не экспортирует VueFlowProvider). */
 const vueFlowInstanceId = `workflow-${props.workflow.id}`;
 
-const { schemas } = useNodeSchemas();
+const { schemas, isLoading: isSchemasLoading } = useNodeSchemas();
 
 const { addNodes, project } = useVueFlow(vueFlowInstanceId);
 
@@ -523,7 +524,22 @@ onBeforeUnmount(() => {
                 <!--<SmartBlur v-model="isBlurred" />-->
 
                 <div v-if="isBlurred" class="absolute inset-0 bg-black/50"></div>
-                
+
+                <div
+                    v-if="isLoading"
+                    class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-10 p-8"
+                    aria-busy="true"
+                    aria-label="Загрузка workflow"
+                >
+                    <Rectangle
+                        v-for="i in 2"
+                        :key="i"
+                        width="11rem"
+                        height="7rem"
+                        rounded="rounded-2xl"
+                    />
+                </div>
+
                 <VueFlow
                     :id="vueFlowInstanceId"
                     :key="`${vueFlowInstanceId}-${nodes.length}`"
@@ -546,6 +562,7 @@ onBeforeUnmount(() => {
                             :nodes="nodes"
                             :data="data"
                             :schemas="schemas"
+                            :schemas-loading="isSchemasLoading"
                             :workflow-id="workflow.id"
                             :on-webhook-log="
                                 (log) => {

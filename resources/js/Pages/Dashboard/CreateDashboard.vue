@@ -1,6 +1,7 @@
 <script setup>
 import Modal from '@/Components/Modal.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 import axios from 'axios';
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
@@ -91,11 +92,18 @@ async function createDashboard() {
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div class="space-y-2 md:col-span-1">
                     <label class="context text-sm">Workflow</label>
+                    <Rectangle
+                        v-if="isWorkflowsLoading"
+                        class="mt-2"
+                        height="2.5rem"
+                        rounded="rounded-xl"
+                    />
                     <HeadlessSelect
+                        v-else
                         v-model="selectedWorkflowId"
                         :options="workflowOptions"
                         button-class="select-input mt-2 w-full"
-                        :placeholder="isWorkflowsLoading ? 'Загрузка...' : 'Не выбрано'"
+                        placeholder="Не выбрано"
                     />
                 </div>
 

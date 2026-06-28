@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import axios from 'axios';
+import Circle from '@/Components/Skeleton/Circle.vue';
+import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 
 const props = defineProps({
     workflowId: {
@@ -10,10 +12,12 @@ const props = defineProps({
 });
 
 const runs = ref([]);
+const isLoading = ref(true);
 const expandedRunId = ref(null);
 let echoChannel = null;
 
 async function getRuns(workflowId) {
+    isLoading.value = true;
     try {
         const response = await axios.get(route('get.runs', workflowId));
 
@@ -22,6 +26,8 @@ async function getRuns(workflowId) {
         }
     } catch (error) {
         console.error('Error fetching runs:', error);
+    } finally {
+        isLoading.value = false;
     }
 }
 
@@ -85,11 +91,30 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="min-h-0 flex-1 space-y-2 overflow-y-auto no-scrollbar px-3 py-3">
-            <div
-                v-for="run in runs"
-                :key="run.id"
-                class="dashboard-inset overflow-hidden"
-            >
+            <div v-if="isLoading" class="space-y-2" aria-busy="true" aria-label="Загрузка истории">
+                <div
+                    v-for="i in 4"
+                    :key="i"
+                    class="dashboard-inset flex items-center gap-3 p-3"
+                >
+                    <Circle size="1.75rem" />
+                    <div class="min-w-0 flex-1 space-y-2">
+                        <Rectangle height="0.875rem" width="70%" rounded="rounded-md" />
+                        <Rectangle height="0.625rem" width="45%" rounded="rounded-md" />
+                    </div>
+                    <div class="shrink-0 space-y-2">
+                        <Rectangle height="1.25rem" width="4.5rem" rounded="rounded-full" />
+                        <Rectangle height="0.625rem" width="2.5rem" rounded="rounded-md" class="ml-auto" />
+                    </div>
+                </div>
+            </div>
+
+            <template v-else>
+                <div
+                    v-for="run in runs"
+                    :key="run.id"
+                    class="dashboard-inset overflow-hidden"
+                >
                 <button
                     type="button"
                     class="flex w-full items-center gap-3 text-left"
@@ -134,7 +159,8 @@ onBeforeUnmount(() => {
                         <span class="t-mini shrink-0 text-[var(--accent)]">{{ node.time }} ms</span>
                     </div>
                 </div>
-            </div>
+                </div>
+            </template>
         </div>
     </div>
 </template>

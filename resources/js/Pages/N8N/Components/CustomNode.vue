@@ -12,6 +12,10 @@ const props = defineProps({
     nodes: Array,
     data: Object,
     schemas: Object,
+    schemasLoading: {
+        type: Boolean,
+        default: false,
+    },
     workflowId: Number,
     onWebhookLog: Function,
     modelValue: Object,
@@ -118,7 +122,7 @@ function isLoadingForButton(buttonConfig) {
         </div>
 
         <div class="absolute -top-5 right-3 label-accent">
-            <IOSchemas :schemas="schemas" :node-type="data.type" />
+            <IOSchemas :schemas="schemas" :node-type="data.type" :schemas-loading="schemasLoading" />
         </div>
 
         <Handle type="source" :position="Position.Right" />

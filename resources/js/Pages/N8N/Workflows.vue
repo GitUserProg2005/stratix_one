@@ -2,6 +2,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Workflow from './Workflow.vue';
 import ContextMenu from '@/Components/ContextMenu.vue';
+import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, nextTick } from 'vue';
 import axios from 'axios';
@@ -125,7 +126,12 @@ getWorkflows();
                 </button>
             </div>
 
-            <div v-if="isLoading && !workflows.length" class="context">Загрузка…</div>
+            <div v-if="isLoading && !workflows.length" class="space-y-3" aria-busy="true" aria-label="Загрузка workflows">
+                <div v-for="i in 4" :key="i" class="content p-4">
+                    <Rectangle height="1.25rem" width="40%" rounded="rounded-md" />
+                    <Rectangle class="mt-3" height="0.875rem" width="25%" rounded="rounded-md" />
+                </div>
+            </div>
 
             <ul v-else class="space-y-3">
                 <li v-for="workflow in workflows" :key="workflow.id" class="content">

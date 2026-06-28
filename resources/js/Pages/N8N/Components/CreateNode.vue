@@ -8,6 +8,7 @@ import PasswordField from '@/Components/PasswordField.vue';
 import RangeField from '@/Components/RangeField.vue';
 
 import { nodeConfigFields } from './nodeConfigFields';
+import { customFieldsMap } from './customFieldsMap';
 import { useNodeTypeWatcher } from '../utils/selectionWatch';
 
 import { ref, watch } from 'vue';
@@ -119,7 +120,17 @@ async function createNode() {
                                         <span v-if="field.required" class="badge badge-pending">Обязательно</span>
                                     </h4>
 
-                                    <template v-if="field.security">
+                                    <template v-if="field.customField && customFieldsMap[field.customField]">
+                                        <component
+                                            :is="customFieldsMap[field.customField]"
+                                            v-model="config[field.name]"
+                                            class="mt-2"
+                                            :field="field"
+                                            :nodes="nodes"
+                                            :workflow-id="workflowId"
+                                        />
+                                    </template>
+                                    <template v-else-if="field.security">
                                         <PasswordField
                                             v-model="config[field.name]"
                                             :placeholder="field.label"

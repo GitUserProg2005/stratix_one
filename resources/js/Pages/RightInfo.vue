@@ -30,9 +30,11 @@ const flowId = computed(() =>
 
         <div
             v-if="!flowId"
-            class="flex flex-1 items-center justify-center px-3 text-center text-sm text-gray-400"
+            class="h-full flex flex-1 flex-col items-center justify-center px-3 text-center text-sm text-gray-400"
         >
-            Откройте workflow для просмотра 3D-графа
+            <img src="/img/abstract/man.png" class="object-contain w-32" alt="">
+
+            <p class="text-sm text-gray-400 mt-4 ">Откройте workflow для просмотра 3D-графа</p>
         </div>
     </aside>
 </template>

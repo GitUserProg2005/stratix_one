@@ -26,6 +26,7 @@ class NodeTypeSeeder extends Seeder
             ['name' => 'Mistral Text', 'type' => 'mistral_text', 'description' => 'Текстовый запрос к Mistral AI'],
             ['name' => 'Mistral Picture', 'type' => 'mistral_picture', 'description' => 'Анализ изображения через Mistral Pixtral'],
             ['name' => 'Mistral OCR', 'type' => 'mistral_ocr', 'description' => 'OCR документов через Mistral'],
+            ['name' => 'Point In Polygon', 'type' => 'point_in_polygon', 'description' => 'Проверка нахождения точки в полигоне (PostGIS)'],
         ];
 
         foreach ($types as $row) {

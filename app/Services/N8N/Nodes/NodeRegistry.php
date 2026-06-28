@@ -24,6 +24,7 @@ class NodeRegistry {
             NodeType::MISTRAL_TEXT->value => \App\Services\N8N\Handles\MistralText::class,
             NodeType::MISTRAL_PICTURE->value => \App\Services\N8N\Handles\MistralPicture::class,
             NodeType::MISTRAL_OCR->value => \App\Services\N8N\Handles\MistralOcr::class,
+            NodeType::POINT_IN_POLYGON->value => \App\Services\N8N\Handles\PointInPolygon::class,
         ];
     }
 

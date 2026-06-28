@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import axios from 'axios';
+import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 
 const props = defineProps({
     workflowId: {
@@ -18,23 +19,32 @@ const emit = defineEmits(['update:modelValue']);
 const rooms = ref([]);
 const title = ref('');
 const isLoading = ref(false);
+const isRoomsLoading = ref(true);
 
 const loadRooms = async () => {
-    const { data } = await axios.get(route('ai-chat.rooms'));
-    const allRooms = Array.isArray(data) ? data : [];
-    const wf = Number(props.workflowId);
-    rooms.value = Number.isFinite(wf)
-        ? allRooms.filter((room) => room?.context != null && Number(room.context.workflow_id) === wf)
-        : [];
+    isRoomsLoading.value = true;
+    try {
+        const { data } = await axios.get(route('ai-chat.rooms'));
+        const allRooms = Array.isArray(data) ? data : [];
+        const wf = Number(props.workflowId);
+        rooms.value = Number.isFinite(wf)
+            ? allRooms.filter((room) => room?.context != null && Number(room.context.workflow_id) === wf)
+            : [];
 
-    if (!rooms.value.length) {
-        emit('update:modelValue', null);
-        return;
-    }
+        if (!rooms.value.length) {
+            emit('update:modelValue', null);
+            return;
+        }
 
-    const selectedExists = rooms.value.some((room) => Number(room.id) === Number(props.modelValue));
-    if (!selectedExists) {
-        emit('update:modelValue', Number(rooms.value[0].id));
+        const selectedExists = rooms.value.some((room) => Number(room.id) === Number(props.modelValue));
+        if (!selectedExists) {
+            emit('update:modelValue', Number(rooms.value[0].id));
+        }
+    } catch (error) {
+        console.error('Failed to load rooms', error);
+        rooms.value = [];
+    } finally {
+        isRoomsLoading.value = false;
     }
 };
 
@@ -103,7 +113,16 @@ onMounted(() => {
         </div>
 
         <div class="overflow-x-auto pb-1">
-            <div class="flex min-w-max items-center gap-2">
+            <div v-if="isRoomsLoading" class="flex min-w-max items-center gap-2" aria-busy="true" aria-label="Загрузка комнат">
+                <Rectangle
+                    v-for="i in 3"
+                    :key="i"
+                    height="2.25rem"
+                    width="6rem"
+                    rounded="rounded-xl"
+                />
+            </div>
+            <div v-else class="flex min-w-max items-center gap-2">
                 <button
                     v-for="room in rooms"
                     :key="room.id"

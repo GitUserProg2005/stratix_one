@@ -2,6 +2,7 @@
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import JsonTree from '@/Components/AI/JsonTree.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import Text from '@/Components/Skeleton/Text.vue';
 import { Head } from '@inertiajs/vue3';
 import { nextTick, ref } from 'vue';
 import axios from 'axios';
@@ -111,9 +112,13 @@ const sendMessage = async () => {
 
                     <div
                         v-if="isLoading"
-                        class="text-sm text-gray-500"
+                        class="flex justify-start"
+                        aria-live="polite"
+                        aria-busy="true"
                     >
-                        AI печатает...
+                        <div class="max-w-[75%] rounded-2xl rounded-bl-md border border-black/10 bg-white p-4">
+                            <Text :lines="3" line-height="0.75rem" last-line-width="55%" />
+                        </div>
                     </div>
                 </div>
 

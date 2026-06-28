@@ -2,9 +2,11 @@
 import ChoiceNodeType from './ChoiceNodeType.vue';
 import Modal from '@/Components/Modal.vue';
 import { nodeConfigFields } from './nodeConfigFields';
+import { customFieldsMap } from './customFieldsMap';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import PasswordField from '@/Components/PasswordField.vue';
 import RangeField from '@/Components/RangeField.vue';
+import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 import ConfigQueriesConfigure from './ConfigQueriesConfigure.vue';
 
 import ConditionBuilder from './Conditions/ConditionBuilder.vue';
@@ -218,7 +220,18 @@ async function getQueries() {
                         <div v-for="field in nodeConfigFields[nodeType].fields || []" :key="field.name">
                             <h4 class="dashboard-row-title mt-3 text-sm">{{ field.label }}</h4>
 
-                            <template v-if="field.security">
+                            <template v-if="field.customField && customFieldsMap[field.customField]">
+                                <component
+                                    :is="customFieldsMap[field.customField]"
+                                    v-model="config[field.name]"
+                                    class="mt-2"
+                                    :field="field"
+                                    :nodes="nodes"
+                                    :workflow-id="resolvedWorkflowId"
+                                />
+                            </template>
+
+                            <template v-else-if="field.security">
                                 <PasswordField
                                     v-model="config[field.name]"
                                     :placeholder="field.label"
@@ -226,12 +239,18 @@ async function getQueries() {
                             </template>
 
                             <template v-else-if="field.backend_request">
+                                <Rectangle
+                                    v-if="backendLoading[field.name]"
+                                    class="mt-2"
+                                    height="2.5rem"
+                                    rounded="rounded-xl"
+                                />
                                 <HeadlessSelect
+                                    v-else
                                     v-model="config[field.name]"
                                     :options="backendOptions[field.name] || []"
-                                    :disabled="backendLoading[field.name]"
                                     button-class="select-input mt-2 w-full"
-                                    :placeholder="backendLoading[field.name] ? 'Загрузка...' : field.label"
+                                    :placeholder="field.label"
                                 />
                             </template>
 
