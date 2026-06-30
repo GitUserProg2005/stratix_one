@@ -21,6 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'avatar',
+        'background',
         'email',
         'phone',
         'password',
@@ -45,6 +46,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'avatar_url',
+        'background_url',
     ];
 
     /**
@@ -81,26 +83,42 @@ class User extends Authenticatable
         return $this->hasMany(\App\Models\Dashboard::class, 'creator_id');
     }
 
+    public function catalogWorkflows(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\CatalogWorkflow::class, 'author_id');
+    }
+
     /**
      * Генерируем url к аватару пользователя
      */
     public function getAvatarUrlAttribute(): ?string
     {
-        if (! $this->avatar) {
+        return $this->resolveStorageUrl($this->avatar, 'avatar');
+    }
+
+    /**
+     * Генерируем url к фону профиля
+     */
+    public function getBackgroundUrlAttribute(): ?string
+    {
+        return $this->resolveStorageUrl($this->background, 'background');
+    }
+
+    private function resolveStorageUrl(?string $path, string $field): ?string
+    {
+        if (! $path) {
             return null;
         }
 
-        // Если путь уже является полным URL, возвращаем как есть
-        if (filter_var($this->avatar, FILTER_VALIDATE_URL)) {
-            return $this->avatar;
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
         }
 
-        // Генерируем URL из S3
         try {
-            return Storage::disk('s3')->url($this->avatar);
+            return Storage::disk('s3')->url($path);
         } catch (\Exception $e) {
-            \Log::warning('Failed to get avatar URL from S3', [
-                'avatar' => $this->avatar,
+            \Log::warning("Failed to get {$field} URL from S3", [
+                $field => $path,
                 'error' => $e->getMessage(),
             ]);
 

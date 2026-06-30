@@ -170,6 +170,22 @@ body {
     color: var(--text-primary);
 }
 
+/* Сетка для auth-страниц (Login / Register) */
+.auth-grid-bg {
+    background-color: var(--bg-main);
+    background-image:
+        linear-gradient(
+            color-mix(in srgb, var(--content-primary) 6%, transparent) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--content-primary) 6%, transparent) 1px,
+            transparent 1px
+        );
+    background-size: 28px 28px;
+}
+
 /*
  * ---------------------------------------------------------------------------
  * bg-content-outline — только фон и рамка в стиле .content-outline (без padding,
@@ -747,23 +763,45 @@ html.dark .content-glass,
     background-clip: padding-box, border-box;
 }
 
-/* Typography */
+/* Typography — только шрифт/размер; цвет через .t-color-* */
 .title-font {
     font-family: 'customFont', sans-serif;
     @apply text-2xl sm:text-3xl font-semibold tracking-tight break-words leading-[1.05];
-    color: var(--content-primary);
 }
 
 .title-font-2 {
     font-family: 'customFont', sans-serif;
     @apply text-lg sm:text-3xl font-semibold tracking-tight break-words leading-[1.05];
-    color: var(--content-primary);
 }
 
 .title-font-3 {
     font-family: 'customFont', sans-serif;
     @apply text-lg sm:text-lg font-semibold tracking-tight break-words leading-[1.05];
+}
+
+/* Цвет текста (не путать с Tailwind text-*) */
+.t-color-content {
     color: var(--content-primary);
+}
+
+.t-color-secondary {
+    color: var(--content-secondary);
+}
+
+.t-color-primary {
+    color: var(--accent);
+}
+
+.t-color-white {
+    color: #ffffff;
+}
+
+.t-color-on-dark {
+    color: rgba(255, 255, 255, 0.98);
+}
+
+.t-color-danger {
+    color: #ef4444;
 }
 
 .over-title {
@@ -1354,6 +1392,12 @@ html::-webkit-scrollbar-thumb {
     @apply font-semibold;
     background-color: color-mix(in srgb, var(--accent) 12%, transparent);
     color: var(--accent);
+}
+
+/* VS Code–style list divider (Workflows и подобные плоские списки) */
+.workflow-list-divider {
+    @apply m-0 border-0 border-t;
+    border-color: var(--border-input);
 }
 
 /* -------------------------------------------------------------------------- */

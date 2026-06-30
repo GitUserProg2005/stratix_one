@@ -107,7 +107,9 @@ getWorkflows();
 <template>
     <Head title="Workflows" />
     <AppLayout>
-        <div class="max-w-4xl p-4 lg:p-6">
+        <div class="mx-auto max-w-3xl p-4 lg:p-6">
+            <img src="/img/open_logo.svg" class="mx-auto mb-4 w-36 object-contain" alt="">
+
             <h1 class="title mb-4">Workflows</h1>
             <p class="context mb-6">
                 Визуальные сценарии: ноды, связи, запуск и лог.
@@ -126,58 +128,66 @@ getWorkflows();
                 </button>
             </div>
 
-            <div v-if="isLoading && !workflows.length" class="space-y-3" aria-busy="true" aria-label="Загрузка workflows">
-                <div v-for="i in 4" :key="i" class="content p-4">
-                    <Rectangle height="1.25rem" width="40%" rounded="rounded-md" />
-                    <Rectangle class="mt-3" height="0.875rem" width="25%" rounded="rounded-md" />
-                </div>
+            <div
+                v-if="isLoading && !workflows.length"
+                class="content-outline overflow-hidden p-0"
+                aria-busy="true"
+                aria-label="Загрузка workflows"
+            >
+                <template v-for="i in 4" :key="i">
+                    <hr v-if="i > 1" class="workflow-list-divider">
+                    <div class="px-3 py-2.5">
+                        <Rectangle height="1rem" width="45%" rounded="rounded-sm" />
+                    </div>
+                </template>
             </div>
 
-            <ul v-else class="space-y-3">
-                <li v-for="workflow in workflows" :key="workflow.id" class="content">
-                    <template v-if="editingWorkflow === workflow.id">
+            <div v-else-if="workflows.length" class="content-outline overflow-hidden p-0">
+                <template v-for="(workflow, index) in workflows" :key="workflow.id">
+                    <hr v-if="index > 0" class="workflow-list-divider">
+
+                    <div v-if="editingWorkflow === workflow.id" class="px-3 py-2">
                         <input
                             :id="`edit-workflow-input-${workflow.id}`"
                             v-model="editedName"
-                            class="input mb-2 w-full text-sm"
+                            class="input w-full text-sm"
                             @keydown="(e) => handleEditKeydown(e, workflow)"
                             @blur="() => saveEditing(workflow)"
                         />
-                    </template>
-                    <template v-else>
-                        <div class="flex items-center gap-2">
-                            <ContextMenu>
-                                <!--<Workflow :workflow="workflow" @delete="deleteWorkflow" />-->
-                                <Link :href="route('show.workflow', workflow.id)" 
-                                >
-                                    <div class="flex flex-row justify-between items-center gap-2 py-2">
-                                        <button
-                                            type="button"
-                                            class="sidebar-nav-link flex-1 min-w-0 truncate justify-start text-left"
-                                            @click="toggleModal"
-                                        >
-                                            <span class="dashboard-row-title truncate">{{ workflow.name }}</span>
-                                        </button>
-                                        <button type="button" class="badge badge-pending shrink-0" @click.stop="deleteWorkflow(workflow.id)">
-                                            Удалить
-                                        </button>
-                                    </div>
-                                </Link>
-                                
-                                <template #menu="{ toggleOpen }">
-                                    <div class="flex flex-col gap-4">
-                                        <button type="button" 
-                                            class="w-full text-left text-sm whitespace-nowrap" 
-                                            @click="startEditing(workflow); toggleOpen()">
-                                            Переименовать workflow
-                                        </button>
-                                    </div>
-                                </template>
-                            </ContextMenu>
+                    </div>
+
+                    <ContextMenu v-else>
+                        <div class="sidebar-nav-link group rounded-none px-3 py-2">
+                            <Link
+                                :href="route('show.workflow', workflow.id)"
+                                class="min-w-0 flex-1 truncate text-sm"
+                            >
+                                <span class="dashboard-row-title truncate font-normal">{{ workflow.name }}</span>
+                            </Link>
+
+                            <button
+                                type="button"
+                                class="badge badge-pending shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                                @click.stop="deleteWorkflow(workflow.id)"
+                            >
+                                Удалить
+                            </button>
                         </div>
-                    </template>
-                </li>
-            </ul>
+
+                        <template #menu="{ toggleOpen }">
+                            <div class="flex flex-col gap-4">
+                                <button
+                                    type="button"
+                                    class="w-full whitespace-nowrap text-left text-sm"
+                                    @click="startEditing(workflow); toggleOpen()"
+                                >
+                                    Переименовать workflow
+                                </button>
+                            </div>
+                        </template>
+                    </ContextMenu>
+                </template>
+            </div>
 
             <p v-if="!isLoading && !workflows.length" class="context mt-4">
                 Пока нет workflow — создайте первый.

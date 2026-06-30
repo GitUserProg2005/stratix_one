@@ -103,6 +103,15 @@ const closeSidebar = () => {
                     <i class="fa-solid fa-diagram-project text-sm"></i>
                     Workflows
                   </Link>
+
+                  <Link
+                    :href="route('catalog.index')"
+                    class="sidebar-nav-link-nested"
+                    @click="closeSidebar"
+                  >
+                  <i class="fa-solid fa-bars-staggered text-sm"></i>
+                    Каталог
+                  </Link>
                 </div>
               </div>
             </div>

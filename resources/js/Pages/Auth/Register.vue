@@ -8,7 +8,6 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 const form = useForm({
     name: '',
     email: '',
-    phone: '',
     password: '',
     password_confirmation: '',
 });
@@ -24,7 +23,7 @@ const submit = () => {
     <GuestLayout>
         <Head title="Регистрация" />
 
-        <h1 class="title mb-2">Регистрация</h1>
+        <h1 class="title-2 mb-2 t-color-content">Регистрация</h1>
         <p class="context mb-6">Создайте аккаунт для работы в сервисе.</p>
 
         <form @submit.prevent="submit" class="space-y-5">
@@ -41,12 +40,6 @@ const submit = () => {
             </div>
 
             <div>
-                <InputLabel for="phone" value="Телефон" />
-                <TextInput id="phone" type="tel" class="input mt-1 block w-full" v-model="form.phone" autocomplete="tel" />
-                <InputError class="mt-2" :message="form.errors.phone" />
-            </div>
-
-            <div>
                 <InputLabel for="password" value="Пароль" />
                 <TextInput id="password" type="password" class="input mt-1 block w-full" v-model="form.password" required autocomplete="new-password" />
                 <InputError class="mt-2" :message="form.errors.password" />
@@ -59,11 +52,13 @@ const submit = () => {
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
-                <Link :href="route('login')" class="t-small text-gray-600 hover:text-gray-900 transition order-2 sm:order-1">
+                <Link :href="route('login')" class="t-small t-color-secondary transition order-2 sm:order-1 inline-flex items-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket text-xs" />
                     Уже есть аккаунт?
                 </Link>
-                <button type="submit" class="primary-btn w-full sm:w-auto order-1 sm:order-2" :disabled="form.processing">
-                    Зарегистрироваться
+                <button type="submit" class="primary-btn w-full sm:w-auto order-1 sm:order-2 inline-flex items-center justify-center gap-2" :disabled="form.processing">
+                    Создать аккаунт
+                    <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
         </form>

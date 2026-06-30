@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Dashboard extends Model
 {
     protected $fillable = [
+        'user_id',
         'creator_id',
         'workflow_id',
         'title',
@@ -20,6 +21,11 @@ class Dashboard extends Model
         return [
             'layout_config' => 'array',
         ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function creator(): BelongsTo

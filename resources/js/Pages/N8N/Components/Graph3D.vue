@@ -7,43 +7,70 @@ import * as THREE from 'three';
 const GLOW_COLOR = 0xe97358;
 
 const props = defineProps({
+    nodes: {
+        type: Array,
+        default: null,
+    },
+    edges: {
+        type: Array,
+        default: null,
+    },
     flowId: {
         type: String,
-        required: true,
+        default: null,
     },
 });
 
-const { nodes: flowNodes, edges: flowEdges } = useVueFlow(props.flowId);
+const vueFlow =
+    props.flowId && props.nodes === null && props.edges === null
+        ? useVueFlow(props.flowId)
+        : null;
+
+const graphNodes = computed(() => {
+    if (props.nodes !== null) {
+        return props.nodes;
+    }
+
+    return vueFlow?.nodes.value ?? [];
+});
+
+const graphEdges = computed(() => {
+    if (props.edges !== null) {
+        return props.edges;
+    }
+
+    return vueFlow?.edges.value ?? [];
+});
 
 const graphContainer = ref(null);
 let graphInstance = null;
 
 const graphSignature = computed(() =>
     JSON.stringify({
-        nodes: flowNodes.value.map((node) => ({
+        nodes: graphNodes.value.map((node) => ({
             id: node.id,
-            name: node.data?.label || node.label || '',
+            name: node.data?.label || node.label || node.title || '',
             nodeType: node.data?.type || node.type,
         })),
-        links: flowEdges.value.map((edge) => ({
+        links: graphEdges.value.map((edge) => ({
             id: edge.id,
-            source: edge.source,
-            target: edge.target,
+            source: edge.source ?? edge.source_node_id,
+            target: edge.target ?? edge.target_node_id,
         })),
     }),
 );
 
 function formatGraphData() {
     return {
-        nodes: flowNodes.value.map((node) => ({
-            id: node.id,
-            name: node.data?.label || node.label || 'Без имени',
+        nodes: graphNodes.value.map((node) => ({
+            id: String(node.id),
+            name: node.data?.label || node.label || node.title || 'Без имени',
             nodeType: node.data?.type || node.type,
         })),
-        links: flowEdges.value.map((edge) => ({
-            id: edge.id,
-            source: edge.source,
-            target: edge.target,
+        links: graphEdges.value.map((edge) => ({
+            id: String(edge.id),
+            source: String(edge.source ?? edge.source_node_id),
+            target: String(edge.target ?? edge.target_node_id),
         })),
     };
 }
@@ -152,7 +179,7 @@ let resizeObserver = null;
 let hasInitialFit = false;
 
 function maybeFitView() {
-    if (!graphInstance || hasInitialFit || !flowNodes.value.length) {
+    if (!graphInstance || hasInitialFit || !graphNodes.value.length) {
         return;
     }
 

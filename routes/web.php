@@ -9,6 +9,7 @@ use App\Http\Controllers\N8N\WorkflowController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\WorkflowCatalogController;
 use App\Services\Prometheus\Metrics;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -85,9 +86,11 @@ Route::get('/get-metrics/{workflow}', [DashboardController::class, 'getMetrics']
 
 // Публичный просмотр профиля по id (нужен для Avatar в Sidebar и др.)
 Route::get('/profile/{user}', [ProfileController::class, 'profile'])->name('user.profile')->middleware('auth');
+Route::get('/profile/{user}/workflow-graph', [ProfileController::class, 'workflowGraph'])->name('profile.workflow-graph')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile/media', [ProfileController::class, 'updateMedia'])->name('profile.media');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
@@ -128,10 +131,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/get-node-schemas', [NodeController::class, 'getNodeSchemas'])->name('get.node.schemas');
     Route::get('/webhook-token/{nodeId}', [WebhookController::class, 'tokenByNode'])->name('webhook.token');
 
-
-
-    
-    # Route::get('map-index', [])
+    Route::get('/store', [WorkflowCatalogController::class, 'index'])->name('catalog.index');
+    Route::get('/store-categories', [WorkflowCatalogController::class, 'categories'])->name('catalog.categories');
+    Route::get('/store/publish-status/{workflowId}', [WorkflowCatalogController::class, 'publishStatus'])->name('catalog.publish-status');
+    Route::post('/store/deploy', [WorkflowCatalogController::class, 'deploy'])->name('catalog.deploy');
+    Route::get('/store/{catalogWorkflow}', [WorkflowCatalogController::class, 'detail'])->name('catalog.detail');
+    Route::post('/store/{catalogWorkflow}/install', [WorkflowCatalogController::class, 'install'])->name('catalog.install');
 });
 
 // Prometheus metrics (без web middleware — без сессий/CSRF для scrape).

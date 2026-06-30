@@ -145,7 +145,11 @@ function renderCharts() {
 }
 
 async function loadWidgets() {
-    isWidgetsLoading.value = true;
+    const showSkeleton = widgets.value.length === 0;
+    if (showSkeleton) {
+        isWidgetsLoading.value = true;
+    }
+
     try {
         const { data } = await axios.get(route('dashboard.widgets', props.dashboard.id));
 
@@ -171,7 +175,9 @@ async function loadWidgets() {
     } catch (e) {
         console.error(e);
     } finally {
-        isWidgetsLoading.value = false;
+        if (showSkeleton) {
+            isWidgetsLoading.value = false;
+        }
     }
 }
 
@@ -215,19 +221,23 @@ async function refreshGrid() {
     });
 }
 
+async function syncDashboardView() {
+    if (isWidgetsLoading.value) {
+        return;
+    }
+
+    await nextTick();
+    await refreshGrid();
+    await nextTick();
+    renderCharts();
+}
+
 onMounted(async () => {
     await loadWidgets();
 });
 
-watch(
-    widgets,
-    async () => {
-        await refreshGrid();
-        await nextTick();
-        renderCharts();
-    },
-    { deep: false },
-);
+watch(widgets, syncDashboardView, { deep: false });
+watch(isWidgetsLoading, syncDashboardView);
 
 onBeforeUnmount(() => {
     if (grid) {

@@ -13,8 +13,30 @@ class FileStorageService
 
     public function storeUploadedFile(UploadedFile $file): ?string
     {
+        return $this->putFile(self::WORKFLOW_PREFIX, $file);
+    }
+
+    public function storeUserFile(UploadedFile $file, string $folder): ?string
+    {
+        return $this->putFile('users/'.$folder.'/', $file);
+    }
+
+    public function delete(?string $path): void
+    {
+        if (! $path || filter_var($path, FILTER_VALIDATE_URL)) {
+            return;
+        }
+
+        try {
+            Storage::disk('s3')->delete($path);
+        } catch (\Throwable) {
+        }
+    }
+
+    private function putFile(string $prefix, UploadedFile $file): ?string
+    {
         $extension = $file->getClientOriginalExtension() ?: 'bin';
-        $path = self::WORKFLOW_PREFIX.uniqid().'.'.$extension;
+        $path = $prefix.uniqid().'.'.$extension;
 
         try {
             $uploaded = Storage::disk('s3')->put(

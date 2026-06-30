@@ -8,7 +8,7 @@ import Search from '@/Components/Search/Search.vue';
 import Avatar from '@/Components/Avatar.vue';
 
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 
 const isOpenSidebar = ref(false)
 const isMobileActionsOpen = ref(false)
@@ -98,31 +98,37 @@ onBeforeUnmount(() => {
                 ref="mobileActionsWrap"
                 class="relative shrink-0 flex items-center gap-3"
               >
-                <div
-                  class="cursor-pointer"
-                  role="button"
-                  tabindex="0"
-                  aria-label="Open user actions"
-                  @click.stop="isMobileActionsOpen = !isMobileActionsOpen"
-                  @keydown.enter.stop="isMobileActionsOpen = !isMobileActionsOpen"
+                <Link
+                  :href="route('profile.edit')"
+                  class="flex items-center gap-3 min-w-0"
+                  @click="isMobileActionsOpen = false"
                 >
                   <Avatar
                     :name="username"
                     :src="currentUser?.avatar_url"
-                    :userId="null"
+                    :userId="currentUser?.id"
                     :no-link="true"
                     size="md"
                   />
-                </div>
 
-                <div class="min-w-0">
-                  <div class="text-xs font-semibold truncate">
-                    Дмитрий
+                  <div class="min-w-0 hidden sm:block">
+                    <div class="text-xs font-semibold truncate">
+                      {{ username }}
+                    </div>
+                    <div class="t-mini truncate">
+                      {{ currentUser?.email }}
+                    </div>
                   </div>
-                  <div class="t-mini">
-                    dmitriy@gmail.com
-                  </div>
-                </div>
+                </Link>
+
+                <button
+                  type="button"
+                  class="lg:hidden w-8 h-8 rounded-full bg-[#e97358]/10 text-[#e97358] flex items-center justify-center shrink-0"
+                  aria-label="Open user actions"
+                  @click.stop="isMobileActionsOpen = !isMobileActionsOpen"
+                >
+                  <i class="fa-solid fa-chevron-down text-xs" />
+                </button>
 
                 <!-- Mobile actions dropdown (under avatar) -->
                 <div
@@ -147,6 +153,15 @@ onBeforeUnmount(() => {
                     <i class="fa-solid fa-envelope text-sm text-[#e97358]" />
                     <span class="text-sm font-semibold">Messages</span>
                   </button>
+
+                  <Link
+                    :href="route('profile.edit')"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#e97358]/10 text-[#1a1a1a]"
+                    @click="isMobileActionsOpen = false"
+                  >
+                    <i class="fa-solid fa-user text-sm text-[#e97358]" />
+                    <span class="text-sm font-semibold">Профиль</span>
+                  </Link>
                 </div>
               </div>
             </div>

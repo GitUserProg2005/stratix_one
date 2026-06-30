@@ -2,6 +2,7 @@
 import Modal from '@/Components/Modal.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import CreateNode from './Components/CreateNode.vue';
+import DeployWorkflow from './Components/DeployWorkflow.vue';
 import CustomNode from './Components/CustomNode.vue';
 import CustomEdge from './Components/CustomEdge.vue';
 import BackButton from '@/Components/BackButton.vue';
@@ -609,6 +610,7 @@ onBeforeUnmount(() => {
 
                             <CreateNode :workflow-id="workflow.id" :nodes="nodes" @onCreatedNode="handleCreatedNode" />
                         </div>
+
                         <div class="dashboard-inset hidden max-w-[11rem] sm:block">
                             <div class="dashboard-row-title mb-1">Индикаторы</div>
 
@@ -621,6 +623,8 @@ onBeforeUnmount(() => {
 
                     <Panel position="top-right" class="!m-3 flex max-w-[min(100%,28rem)] flex-col gap-2">
                         <div class="dashboard-inset flex flex-wrap items-center gap-2">
+                            <DeployWorkflow :workflow-id="workflow.id" />
+
                             <button class="primary-btn" @click.stop="openBottomPanel({ component: AiChat, 
                                 props: { 
                                     workflowId: workflow.id,

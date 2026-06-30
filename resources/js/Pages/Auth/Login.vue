@@ -2,6 +2,8 @@
 import Checkbox from '@/Components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 defineProps({
@@ -30,22 +32,22 @@ const submit = () => {
     <GuestLayout>
         <Head title="Вход" />
 
-        <h1 class="title mb-2">Вход</h1>
+        <h1 class="title mb-2 t-color-content">Вход</h1>
         <p class="context mb-6">
             Войдите в аккаунт, чтобы продолжить работу.
         </p>
 
-        <div v-if="status" class="mb-4 t-small text-green-600">
+        <div v-if="status" class="mb-4 t-small t-color-primary">
             {{ status }}
         </div>
 
         <form @submit.prevent="submit" class="space-y-5">
             <div>
-                <label for="email" class="t-mini text-gray-600 mb-1 block">Email</label>
-                <input
+                <InputLabel for="email" value="Email" />
+                <TextInput
                     id="email"
                     type="email"
-                    class="input block w-full"
+                    class="input mt-1 block w-full"
                     v-model="form.email"
                     required
                     autofocus
@@ -55,11 +57,11 @@ const submit = () => {
             </div>
 
             <div>
-                <label for="password" class="t-mini text-gray-600 mb-1 block">Пароль</label>
-                <input
+                <InputLabel for="password" value="Пароль" />
+                <TextInput
                     id="password"
                     type="password"
-                    class="input block w-full"
+                    class="input mt-1 block w-full"
                     v-model="form.password"
                     required
                     autocomplete="current-password"
@@ -71,25 +73,27 @@ const submit = () => {
                 <Checkbox
                     name="remember"
                     v-model:checked="form.remember"
-                    class="rounded border-gray-300 text-[#e97358] focus:ring-[#e97358]"
+                    class="rounded border-gray-300 text-[var(--accent)] focus:ring-[var(--accent)]"
                 />
-                <span class="ms-2 t-small text-gray-600">Запомнить меня</span>
+                <span class="ms-2 t-small t-color-secondary">Запомнить меня</span>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="t-small text-gray-600 hover:text-gray-900 transition order-2 sm:order-1"
+                    class="t-small t-color-secondary transition order-2 sm:order-1 inline-flex items-center gap-2"
                 >
+                    <i class="fa-solid fa-key text-xs" />
                     Забыли пароль?
                 </Link>
                 <button
                     type="submit"
-                    class="primary-btn w-full sm:w-auto order-1 sm:order-2"
+                    class="primary-btn w-full sm:w-auto order-1 sm:order-2 inline-flex items-center justify-center gap-2"
                     :disabled="form.processing"
                 >
                     Войти
+                    <i class="fa-solid fa-right-to-bracket text-xs" />
                 </button>
             </div>
         </form>

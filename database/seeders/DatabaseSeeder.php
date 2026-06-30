@@ -18,5 +18,10 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call(NodeTypeSeeder::class);
+        $this->call(WorkflowCategorySeeder::class);
+        $this->call(WorkflowSeeder::class);
+        $this->call(NodeSeeder::class);
+        $this->call(EdgeSeeder::class);
+        $this->call(CatalogWorkflowSeeder::class);
     }
 }
