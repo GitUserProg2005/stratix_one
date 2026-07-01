@@ -61,7 +61,25 @@ const countLogs = ref(0);
 const nodes = ref([]);
 const edges = ref([]);
 const presenceParticipants = ref([]);
+const presenceLocks = ref({});
+const presenceRef = ref(null);
 const isLoading = ref(false);
+
+function acquireNodeLock(nodeId) {
+    return presenceRef.value?.acquireLock('node', nodeId) ?? false;
+}
+
+function releaseNodeLock(nodeId) {
+    presenceRef.value?.releaseLock('node', nodeId);
+}
+
+function acquireEdgeLock(edgeId) {
+    return presenceRef.value?.acquireLock('edge', edgeId) ?? false;
+}
+
+function releaseEdgeLock(edgeId) {
+    presenceRef.value?.releaseLock('edge', edgeId);
+}
 
 let workflowEchoChannel = null;
 
@@ -607,8 +625,10 @@ onBeforeUnmount(() => {
                     />
 
                     <WorkflowPresence
+                        ref="presenceRef"
                         :workflow-id="workflow.id"
                         v-model:participants="presenceParticipants"
+                        v-model:locks="presenceLocks"
                         @remote-node-position="applyRemoteNodePosition"
                     />
 
@@ -619,6 +639,9 @@ onBeforeUnmount(() => {
                             :schemas="schemas"
                             :schemas-loading="isSchemasLoading"
                             :workflow-id="workflow.id"
+                            :lock="presenceLocks[`node:${data.id}`]"
+                            :acquire-lock="() => acquireNodeLock(data.id)"
+                            :release-lock="() => releaseNodeLock(data.id)"
                             :on-webhook-log="
                                 (log) => {
                                     logs.push(log);
@@ -642,6 +665,9 @@ onBeforeUnmount(() => {
                             :target-schema="getSchema(getNodeById(edgeProps.target))"
 
                             :edge="edges.find(e => e.id === edgeProps.id)"
+                            :lock="presenceLocks[`edge:${edgeProps.id}`]"
+                            :acquire-lock="() => acquireEdgeLock(edgeProps.id)"
+                            :release-lock="() => releaseEdgeLock(edgeProps.id)"
 
                             @add-mapping="handleAddMapping"
                         />

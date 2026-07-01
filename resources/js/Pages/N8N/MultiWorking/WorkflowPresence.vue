@@ -10,7 +10,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['remote-node-position', 'update:participants']);
+const emit = defineEmits(['remote-node-position', 'update:participants', 'update:locks']);
 
 const { onNodeDrag } = useVueFlow();
 const currentUser = usePage().props.auth.user;
@@ -19,13 +19,19 @@ const colors = ['#6656f5', '#f556c7', '#f55d56'];
 
 const activeUsers = ref([]);
 const remoteCursors = ref({});
+const locks = ref({});
 
 watch(activeUsers, (users) => emit('update:participants', users), { deep: true });
+watch(locks, (value) => emit('update:locks', value), { deep: true });
 
 let channel = null;
 let lastCursorTime = 0;
 let lastDragTime = 0;
 let lastMouse = { x: 0, y: 0 };
+
+function lockKey(targetType, targetId) {
+    return `${targetType}:${targetId}`;
+}
 
 function withColor(user, index) {
     return { ...user, color: colors[index % colors.length] };
@@ -34,6 +40,67 @@ function withColor(user, index) {
 function colorForUserId(userId) {
     return activeUsers.value.find((u) => u.id === userId)?.color ?? colors[0];
 }
+
+function myColor() {
+    return colorForUserId(currentUser.id);
+}
+
+function clearLocksForUser(userId) {
+    for (const key of Object.keys(locks.value)) {
+        if (locks.value[key]?.userId === userId) {
+            delete locks.value[key];
+        }
+    }
+}
+
+function acquireLock(targetType, targetId) {
+    const key = lockKey(targetType, targetId);
+    const existing = locks.value[key];
+
+    if (existing && existing.userId !== currentUser.id) {
+        return false;
+    }
+
+    locks.value[key] = { userId: currentUser.id, color: myColor() };
+
+    channel?.whisper('lock-acquire', {
+        id: currentUser.id,
+        targetType,
+        targetId: String(targetId),
+    });
+
+    return true;
+}
+
+function releaseLock(targetType, targetId) {
+    const key = lockKey(targetType, targetId);
+    const existing = locks.value[key];
+
+    if (!existing || existing.userId !== currentUser.id) {
+        return;
+    }
+
+    delete locks.value[key];
+
+    channel?.whisper('lock-release', {
+        id: currentUser.id,
+        targetType,
+        targetId: String(targetId),
+    });
+}
+
+function releaseAllMyLocks() {
+    for (const key of Object.keys(locks.value)) {
+        if (locks.value[key]?.userId === currentUser.id) {
+            const [, targetType, targetId] = key.match(/^([^:]+):(.+)$/) || [];
+            if (targetType && targetId) {
+                releaseLock(targetType, targetId);
+            }
+        }
+    }
+}
+
+defineExpose({ acquireLock, releaseLock });
 
 function emitPresenceData(e) {
     if (!channel) return;
@@ -83,6 +150,7 @@ onMounted(() => {
         .leaving((user) => {
             activeUsers.value = activeUsers.value.filter((u) => u.id !== user.id);
             delete remoteCursors.value[user.id];
+            clearLocksForUser(user.id);
         })
         .listenForWhisper('cursor-moving', (e) => {
             if (e.id === currentUser.id) return;
@@ -101,6 +169,19 @@ onMounted(() => {
                     y: e.node_y,
                 });
             }
+        })
+        .listenForWhisper('lock-acquire', (e) => {
+            if (e.id === currentUser.id) return;
+
+            locks.value[lockKey(e.targetType, e.targetId)] = {
+                userId: e.id,
+                color: colorForUserId(e.id),
+            };
+        })
+        .listenForWhisper('lock-release', (e) => {
+            if (e.id === currentUser.id) return;
+
+            delete locks.value[lockKey(e.targetType, e.targetId)];
         });
 
     window.addEventListener('mousemove', emitPresenceData);
@@ -108,6 +189,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener('mousemove', emitPresenceData);
+    releaseAllMyLocks();
     Echo.leave(`workflow-presence.${props.workflowId}`);
 });
 </script>

@@ -3,7 +3,8 @@ import UpdateNode from './UpdateNode.vue';
 import RedDot from './RedDot.vue';
 import MapEnvironment from './MapEnvironment.vue';
 import { Handle, Position } from '@vue-flow/core';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { nodeConfigFields } from './nodeConfigFields';
 import { createButtonHandler } from './nodeButtonHandlers';
 import IOSchemas from './IOSchemas/IOSchemas.vue';
@@ -19,6 +20,9 @@ const props = defineProps({
     workflowId: Number,
     onWebhookLog: Function,
     modelValue: Object,
+    lock: Object,
+    acquireLock: Function,
+    releaseLock: Function,
 });
 
 const emit = defineEmits(['nodeUpdated', 'nodeDeleted',
@@ -27,6 +31,26 @@ const emit = defineEmits(['nodeUpdated', 'nodeDeleted',
 
 const showUpdateModal = ref(false);
 const isWebhookLoading = ref(false);
+const currentUserId = usePage().props.auth.user?.id;
+
+const isLockedByOther = computed(() =>
+    props.lock && props.lock.userId !== currentUserId
+);
+
+const lockStyle = computed(() =>
+    props.lock ? { boxShadow: `0 0 0 3px ${props.lock.color}` } : {}
+);
+
+function onDblClick() {
+    if (isLockedByOther.value) return;
+    if (props.acquireLock && !props.acquireLock()) return;
+    showUpdateModal.value = true;
+}
+
+function closeModal() {
+    props.releaseLock?.();
+    showUpdateModal.value = false;
+}
 
 const nodeConfig = nodeConfigFields[props.data.type] || { buttons: [] };
 const buttons = nodeConfig.buttons || [];
@@ -58,8 +82,10 @@ function isLoadingForButton(buttonConfig) {
             'content-badge-in-progress !p-4': data.status === 'running',
             'content-badge-completed !p-4': data.status === 'done',
             'content-badge-pending !p-4': data.status === 'failed',
+            'pointer-events-none opacity-60': isLockedByOther,
         }"
-        @dblclick="showUpdateModal = true"
+        :style="lockStyle"
+        @dblclick="onDblClick"
     >
         <Handle type="target" :position="Position.Left" />
 
@@ -151,8 +177,8 @@ function isLoadingForButton(buttonConfig) {
         :node-data="data"
         :nodes="nodes"
         :workflow-id="workflowId"
-        @close="showUpdateModal = false"
-        @onUpdatedNode="(updatedNode) => emit('nodeUpdated', updatedNode)"
-        @onDeletedNode="(deletedNodeId) => emit('nodeDeleted', deletedNodeId)"
+        @close="closeModal"
+        @onUpdatedNode="(updatedNode) => { closeModal(); emit('nodeUpdated', updatedNode); }"
+        @onDeletedNode="(deletedNodeId) => { closeModal(); emit('nodeDeleted', deletedNodeId); }"
     />
 </template>

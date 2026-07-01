@@ -1,6 +1,7 @@
 <script setup>
 import Modal from '@/Components/Modal.vue';
 import { ref, onMounted, computed, watch } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { getBezierPath } from '@vue-flow/core';
 import { flattenSchema } from '../utils/flattenSchema';
 import { buildAST } from '../utils/buildAST';
@@ -28,6 +29,10 @@ const props = defineProps({
     targetNode: Object,
 
     edge: Object,
+
+    lock: Object,
+    acquireLock: Function,
+    releaseLock: Function,
 });
 
 const isSaving = ref(false);
@@ -91,9 +96,23 @@ function updateMapping({ target, source }) {
 }
 
 const isOpen = ref(false);
+const currentUserId = usePage().props.auth.user?.id;
+
+const isLockedByOther = computed(() =>
+    props.lock && props.lock.userId !== currentUserId
+);
 
 function toggleModal() {
-    isOpen.value = !isOpen.value;
+    if (isLockedByOther.value) return;
+
+    if (!isOpen.value) {
+        if (props.acquireLock && !props.acquireLock()) return;
+        isOpen.value = true;
+        return;
+    }
+
+    props.releaseLock?.();
+    isOpen.value = false;
 }
 
 async function saveTransform() {
@@ -180,8 +199,8 @@ onMounted(() => {
                 targetX,
                 targetY,
             })[0]"
-            stroke="rgba(120,120,152,0.5)"
-            stroke-width="2"
+            :stroke="lock?.color ?? 'rgba(120,120,152,0.5)'"
+            :stroke-width="lock ? 3 : 2"
             fill="none"
         />
 
@@ -208,6 +227,8 @@ onMounted(() => {
         >
             <button
                 class="w-6 h-6 bg-content-ice rounded-full flex items-center justify-center text-xs"
+                :disabled="isLockedByOther"
+                :class="{ 'opacity-50 pointer-events-none': isLockedByOther }"
                 @click.stop="toggleModal"
             >
                 <i class="fa-solid fa-plus"></i>
