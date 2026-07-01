@@ -14,6 +14,8 @@ use App\Services\N8N\Nodes\NodeRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use App\Events\WorkflowUpdated;
+
 
 class NodeController extends Controller
 {
@@ -57,8 +59,6 @@ class NodeController extends Controller
             'position' => $data['position'],
         ]);
 
-        // app(NodeFactory::class)->handle($node, []);
-
         /*
         * Если тип создаваемой ноды webhook-trigger - создаем вебхук с токеном для юзера
         */
@@ -74,6 +74,14 @@ class NodeController extends Controller
         $this->syncWorkflowTimers(
             workflowId: (int) $node->workflow_id,
             nodesPayload: $request->input('nodes')
+        );
+        
+        // Отправляем событие о том, что узел был создан
+        WorkflowUpdated::dispatch(
+            (int) $node->workflow_id,
+            auth()->id(),
+            'node.created',
+            $node->toArray()
         );
 
         return response()->json([
@@ -112,6 +120,13 @@ class NodeController extends Controller
             nodesPayload: $request->input('nodes')
         );
 
+        WorkflowUpdated::dispatch(
+            (int) $node->workflow_id,
+            auth()->id(),
+            'node.updated',
+            $node->toArray()
+        );
+
         return response()->json([
             'result' => 'ok',
             'node' => $node,
@@ -126,6 +141,13 @@ class NodeController extends Controller
         $node->delete();
 
         $this->syncWorkflowTimers($workflowId);
+
+        WorkflowUpdated::dispatch(
+            $workflowId,
+            auth()->id(),
+            'node.deleted',
+            $node->toArray()
+        );
 
         return response()->json([
             'result' => 'ok',
@@ -155,6 +177,13 @@ class NodeController extends Controller
 
         $edge = Edge::create($data);
 
+        WorkflowUpdated::dispatch(
+            (int) $edge->workflow_id,
+            auth()->id(),
+            'edge.created',
+            $edge->toArray()
+        );
+
         return response()->json([
             'result' => 'ok',
             'edge' => $edge,
@@ -163,7 +192,18 @@ class NodeController extends Controller
 
     public function deleteEdge(int $edgeId)
     {
-        Edge::findOrFail($edgeId)->delete();
+        $edge = Edge::findOrFail($edgeId);
+        $payload = $edge->toArray();
+        $workflowId = (int) $edge->workflow_id;
+
+        $edge->delete();
+
+        WorkflowUpdated::dispatch(
+            $workflowId,
+            auth()->id(),
+            'edge.deleted',
+            $payload
+        );
 
         return response()->json(['result' => 'ok']);
     }
@@ -179,11 +219,17 @@ class NodeController extends Controller
     }
 
     public function updateEdgeTransform(Request $request, int $edgeId) {
-        \Log::info('REQUEST UPDATER EDGE TRANSFORM: '.$request);
         $edge = Edge::findOrFail($edgeId);
 
         $edge->transform = $request->transform;
         $edge->save();
+
+        WorkflowUpdated::dispatch(
+            (int) $edge->workflow_id,
+            auth()->id(),
+            'edge.updated',
+            $edge->toArray()
+        );
 
         return response()->json([
             'result' => 'ok'

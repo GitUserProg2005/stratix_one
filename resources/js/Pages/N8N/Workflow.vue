@@ -13,6 +13,9 @@ import BottomPanel from './Components/BottomPanel.vue';
 import RedDot from './Components/RedDot.vue';
 import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 
+import WorkflowPresence from './MultiWorking/WorkflowPresence.vue';
+import Participants from './MultiWorking/Participants.vue';
+import ChangeListener from './MultiWorking/ChangeListener.vue';
 import HandContoller from './HandContoller.vue';
 // import SmartBlur from '@/Components/SmartBlur.vue';
 
@@ -34,8 +37,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['delete']);
-
-const isPrivacyViolated = ref(false);
 
 const bottomPanelComponent = ref(null);
 const bottomPanelProps = ref({});
@@ -59,6 +60,7 @@ const countLogs = ref(0);
 
 const nodes = ref([]);
 const edges = ref([]);
+const presenceParticipants = ref([]);
 const isLoading = ref(false);
 
 let workflowEchoChannel = null;
@@ -385,10 +387,46 @@ function handleDeletedNode(deletedNodeId) {
     );
 }
 
+function handleNodeCreated(node) {
+    const next = rawNodeToVueFlow(node);
+    if (nodes.value.some((n) => n.id === next.id)) return;
+    addNodes(next);
+}
+
+function handleNodeUpdated(node) {
+    handleUpdatedNode(node);
+}
+
+function handleNodeDeleted(node) {
+    handleDeletedNode(node.id);
+}
+
+function handleEdgeCreated(edge) {
+    const next = rawEdgeToVueFlow(edge);
+    if (edges.value.some((e) => e.id === next.id)) return;
+    edges.value.push(next);
+}
+
+function handleEdgeUpdated(edge) {
+    const next = rawEdgeToVueFlow(edge);
+    edges.value = edges.value.map((e) => (e.id === next.id ? { ...e, ...next } : e));
+}
+
+function handleEdgeDeleted(edge) {
+    edges.value = edges.value.filter((e) => e.id !== String(edge.id));
+}
+
 function onNodeDragStop({ node }) {
     axios
         .post(route('update.node.position', node.id), { position: node.position })
         .catch((e) => console.error('Ошибка обновления позиции', e));
+}
+
+function applyRemoteNodePosition({ nodeId, x, y }) {
+    const id = String(nodeId);
+    nodes.value = nodes.value.map((node) =>
+        node.id === id ? { ...node, position: { x, y } } : node
+    );
 }
 
 async function onConnect({ source, target }) {
@@ -558,6 +596,22 @@ onBeforeUnmount(() => {
                 >
                     <Background variant="dots" :gap="15" :size="2" color="rgba(120,120,152,0.13)" />
 
+                    <ChangeListener
+                        :workflow-id="workflow.id"
+                        @node-created="handleNodeCreated"
+                        @node-updated="handleNodeUpdated"
+                        @node-deleted="handleNodeDeleted"
+                        @edge-created="handleEdgeCreated"
+                        @edge-updated="handleEdgeUpdated"
+                        @edge-deleted="handleEdgeDeleted"
+                    />
+
+                    <WorkflowPresence
+                        :workflow-id="workflow.id"
+                        v-model:participants="presenceParticipants"
+                        @remote-node-position="applyRemoteNodePosition"
+                    />
+
                     <template #node-custom="{ data }">
                         <CustomNode
                             :nodes="nodes"
@@ -619,6 +673,8 @@ onBeforeUnmount(() => {
                                 <span class="t-mini">Заполните параметры</span>
                             </div>
                         </div>
+
+                        <Participants :participants="presenceParticipants" />
                     </Panel>
 
                     <Panel position="top-right" class="!m-3 flex max-w-[min(100%,28rem)] flex-col gap-2">
