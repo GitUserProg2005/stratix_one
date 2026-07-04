@@ -108,18 +108,19 @@ onMounted(() => {
                     <img
                         :src="rate.picture"
                         :alt="rate.title"
-                        class="h-full w-full object-cover"
+                        class="h-full w-full object-contain"
                     />
                 </div>
                 <div v-else class="mb-3 flex aspect-video items-center justify-center rounded-xl bg-content">
                     <i class="fa-solid fa-crown text-3xl text-gray-500" />
                 </div>
 
-                <h4 class="title-3 mb-1">{{ rate.title }}</h4>
-                <p class="title-2 mb-3">{{ rate.price }} ₽</p>
+                <h4 class="title-font-3 mb-1">{{ rate.title }}</h4>
+                <p class="title-3 mb-3">{{ rate.price }} ₽</p>
 
                 <ul v-if="rate.features?.length" class="context mb-4 flex-1 space-y-1">
                     <li v-for="(feature, index) in rate.features" :key="index">
+                        <i class="fa-solid fa-check mr-2"></i> 
                         {{ typeof feature === 'object' && feature.name ? feature.name : feature }}
                     </li>
                 </ul>
@@ -131,7 +132,7 @@ onMounted(() => {
                     @click="payRate(rate)"
                 >
                     <i v-if="payingRateId === rate.id" class="fa-solid fa-spinner fa-spin" />
-                    <template v-else-if="isCurrentRate(rate)">Ваш тариф</template>
+                    <template v-else-if="isCurrentRate(rate)">Ваш текущий тариф</template>
                     <template v-else>
                         Оплатить
                         <i class="fa-solid fa-arrow-right text-xs" />

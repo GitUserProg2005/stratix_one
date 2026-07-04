@@ -3,18 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DashboardWidgetType;
+use App\Enums\FeatureType;
 use App\Models\Dashboard;
 use App\Models\DashboardWidget;
 use App\Models\Workflow;
+use App\Services\CheckAccessFeature;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+
 class DashboardController extends Controller
 {
-    public function index(): Response
+    public function index(CheckAccessFeature $checkAccess): Response
     {
+        $access = $checkAccess->resolve(auth()->user()->rate_id, FeatureType::DASHBOARD->value);
+
         $dashboards = Dashboard::query()
             ->where('creator_id', auth()->id())
             ->with('workflow')
@@ -30,13 +35,17 @@ class DashboardController extends Controller
             });
 
         return Inertia::render('Dashboard/Index', [
-            'dashboards' => $dashboards,
+            'dashboards' => $access['has_access'] ? $dashboards : [],
+            'has_access' => $access['has_access'],
+            'access_error' => $access['access_error'],
         ]);
     }
 
-    public function show(Dashboard $dashboard): Response
+    public function show(Dashboard $dashboard, CheckAccessFeature $checkAccess): Response
     {
         abort_unless($dashboard->creator_id === auth()->id(), 403);
+
+        $access = $checkAccess->resolve(auth()->user()->rate_id, FeatureType::DASHBOARD->value);
 
         $dashboard->load('workflow');
 
@@ -46,12 +55,18 @@ class DashboardController extends Controller
                 'title' => $dashboard->title,
                 'workflow' => $dashboard->workflow ? ['id' => $dashboard->workflow->id, 'name' => $dashboard->workflow->name] : null,
             ],
+            'has_access' => $access['has_access'],
+            'access_error' => $access['access_error'],
         ]);
     }
 
-    public function widgets(Dashboard $dashboard): JsonResponse
+    public function widgets(Dashboard $dashboard, CheckAccessFeature $checkAccess): JsonResponse
     {
         abort_unless($dashboard->creator_id === auth()->id(), 403);
+
+        if ($response = $this->denyWithoutFeature($checkAccess)) {
+            return $response;
+        }
 
         $widgets = DashboardWidget::query()
             ->where('dashboard_id', $dashboard->id)
@@ -60,8 +75,12 @@ class DashboardController extends Controller
         return response()->json($widgets);
     }
 
-    public function getMetrics(Workflow $workflow): JsonResponse
+    public function getMetrics(Workflow $workflow, CheckAccessFeature $checkAccess): JsonResponse
     {
+        if ($response = $this->denyWithoutFeature($checkAccess)) {
+            return $response;
+        }
+
         $dashboards = Dashboard::query()
             ->where('creator_id', auth()->id())
             ->where('workflow_id', $workflow->id)
@@ -88,8 +107,12 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function createDashboard(Request $request): JsonResponse
+    public function createDashboard(Request $request, CheckAccessFeature $checkAccess): JsonResponse
     {
+        if ($response = $this->denyWithoutFeature($checkAccess)) {
+            return $response;
+        }
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'workflow_id' => ['nullable', 'integer', 'exists:workflows,id'],
@@ -105,9 +128,13 @@ class DashboardController extends Controller
         return response()->json($dashboard, 201);
     }
 
-    public function createWidget(Request $request, Dashboard $dashboard): JsonResponse
+    public function createWidget(Request $request, Dashboard $dashboard, CheckAccessFeature $checkAccess): JsonResponse
     {
         abort_unless($dashboard->creator_id === auth()->id(), 403);
+
+        if ($response = $this->denyWithoutFeature($checkAccess)) {
+            return $response;
+        }
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -148,8 +175,12 @@ class DashboardController extends Controller
         return response()->json($widget, 201);
     }
 
-    public function updateWidgetPosition(Request $request, DashboardWidget $widget): JsonResponse
+    public function updateWidgetPosition(Request $request, DashboardWidget $widget, CheckAccessFeature $checkAccess): JsonResponse
     {
+        if ($response = $this->denyWithoutFeature($checkAccess)) {
+            return $response;
+        }
+
         $validated = $request->validate([
             'x' => ['required', 'integer'],
             'y' => ['required', 'integer'],
@@ -167,5 +198,17 @@ class DashboardController extends Controller
         ]);
 
         return response()->json($widget);
+    }
+
+    private function denyWithoutFeature(CheckAccessFeature $checkAccess): ?JsonResponse
+    {
+        if ($checkAccess->canAccess(auth()->user()->rate_id, FeatureType::DASHBOARD->value)) {
+            return null;
+        }
+
+        return response()->json([
+            'result' => 'error',
+            'message' => $checkAccess->errorMessage(FeatureType::DASHBOARD->value),
+        ], 403);
     }
 }

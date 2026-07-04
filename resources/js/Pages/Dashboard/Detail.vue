@@ -2,6 +2,7 @@
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import CreateMetric from './CreateMetric.vue';
 import BackButton from '@/Components/BackButton.vue';
+import NoAccess from '@/Components/NoAccess.vue';
 import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -19,6 +20,14 @@ const props = defineProps({
     dashboard: {
         type: Object,
         required: true,
+    },
+    has_access: {
+        type: Boolean,
+        default: true,
+    },
+    access_error: {
+        type: String,
+        default: null,
     },
 });
 
@@ -233,6 +242,11 @@ async function syncDashboardView() {
 }
 
 onMounted(async () => {
+    if (!props.has_access) {
+        isWidgetsLoading.value = false;
+        return;
+    }
+
     await loadWidgets();
 });
 
@@ -257,6 +271,9 @@ onBeforeUnmount(() => {
 
     <DashboardLayout>
         <div class="p-4">
+            <NoAccess v-if="!has_access && access_error" :title="access_error" />
+
+            <template v-else>
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3 min-w-0">
                     <BackButton :backUrl="'dashboard'" />
@@ -309,6 +326,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
             </section>
+            </template>
         </div>
     </DashboardLayout>
 </template>

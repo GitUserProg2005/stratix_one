@@ -11,45 +11,43 @@ class RateSeeder extends Seeder
     {
         $rates = [
             [
-                'title' => 'Базовый',
-                'price' => 500,
+                'title' => 'Ignium',
+                'price' => 299,
+                'picture' => '/images/pricing/rate-level-1.svg',
                 'features' => [
-                    ['name' => 'Email-отчёты', 'description' => 'Отправка результатов на почту'],
-                    ['name' => 'Page Loader', 'description' => 'Загрузка страниц в markdown'],
+                    ['name' => 'Dashboard', 'description' => 'Дашборды и виджеты метрик'],
+                    ['name' => 'Schedule', 'description' => 'Cron-нода для запуска workflow по расписанию'],
+                    ['name' => 'Старт автоматизации', 'description' => 'Базовый тариф для первых сценариев'],
                 ],
             ],
             [
-                'title' => 'AI',
-                'price' => 1500,
+                'title' => 'Polium',
+                'price' => 1499,
+                'picture' => '/images/pricing/rate-level-2.svg',
                 'features' => [
-                    ['name' => 'GigaChat', 'description' => 'AI Request и AI Agent Request'],
+                    ['name' => 'CRM', 'description' => 'Воронки и работа с клиентскими сценариями'],
+                    ['name' => 'Ignium', 'description' => 'Все возможности стартового тарифа'],
+                    ['name' => 'OSRM + Whisper', 'description' => 'Маршруты и распознавание речи'],
+                ],
+            ],
+            [
+                'title' => 'Hornium',
+                'price' => 2999,
+                'picture' => '/images/pricing/rate-level-3.svg',
+                'features' => [
+                    ['name' => 'AI Agent', 'description' => 'GigaChat Agent и полный AI-стек'],
+                    ['name' => 'Polium', 'description' => 'Все возможности среднего тарифа'],
                     ['name' => 'Mistral', 'description' => 'Текст, OCR и анализ изображений'],
-                    ['name' => 'Whisper', 'description' => 'Распознавание речи'],
-                ],
-            ],
-            [
-                'title' => 'Geo',
-                'price' => 1000,
-                'features' => [
-                    ['name' => 'Маршруты', 'description' => 'Построение маршрутов через OSRM'],
-                    ['name' => 'PostGIS', 'description' => 'Point In Polygon'],
-                ],
-            ],
-            [
-                'title' => 'Про',
-                'price' => 2500,
-                'features' => [
-                    ['name' => 'Все ноды', 'description' => 'Доступ ко всем платным типам нод'],
-                    ['name' => 'Специализация', 'description' => 'Базовый + AI + Geo в одном тарифе'],
                 ],
             ],
         ];
 
         foreach ($rates as $rate) {
-            Rate::firstOrCreate(
+            Rate::updateOrCreate(
                 ['title' => $rate['title']],
                 [
                     'price' => $rate['price'],
+                    'picture' => $rate['picture'],
                     'features' => $rate['features'],
                 ]
             );

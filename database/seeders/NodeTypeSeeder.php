@@ -41,34 +41,46 @@ class NodeTypeSeeder extends Seeder
 
     private function seedNodeRatePivot(): void
     {
-        $rates = Rate::pluck('id', 'title');
+        $types = NodeType::pluck('id', 'type');
 
-        $basicId = $rates['Базовый'] ?? null;
-        $aiId = $rates['AI'] ?? null;
-        $geoId = $rates['Geo'] ?? null;
-        $proId = $rates['Про'] ?? null;
-
-        $bindings = [
-            'email_report' => array_filter([$basicId, $proId]),
-            'page_loader' => array_filter([$basicId, $proId]),
-            'ai_request' => array_filter([$aiId, $proId]),
-            'ai_agent_request' => array_filter([$aiId, $proId]),
-            'go_whisper' => array_filter([$aiId, $proId]),
-            'mistral_text' => array_filter([$aiId, $proId]),
-            'mistral_picture' => array_filter([$aiId, $proId]),
-            'mistral_ocr' => array_filter([$aiId, $proId]),
-            'osrm' => array_filter([$geoId, $proId]),
-            'point_in_polygon' => array_filter([$geoId, $proId]),
+        $tiers = [
+            'Ignium' => [
+                'schedule',
+            ],
+            'Polium' => [
+                'schedule',
+                'osrm',
+                'go_whisper',
+            ],
+            'Hornium' => [
+                'schedule',
+                'osrm',
+                'go_whisper',
+                'mistral_text',
+                'mistral_picture',
+                'mistral_ocr',
+                'ai_agent_request',
+                'ai_request',
+                'point_in_polygon',
+                'email_report',
+                'page_loader',
+            ],
         ];
 
-        foreach ($bindings as $type => $rateIds) {
-            $nodeType = NodeType::where('type', $type)->first();
+        foreach ($tiers as $title => $nodeTypes) {
+            $rate = Rate::where('title', $title)->first();
 
-            if (!$nodeType || $rateIds === []) {
+            if (!$rate) {
                 continue;
             }
 
-            $nodeType->rates()->sync($rateIds);
+            $ids = collect($nodeTypes)
+                ->map(fn (string $type) => $types[$type] ?? null)
+                ->filter()
+                ->values()
+                ->all();
+
+            $rate->nodeTypes()->sync($ids);
         }
     }
 }

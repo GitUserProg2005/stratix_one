@@ -14,25 +14,18 @@ use App\Services\SubscriptionPayment;
 use App\Models\Rate;
 use App\Models\Purchace;
 use App\Models\User;
-use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
     public function rates(Request $request)
     {
-        $rates = Rate::orderBy('price')->get()->map(function (Rate $rate) {
-            $picture = $rate->picture;
-            $pictureUrl = $picture
-                ? (filter_var($picture, FILTER_VALIDATE_URL) ? $picture : Storage::disk('s3')->url($picture))
-                : null;
-            return [
-                'id' => $rate->id,
-                'title' => $rate->title,
-                'picture' => $pictureUrl,
-                'features' => $rate->features,
-                'price' => $rate->price,
-            ];
-        });
+        $rates = Rate::orderBy('price')->get()->map(fn (Rate $rate) => [
+            'id' => $rate->id,
+            'title' => $rate->title,
+            'picture' => $rate->pictureUrl(),
+            'features' => $rate->features,
+            'price' => $rate->price,
+        ]);
         return Inertia::render('Payment/Rates', [
             'rates' => $rates,
         ]);

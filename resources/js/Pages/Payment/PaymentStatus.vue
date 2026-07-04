@@ -46,8 +46,8 @@ defineProps({
             :href="route('rates')"
             class="primary-btn inline-flex items-center gap-2"
           >
-            <i class="fa-solid fa-crown text-xs" />
             К тарифам
+            <i class="fa-solid fa-arrow-right"></i>
           </Link>
         </div>
       </div>

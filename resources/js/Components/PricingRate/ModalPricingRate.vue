@@ -8,6 +8,10 @@ defineProps({
         type: String,
         default: 'Тарифы',
     },
+    hideTrigger: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const showModal = ref(false);
@@ -19,11 +23,18 @@ function openModal() {
 function closeModal() {
     showModal.value = false;
 }
+
+defineExpose({ openModal });
 </script>
 
 <template>
     <div class="inline-flex">
-        <button type="button" class="tag t-mini" @click.stop="openModal">
+        <button
+            v-if="!hideTrigger"
+            type="button"
+            class="tag t-mini"
+            @click.stop="openModal"
+        >
             {{ buttonLabel }}
         </button>
 

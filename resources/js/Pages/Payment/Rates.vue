@@ -81,11 +81,11 @@ function payRate(rate) {
           :key="rate.id"
           class="content p-5 rounded-2xl flex flex-col"
         >
-          <div v-if="rate.picture" class="mb-3 rounded-xl overflow-hidden aspect-video bg-[#2C2C2C]">
+          <div v-if="rate.picture" class="mb-3 rounded-xl overflow-hidden aspect-video bg-content">
             <img
               :src="rate.picture"
               :alt="rate.title"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-contain"
             />
           </div>
           <div v-else class="mb-3 rounded-xl aspect-video bg-[#2C2C2C] flex items-center justify-center">
@@ -108,10 +108,6 @@ function payRate(rate) {
           </button>
         </div>
       </div>
-
-      <p class="mt-6 text-gray-500 text-xs">
-        Для теста задайте в .env: SHOP_ID и SK_YK (секретный ключ YooKassa). Callback после оплаты: GET/POST {{ route('callback.payment') }}
-      </p>
     </div>
   </AppLayout>
 </template>
