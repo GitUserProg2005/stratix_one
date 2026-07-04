@@ -8,6 +8,7 @@ use App\Http\Controllers\N8N\RunController;
 use App\Http\Controllers\N8N\WorkflowController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RateController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\WorkflowCatalogController;
 use App\Services\Prometheus\Metrics;
@@ -115,6 +116,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/get-nodes/{workflowId}', [NodeController::class, 'getNodes'])->name('get.nodes');
     Route::get('/get-node-types', [NodeController::class, 'getNodeTypes'])->name('get.node.types');
+    Route::get('/get-rates', [RateController::class, 'index'])->name('get.rates');
     Route::get('/show-node/{nodeId}', [NodeController::class, 'showNode'])->name('show.node');
     Route::post('/create-node', [NodeController::class, 'createNode'])->name('create.node');
     Route::post('/update-node-position/{nodeId}', [NodeController::class, 'updateNodePosition'])->name('update.node.position');

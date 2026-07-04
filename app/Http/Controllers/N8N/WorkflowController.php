@@ -4,6 +4,7 @@ namespace App\Http\Controllers\N8N;
 
 use App\Http\Controllers\Controller;
 use App\Models\Workflow;
+use App\Services\N8N\CheckRate;
 use App\Services\N8N\Runner;
 use Illuminate\Http\Request;
 
@@ -75,11 +76,18 @@ class WorkflowController extends Controller
         ]);
     }
  
-    public function runWorkflow(Request $request, int $workflowId)
+    public function runWorkflow(Request $request, int $workflowId, CheckRate $checkRate)
     {
         $workflow = Workflow::with(['nodes', 'nodes.edges'])->findOrFail($workflowId);
         $nodes = $workflow->nodes;
         $edges = $workflow->nodes->flatMap(fn ($node) => $node->edges);
+
+        if (!$checkRate->checkRate(auth()->user()->rate_id, $nodes)) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'У вас нет доступа к нодам этого workflow',
+            ], 403);
+        }
 
         $runner = new Runner($workflowId, $nodes, $edges);
         $runner->commitPoints();

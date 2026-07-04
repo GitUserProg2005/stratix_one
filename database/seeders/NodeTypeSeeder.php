@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\NodeType;
+use App\Models\Rate;
 use Illuminate\Database\Seeder;
 
 class NodeTypeSeeder extends Seeder
@@ -19,7 +20,6 @@ class NodeTypeSeeder extends Seeder
             ['name' => 'Log', 'type' => 'log', 'description' => 'Запись в лог приложения'],
             ['name' => 'Collect Metrics', 'type' => 'collect_metrics', 'description' => 'Сбор метрик (заглушка)'],
             ['name' => 'Update Metric', 'type' => 'update_metric', 'description' => 'Увеличение значений метрик (дашборд виджеты)'],
-            ['name' => 'Condition', 'type' => 'condition', 'description' => 'Условное ветвление'],
             ['name' => 'Schedule', 'type' => 'schedule', 'description' => 'Расписание выполнения'],
             ['name' => 'Page Loader', 'type' => 'page_loader', 'description' => 'Загрузка страницы и конвертация в markdown'],
             ['name' => 'Go Whisper', 'type' => 'go_whisper', 'description' => 'Распознавание речи через Whisper ASR'],
@@ -34,6 +34,41 @@ class NodeTypeSeeder extends Seeder
                 ['type' => $row['type']],
                 ['name' => $row['name'], 'description' => $row['description']]
             );
+        }
+
+        $this->seedNodeRatePivot();
+    }
+
+    private function seedNodeRatePivot(): void
+    {
+        $rates = Rate::pluck('id', 'title');
+
+        $basicId = $rates['Базовый'] ?? null;
+        $aiId = $rates['AI'] ?? null;
+        $geoId = $rates['Geo'] ?? null;
+        $proId = $rates['Про'] ?? null;
+
+        $bindings = [
+            'email_report' => array_filter([$basicId, $proId]),
+            'page_loader' => array_filter([$basicId, $proId]),
+            'ai_request' => array_filter([$aiId, $proId]),
+            'ai_agent_request' => array_filter([$aiId, $proId]),
+            'go_whisper' => array_filter([$aiId, $proId]),
+            'mistral_text' => array_filter([$aiId, $proId]),
+            'mistral_picture' => array_filter([$aiId, $proId]),
+            'mistral_ocr' => array_filter([$aiId, $proId]),
+            'osrm' => array_filter([$geoId, $proId]),
+            'point_in_polygon' => array_filter([$geoId, $proId]),
+        ];
+
+        foreach ($bindings as $type => $rateIds) {
+            $nodeType = NodeType::where('type', $type)->first();
+
+            if (!$nodeType || $rateIds === []) {
+                continue;
+            }
+
+            $nodeType->rates()->sync($rateIds);
         }
     }
 }

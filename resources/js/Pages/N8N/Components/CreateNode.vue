@@ -1,5 +1,5 @@
 <script setup>
-import ChoiceNodeType from './ChoiceNodeType.vue';
+import LibraryNodes from '../NodeTypeSelection/LibraryNodes.vue';
 import ConditionBuilder from './Conditions/ConditionBuilder.vue';
 import OutputBuilder from './OutputSchema/OutputBuilder.vue';
 import Modal from '@/Components/Modal.vue';
@@ -103,7 +103,7 @@ async function createNode() {
                     </div>
 
                     <div>
-                        <ChoiceNodeType @onSelectedNodeType="(type) => (nodeType = type)" />
+                        <LibraryNodes @onSelectedNodeType="(type) => (nodeType = type)" />
                     </div>
 
                     <div>

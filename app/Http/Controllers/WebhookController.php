@@ -6,20 +6,31 @@ use Illuminate\Http\Request;
 
 use App\Models\Workflow;
 use App\Models\Webhook;
+use App\Models\User;
 
+use App\Services\N8N\CheckRate;
 use App\Services\N8N\IncomingDataNormalizer;
 use App\Services\N8N\Runner;
 
 
 class WebhookController extends Controller
 {
-    public function trigger(string $token, Request $request, IncomingDataNormalizer $normalizer)
+    public function trigger(string $token, Request $request, IncomingDataNormalizer $normalizer, CheckRate $checkRate)
     {
         $webhook = Webhook::where('token', $token)
             ->firstOrFail();
 
         $workflow = Workflow::with('nodes', 'nodes.edges')
             ->findOrFail($webhook->workflow_id);
+
+        $userRateId = User::query()->whereKey($webhook->user_id)->value('rate_id');
+
+        if (!$checkRate->checkRate($userRateId, $workflow->nodes)) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'У владельца webhook нет доступа к нодам этого workflow',
+            ], 403);
+        }
 
         $edges = $workflow->nodes->flatMap(fn ($node) => $node->edges ?? []);
 

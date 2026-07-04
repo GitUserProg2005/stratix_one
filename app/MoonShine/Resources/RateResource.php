@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\NodeType;
 use App\Models\Rate;
-
+use MoonShine\Contracts\UI\ComponentContract;
+use MoonShine\Contracts\UI\FieldContract;
+use MoonShine\Laravel\Fields\Relationships\BelongsToMany;
 use MoonShine\Laravel\Resources\ModelResource;
 use MoonShine\UI\Components\Layout\Box;
 use MoonShine\UI\Fields\ID;
-use MoonShine\UI\Fields\Text;
 use MoonShine\UI\Fields\Image;
-use MoonShine\UI\Fields\Number;
 use MoonShine\UI\Fields\Json;
-use MoonShine\Contracts\UI\FieldContract;
-use MoonShine\Contracts\UI\ComponentContract;
+use MoonShine\UI\Fields\Number;
+use MoonShine\UI\Fields\Text;
 
 /**
  * @extends ModelResource<Rate>
@@ -37,6 +37,8 @@ class RateResource extends ModelResource
             Image::make('Изображение', 'picture')
                 ->disk('s3'),
             Number::make('Цена', 'price'),
+            BelongsToMany::make('Типы нод', 'nodeTypes', 'name')
+                ->onlyCount(),
         ];
     }
 
@@ -57,7 +59,17 @@ class RateResource extends ModelResource
                         Text::make('Особенность', 'name'),
                         Text::make('Расшифровка', 'description'),
                     ]),
-            ])
+                BelongsToMany::make(
+                    'Типы нод',
+                    'nodeTypes',
+                    fn (NodeType $item): string => "{$item->name} ({$item->type})",
+                    NodeTypeResource::class,
+                )
+                    ->horizontalMode()
+                    ->withCheckAll()
+                    ->columnLabel('Нода')
+                    ->valuesQuery(static fn ($query) => $query->orderBy('name')),
+            ]),
         ];
     }
 
@@ -77,6 +89,12 @@ class RateResource extends ModelResource
                     Text::make('Особенность'),
                     Text::make('Расшифровка'),
                 ]),
+            BelongsToMany::make(
+                'Типы нод',
+                'nodeTypes',
+                fn (NodeType $item): string => "{$item->name} ({$item->type})",
+            )
+                ->inLine(', '),
         ];
     }
 
@@ -84,7 +102,6 @@ class RateResource extends ModelResource
      * @param Rate $item
      *
      * @return array<string, string[]|string>
-     * @see https://laravel.com/docs/validation#available-validation-rules
      */
     protected function rules(mixed $item): array
     {

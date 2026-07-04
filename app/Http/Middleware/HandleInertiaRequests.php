@@ -30,7 +30,11 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        
+
+        if ($user) {
+            $user->loadMissing('rate');
+        }
+
         return [
             ...parent::share($request),
             'mapServices' => [
@@ -47,6 +51,10 @@ class HandleInertiaRequests extends Middleware
                     'avatar_url' => $user->avatar_url,
                     'background_url' => $user->background_url,
                     'role' => $user->role?->value ?? 'passenger',
+                    'rate' => $user->rate ? [
+                        'id' => $user->rate->id,
+                        'title' => $user->rate->title,
+                    ] : null,
                 ] : null,
             ],
         ];

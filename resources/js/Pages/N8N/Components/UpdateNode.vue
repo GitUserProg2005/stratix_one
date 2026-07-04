@@ -1,5 +1,5 @@
 <script setup>
-import ChoiceNodeType from './ChoiceNodeType.vue';
+import LibraryNodes from '../NodeTypeSelection/LibraryNodes.vue';
 import Modal from '@/Components/Modal.vue';
 import { nodeConfigFields } from './nodeConfigFields';
 import { customFieldsMap } from './customFieldsMap';
@@ -208,7 +208,7 @@ async function getQueries() {
                     <div class="label-content mt-2 inline-flex">{{ nodeType }}</div>
                 </div>
 
-                <ChoiceNodeType @onSelectedNodeType="(type) => (nodeType = type)" />
+                <LibraryNodes @onSelectedNodeType="(type) => (nodeType = type)" />
 
                 <div>
                     <h3 class="title-2">

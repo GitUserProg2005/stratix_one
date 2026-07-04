@@ -22,6 +22,12 @@ const isSearching = ref(false);
 
 let timeout = null;
 
+function clearResults() {
+    clearTimeout(timeout);
+    results.value = [];
+    query.value = '';
+}
+
 watch(query, (value) => {
     clearTimeout(timeout);
 
@@ -43,6 +49,8 @@ watch(query, (value) => {
         }
     }, props.debounce);
 });
+
+defineExpose({ clearResults });
 </script>
 
 <template>
@@ -76,7 +84,7 @@ watch(query, (value) => {
                 <div class="space-y-2">
                     <template 
                         v-for="item in results"
-                        :key="item.id"
+                        :key="item.type ?? item.id"
                     >
                         <slot
                             name="item"

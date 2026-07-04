@@ -11,6 +11,7 @@ use App\Models\Workflow;
 use App\Models\WorkflowTimer;
 use App\Models\Webhook;
 use App\Services\N8N\Nodes\NodeRegistry;
+use App\Services\N8N\CheckRate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -39,8 +40,9 @@ class NodeController extends Controller
         ]);
     }
 
-    public function createNode(Request $request)
+    public function createNode(Request $request, CheckRate $checkRate)
     {
+        // 1. Валидация входных данных
         $data = $request->validate([
             'workflow_id' => 'required|exists:workflows,id',
             'type' => 'required|string',
@@ -50,6 +52,15 @@ class NodeController extends Controller
             'position' => 'required|array',
         ]);
 
+        // 2. Проверка тарифа: платный тип ноды должен быть в тарифе пользователя
+        if (!$checkRate->checkRate(auth()->user()->rate_id, [['type' => $data['type']]])) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'У вас нет доступа к этому типу ноды',
+            ], 403);
+        }
+
+        // 3. Создание ноды в workflow
         $node = Node::create([
             'workflow_id' => $data['workflow_id'],
             'type' => $data['type'],
@@ -59,9 +70,7 @@ class NodeController extends Controller
             'position' => $data['position'],
         ]);
 
-        /*
-        * Если тип создаваемой ноды webhook-trigger - создаем вебхук с токеном для юзера
-        */
+        // 4. Для webhook-trigger создаём токен вебхука владельцу
         if ($node->type === NodeTypeEnum::WEBHOOK_TRIGGER->value) {
             Webhook::create([
                 'workflow_id' => $node->workflow_id,
@@ -71,12 +80,13 @@ class NodeController extends Controller
             ]);
         }
 
+        // 5. Пересборка cron-таймеров workflow (schedule-ноды)
         $this->syncWorkflowTimers(
             workflowId: (int) $node->workflow_id,
             nodesPayload: $request->input('nodes')
         );
-        
-        // Отправляем событие о том, что узел был создан
+
+        // 6. Уведомление клиентов (Reverb) о создании ноды
         WorkflowUpdated::dispatch(
             (int) $node->workflow_id,
             auth()->id(),
@@ -104,22 +114,34 @@ class NodeController extends Controller
         return response()->json(['result' => 'ok']);
     }
 
-    public function updateNode(Request $request, int $nodeId)
+    public function updateNode(Request $request, int $nodeId, CheckRate $checkRate)
     {
+        // 1. Валидация входных данных
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|string',
             'config' => 'nullable|array',
         ]);
 
+        // 2. Проверка тарифа: нельзя сохранить тип, недоступный пользователю
+        if (!$checkRate->checkRate(auth()->user()->rate_id, [['type' => $data['type']]])) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'У вас нет доступа к этому типу ноды',
+            ], 403);
+        }
+
+        // 3. Обновление ноды
         $node = Node::findOrFail($nodeId);
         $node->update($data);
 
+        // 4. Пересборка cron-таймеров workflow (schedule-ноды)
         $this->syncWorkflowTimers(
             workflowId: (int) $node->workflow_id,
             nodesPayload: $request->input('nodes')
         );
 
+        // 5. Уведомление клиентов (Reverb) об изменении ноды
         WorkflowUpdated::dispatch(
             (int) $node->workflow_id,
             auth()->id(),
@@ -210,7 +232,16 @@ class NodeController extends Controller
 
     public function getNodeTypes()
     {
-        $nodeTypes = NodeType::all();
+        $nodeTypes = NodeType::query()
+            ->with('rates:id')
+            ->get()
+            ->map(fn (NodeType $nodeType) => [
+                'id' => $nodeType->id,
+                'name' => $nodeType->name,
+                'type' => $nodeType->type,
+                'description' => $nodeType->description,
+                'rate_ids' => $nodeType->rates->pluck('id')->values()->all(),
+            ]);
 
         return response()->json([
             'result' => 'ok',
