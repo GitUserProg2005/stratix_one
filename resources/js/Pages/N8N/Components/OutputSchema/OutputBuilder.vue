@@ -51,6 +51,46 @@ function addGroup(targetGroup=null) {
     output.value.fields.push(newGroup);
 }
 
+function addArray(targetGroup = null) {
+    const newArray = {
+        type: 'array',
+        name: '',
+        items: {
+            type: 'group',
+            name: null,
+            fields: [
+                {
+                    type: 'field',
+                    key: '',
+                    data_type: 'string',
+                    required: true,
+                },
+            ],
+        },
+    };
+
+    if (!output.value) {
+        output.value = newArray;
+        return;
+    }
+
+    if (targetGroup?.type === 'group') {
+        targetGroup.fields.push(newArray);
+        return;
+    }
+
+    if (output.value.type === 'field') {
+        output.value = {
+            type: 'group',
+            name: '',
+            fields: [output.value, newArray],
+        };
+        return;
+    }
+
+    output.value.fields.push(newArray);
+}
+
 function addField(targetGroup=null) {
     const field = {
         type: 'field',
@@ -130,6 +170,7 @@ watch(output, (val) => {
     <OutputNode 
         :output="output"
         :add-group="addGroup"
+        :add-array="addArray"
         :add-field="addField"
         :add-file-field="addFileField"
         :delete-element="deleteElement"

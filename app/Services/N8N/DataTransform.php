@@ -3,6 +3,7 @@
 namespace App\Services\N8N;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 
 class DataTransform {
@@ -72,8 +73,14 @@ class DataTransform {
      */
     protected function transformSchema(array $schema, $data) {
         if ($schema['type'] === 'field') {
+            $from = $schema['from'] ?? null;
+
+            if ($from && str_contains($from, '[]')) {
+                $from = ltrim(Str::after($from, '[]'), '.');
+            }
+
             return [
-                $schema['key'] => data_get($data, $schema['from'] ?? null),
+                $schema['key'] => data_get($data, $from ?? null),
             ];
         }
 

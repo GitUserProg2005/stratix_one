@@ -1,37 +1,75 @@
-export function flattenSchema(schema, prefix = '') {
-    let result = [];
+function resolvePrefix(prefix, name) {
+    if (!name) {
+        return prefix;
+    }
 
-    if (!schema) return result;
+    return prefix ? `${prefix}.${name}` : name;
+}
+
+export function flattenSchema(schema, prefix = '') {
+    const result = [];
+
+    if (!schema) {
+        return result;
+    }
 
     const name = schema.name || schema.key;
 
     if (schema.type === 'group') {
+        const newPrefix = resolvePrefix(prefix, name);
 
-        const newPrefix = prefix
-            ? `${prefix}.${name}`
-            : name;
-
-        schema.fields?.forEach(field => {
+        for (const field of schema.fields || []) {
             result.push(...flattenSchema(field, newPrefix));
-        });
+        }
     }
 
     if (schema.type === 'array') {
+        const arrayPath = resolvePrefix(prefix, name);
 
-        const newPrefix = prefix
-            ? `${prefix}.${name}[]`
-            : `${name}[]`;
+        // путь самого массива — для маппинга agents → data.agents
+        if (arrayPath) {
+            result.push(arrayPath);
+        }
 
-        result.push(...flattenSchema(schema.items, newPrefix));
+        const itemPrefix = arrayPath ? `${arrayPath}[]` : `${name}[]`;
+        result.push(...flattenSchema(schema.items, itemPrefix));
     }
 
     if (schema.type === 'field') {
+        const path = resolvePrefix(prefix, name);
 
-        const path = prefix
-            ? `${prefix}.${name}`
-            : name;
+        if (path) {
+            result.push(path);
+        }
+    }
 
-        result.push(path);
+    return result;
+}
+
+// Только пути массивов из output-схемы источника
+export function flattenArrayPaths(schema, prefix = '') {
+    const result = [];
+
+    if (!schema) {
+        return result;
+    }
+
+    const name = schema.name || schema.key;
+
+    if (schema.type === 'group') {
+        const newPrefix = resolvePrefix(prefix, name);
+
+        for (const field of schema.fields || []) {
+            result.push(...flattenArrayPaths(field, newPrefix));
+        }
+    }
+
+    if (schema.type === 'array') {
+        const arrayPath = resolvePrefix(prefix, name);
+
+        if (arrayPath) {
+            result.push(arrayPath);
+        }
     }
 
     return result;

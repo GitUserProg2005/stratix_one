@@ -6,6 +6,7 @@ import Modal from '@/Components/Modal.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import PasswordField from '@/Components/PasswordField.vue';
 import RangeField from '@/Components/RangeField.vue';
+import SelectFieldsMode from './CustomFields/SelectFieldsMode.vue';
 
 import { nodeConfigFields } from './nodeConfigFields';
 import { customFieldsMap } from './customFieldsMap';
@@ -130,18 +131,30 @@ async function createNode() {
                                             :workflow-id="workflowId"
                                         />
                                     </template>
+
+                                    <!-- Fields select mode -->
+                                    <template v-else-if="field.type == 'fields_select'">
+                                        <SelectFieldsMode
+                                            v-model="config"
+                                            :field="field"
+                                        />
+                                    </template>
+
                                     <template v-else-if="field.security">
                                         <PasswordField
                                             v-model="config[field.name]"
                                             :placeholder="field.label"
                                         />
                                     </template>
+
                                     <template v-else-if="field.type === 'text'">
                                         <input v-model="config[field.name]" class="input mt-2 w-full" type="text" :placeholder="field.label" />
                                     </template>
+
                                     <template v-else-if="field.type === 'textarea'">
                                         <textarea v-model="config[field.name]" class="input mt-2 w-full" :placeholder="field.label" />
                                     </template>
+
                                     <template v-else-if="field.type === 'number'">
                                         <input
                                             v-model="config[field.name]"
@@ -153,6 +166,7 @@ async function createNode() {
                                             :max="field.max"
                                         />
                                     </template>
+
                                     <template v-else-if="field.type === 'range'">
                                         <RangeField
                                             v-model="config[field.name]"
@@ -161,6 +175,7 @@ async function createNode() {
                                             :step="field.step || '1'"
                                         />
                                     </template>
+
                                     <template v-else-if="field.type === 'select'">
                                         <HeadlessSelect
                                             v-model="config[field.name]"
@@ -169,6 +184,7 @@ async function createNode() {
                                             :placeholder="field.label"
                                         />
                                     </template>
+
                                     <template v-else-if="field.type === 'simple_select'">
                                         <HeadlessSelect
                                             v-model="config[field.name]"

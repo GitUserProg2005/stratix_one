@@ -6,6 +6,7 @@ import { customFieldsMap } from './customFieldsMap';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import PasswordField from '@/Components/PasswordField.vue';
 import RangeField from '@/Components/RangeField.vue';
+import SelectFieldsMode from './CustomFields/SelectFieldsMode.vue';
 import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 import ConfigQueriesConfigure from './ConfigQueriesConfigure.vue';
 
@@ -228,6 +229,13 @@ async function getQueries() {
                                     :field="field"
                                     :nodes="nodes"
                                     :workflow-id="resolvedWorkflowId"
+                                />
+                            </template>
+
+                            <template v-else-if="field.type === 'fields_select'">
+                                <SelectFieldsMode
+                                    v-model="config"
+                                    :field="field"
                                 />
                             </template>
 

@@ -17,12 +17,14 @@ export const nodeConfigFields = {
             }
         ],
     },
+
     ai_request: {
         fields: [
             { name: 'prompt', label: 'Ваш промпт', type: 'textarea', required: true },
         ],
         buttons: [],
     },
+    
     ai_agent_request: {
         builder: 'OutputBuilder',
         builder_root: 'output',
@@ -32,12 +34,14 @@ export const nodeConfigFields = {
         ],
         buttons: [],
     },
+
     email_report: {
         fields: [
             { name: 'email', label: 'Email получателя', type: 'text', required: true },
         ],
         buttons: [],
     },
+
     collect_metrics: {
         fields: [
             {
@@ -49,12 +53,14 @@ export const nodeConfigFields = {
         ],
         buttons: [],
     },
+
     update_metric: {
         builder: 'ConfigQueriesConfigure',
         builder_root: 'updatable_metrics',
         fields: [],
         buttons: []
     },
+
     condition: {
         builder: 'ConditionBuilder',
         builder_root: 'condition',
@@ -62,18 +68,21 @@ export const nodeConfigFields = {
         fields: [],
         buttons: [],
     },
+    
     schedule: {
         fields: [
             { name: 'timing', label: 'Cron-выражение', type: 'text', required: true },
         ],
         buttons: [],
     },
+
     log: {
         fields: [
             { name: 'message', label: 'Метка в логе', type: 'text', required: false },
         ],
         buttons: [],
     },
+
     page_loader: {
         fields: [
             { name: 'url_source', label: 'URL страницы', type: 'text', required: true },
@@ -91,10 +100,12 @@ export const nodeConfigFields = {
         ],
         buttons: [],
     },
+
     go_whisper: {
         fields: [],
         buttons: [],
     },
+
     mistral_text: {
         fields: [
             ...mistralCommonFields,
@@ -102,6 +113,7 @@ export const nodeConfigFields = {
         ],
         buttons: [],
     },
+
     mistral_picture: {
         fields: [
             ...mistralCommonFields,
@@ -109,12 +121,14 @@ export const nodeConfigFields = {
         ],
         buttons: [],
     },
+
     mistral_ocr: {
         fields: [
             ...mistralCommonFields,
         ],
         buttons: [],
     },
+
     point_in_polygon: {
         fields: [
             {
@@ -126,4 +140,57 @@ export const nodeConfigFields = {
         ],
         buttons: [],
     },
+
+    // OSRM node
+    osrm: {
+        fields: [
+            // Select-mode field
+            {
+                name: 'mode',
+                label: 'Режим маршрутизации',
+                type: 'fields_select',
+
+                options: [
+                    { label: 'Маршрут (Из А в Б)', value: 'route' },
+                    { label: 'Оптимизация цепочки (Trip)', value: 'trip' },
+                    { label: 'Мульти-поиск (Спасатели/Курьеры)', value: 'multi' }
+                ],
+                default: 'route',
+
+                fields: [
+                    // Route mode
+                    {
+                        name: 'pointA',
+                        label: 'Точка А (Старт)',
+                        type: 'input',
+                        from_input: true,
+                        displayIf: { mode: 'route' }
+                    },
+                    {
+                        name: 'pointB',
+                        label: 'Точка Б (Финиш)',
+                        type: 'input',
+                        from_input: true,
+                        displayIf: { mode: 'route' }
+                    },
+
+                    // Multi mode
+                    {
+                        name: 'target_point',
+                        label: 'Координаты цели (x, y)',
+                        type: 'input',
+                        from_input: true,
+                        displayIf: { mode: 'multi' }
+                    },
+                    {
+                        name: 'agents_array',
+                        label: 'Массив агентов/спасателей',
+                        type: 'input',
+                        from_input: true,
+                        displayIf: { mode: 'multi' }
+                    }
+                ]
+            },
+        ]
+    }
 };

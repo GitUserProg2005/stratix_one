@@ -1,31 +1,36 @@
 <script setup>
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import OutputNode from './OutputNode.vue';
 
 const props = defineProps({
     output: {
         type: Object,
-        required: true
+        required: true,
     },
     parent: {
         type: Object,
-        required: false
+        required: false,
     },
     addGroup: {
         type: Function,
-        required: true
+        required: true,
+    },
+    addArray: {
+        type: Function,
+        required: true,
     },
     addField: {
         type: Function,
-        required: true
+        required: true,
     },
     addFileField: {
         type: Function,
-        required: true
+        required: true,
     },
     deleteElement: {
         type: Function,
-        required: true
-    }
+        required: true,
+    },
 });
 
 const fieldTypes = [
@@ -41,6 +46,16 @@ const fieldTypes = [
         tone: 'file',
     },
 ];
+
+function ensureArrayItems() {
+    if (!props.output.items) {
+        props.output.items = {
+            type: 'group',
+            name: null,
+            fields: [],
+        };
+    }
+}
 </script>
 
 <template>
@@ -57,12 +72,38 @@ const fieldTypes = [
         <button type="button" class="badge badge-pending" @click="deleteElement(output, parent)">-D</button>
     </div>
 
+    <div v-else-if="output.type === 'array'" class="dashboard-inset mb-2 mt-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <input v-model="output.name" class="input" type="text" placeholder="Название массива" />
+
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" class="tag t-mini" @click="ensureArrayItems(); addField(output.items)">+F</button>
+                <button type="button" class="badge badge-pending" @click="deleteElement(output, parent)">-D</button>
+            </div>
+        </div>
+
+        <div v-if="output.items" class="pl-4">
+            <span class="context t-mini">элемент[]</span>
+
+            <OutputNode
+                :output="output.items"
+                :parent="output"
+                :add-group="addGroup"
+                :add-array="addArray"
+                :add-field="addField"
+                :add-file-field="addFileField"
+                :delete-element="deleteElement"
+            />
+        </div>
+    </div>
+
     <div v-else-if="output.type === 'group'" class="dashboard-inset mb-2 mt-3">
         <div class="flex items-center justify-between gap-2">
             <input v-model="output.name" class="input" type="text" placeholder="Название группы" />
 
             <div class="flex flex-wrap items-center gap-2">
                 <button type="button" class="tag t-mini" @click="addGroup(output)">+G</button>
+                <button type="button" class="tag t-mini" @click="addArray(output)">+A</button>
                 <button type="button" class="tag t-mini" @click="addField(output)">+F</button>
                 <button type="button" class="tag t-mini" @click="addFileField(output)">+File</button>
                 <button type="button" class="badge badge-pending" @click="deleteElement(output, parent)">-D</button>
@@ -72,9 +113,10 @@ const fieldTypes = [
         <div v-if="output.fields.length" class="pl-4">
             <OutputNode
                 v-for="(child, index) in output.fields"
-                :output="child"
                 :key="index"
+                :output="child"
                 :add-group="addGroup"
+                :add-array="addArray"
                 :add-field="addField"
                 :add-file-field="addFileField"
                 :delete-element="deleteElement"

@@ -6,6 +6,7 @@ use App\Enums\NodeStructureSchema;
 use App\Enums\NodeType;
 use App\Services\N8N\BaseNode;
 
+
 class NodeRegistry {
     public function all(): array {
         return [
@@ -36,10 +37,17 @@ class NodeRegistry {
         $result = [];
 
         foreach ($this->all() as $type => $class) {
+            $inputSchemasByMode = is_callable([$class, 'inputSchemasByMode'])
+                ? $class::inputSchemasByMode()
+                : [];
+
             $result[$type] = [
-                'inputSchema' => is_callable([$class, 'inputSchema'])
-                    ? $class::inputSchema()
-                    : BaseNode::inputSchema(),
+                'inputSchema' => ! empty($inputSchemasByMode)
+                    ? ($inputSchemasByMode['route'] ?? reset($inputSchemasByMode))
+                    : (is_callable([$class, 'inputSchema'])
+                        ? $class::inputSchema()
+                        : BaseNode::inputSchema()),
+                'inputSchemaModes' => ! empty($inputSchemasByMode) ? $inputSchemasByMode : null,
                 'outputSchema' => is_callable([$class, 'outputSchema'])
                     ? $class::outputSchema()
                     : BaseNode::outputSchema(),

@@ -17,20 +17,54 @@ abstract class BaseNode {
         $this->validateInput();
     }
 
+    /*
+    * Обработчик ноды
+    */
     abstract public function handle(): mixed;
 
+    /*
+    * Инпут-схема по умолчанию
+    */
     public static function inputSchema(): array {
         return [];
     }
 
+    /*
+    * Input-схема в зависимости от 
+    * режима работы ноды (динамический инпут)
+    */
+    public static function inputSchemasByMode(): array 
+    {
+        return [];
+    }
+
+    /*
+    * Резолвит инпут-схему (ноды с mode переопределяют)
+    */
+    public function resolveInputSchema(): ?array
+    {
+        $schema = static::inputSchema();
+
+        return $schema ?: null;
+    }
+
+    /*
+    * Выход-схема по умолчанию
+    */
     public static function outputSchema(): array {
         return [];
     }
 
+    /*
+    * Структура ноды (статическая или динамическая)
+    */
     public static function nodeStructureSchema(): NodeStructureSchema  {
         return NodeStructureSchema::STATIC;
     }
 
+    /*
+    * Резолвит выход-схему в зависимости от структуры ноды
+    */
     public function resolveOutputSchema(): ?array {
         if (static::nodeStructureSchema() === NodeStructureSchema::DYNAMIC) {
             return $this->dynamicOutputSchema();
@@ -52,11 +86,17 @@ abstract class BaseNode {
         ];
     }
 
-    protected static function array(string $name, array $items): array {
+    protected static function array(string $name, array $items): array
+    {
+        // items — схема элемента (group) или список полей
+        $itemsSchema = isset($items['type'])
+            ? $items
+            : self::group(null, $items);
+
         return [
             'type' => 'array',
             'name' => $name,
-            'items' => $items
+            'items' => $itemsSchema,
         ];
     }
 
@@ -76,8 +116,9 @@ abstract class BaseNode {
         );
     }
 
-    protected function validateInput(): void {
-        $schema = static::inputSchema();
+    protected function validateInput(): void
+    {
+        $schema = $this->resolveInputSchema();
 
         if (! $schema) {
             return;

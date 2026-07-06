@@ -3,9 +3,10 @@ import Modal from '@/Components/Modal.vue';
 import { ref, onMounted, computed, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { getBezierPath } from '@vue-flow/core';
-import { flattenSchema } from '../utils/flattenSchema';
+import { flattenSchema, flattenArrayPaths } from '../utils/flattenSchema';
 import { buildAST } from '../utils/buildAST';
 import { isValidSchema } from '../utils/isValidSchema';
+import { resolveInputSchema } from '../utils/resolveInputSchema';
 import SchemaTree from './SchemaTree.vue';
 import axios from 'axios';
 
@@ -67,13 +68,20 @@ function resolveDynamicSchema(node, type = 'output') {
     return null;
 }
 
-const sourceFields = computed(() => { 
-    //Object.keys(props.sourceSchema?.outputSchema || {})
+const sourceFields = computed(() => {
     return flattenSchema(resolvedSourceSchema.value?.outputSchema);
 });
 
+const arraySourceFields = computed(() => {
+    return flattenArrayPaths(resolvedSourceSchema.value?.outputSchema);
+});
+
 const targetInputSchema = computed(() => {
-    const schema = props.targetSchema?.inputSchema;
+    const schema = resolveInputSchema(
+        props.targetSchema,
+        props.targetNode?.data?.config
+    );
+
     return isValidSchema(schema) ? schema : null;
 });
 
@@ -155,8 +163,14 @@ function astToMappings(ast, prefix = '', output = {}) {
     }
 
     if (ast.type === 'array') {
-        const current = ast.name ? (prefix ? `${prefix}.${ast.name}[]` : `${ast.name}[]`) : prefix;
-        astToMappings(ast.items, current, output);
+        const arrayPath = ast.name ? (prefix ? `${prefix}.${ast.name}` : ast.name) : prefix;
+
+        if (arrayPath && ast.from) {
+            output[arrayPath] = ast.from;
+        }
+
+        const itemPrefix = arrayPath ? `${arrayPath}[]` : prefix;
+        astToMappings(ast.items, itemPrefix, output);
 
         return output;
     }
@@ -256,7 +270,8 @@ onMounted(() => {
                                 v-else
                                 :schema="targetInputSchema"
                                 :mappings="mappings"
-                                :sourceFields="sourceFields"
+                                :source-fields="sourceFields"
+                                :array-source-fields="arraySourceFields"
                                 @update="updateMapping"
                             />
                         </div>
