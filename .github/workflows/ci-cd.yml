@@ -94,8 +94,8 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest
             docker tag ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest stratix_one-app:latest
 
-            echo "Restart containers (production compose)"
-            docker compose -f "${{ env.COMPOSE_FILE }}" up -d --remove-orphans
+            echo "Restart containers with new image (no local build)"
+            docker compose -f "${{ env.COMPOSE_FILE }}" up -d --no-build --force-recreate --remove-orphans app reverb queue
 
             echo "Sync built static (Vite build) from container to host"
             sh _Docker/sync-public-build.sh
