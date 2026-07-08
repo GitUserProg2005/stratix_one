@@ -8,7 +8,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/app
+  DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/var/www/stratix_one' }}
+  COMPOSE_FILE: ${{ vars.COMPOSE_FILE || 'docker-compose.yml' }}
 
 jobs:
 
@@ -33,19 +34,18 @@ jobs:
 
       # 2. Войти в GitHub Container Registry
       - name: Login to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
 
       # 3. Собрать Docker image (Dockerfile в _Docker/, build-args для Vite)
       - name: Build Docker image
         run: |
           docker build \
             -f _Docker/Dockerfile \
-            --build-arg VITE_REVERB_APP_KEY="${{ secrets.VITE_REVERB_APP_KEY || '' }}" \
-            --build-arg VITE_REVERB_HOST="${{ secrets.VITE_REVERB_HOST || 'localhost' }}" \
-            --build-arg VITE_REVERB_PORT="${{ secrets.VITE_REVERB_PORT || '8081' }}" \
-            --build-arg VITE_REVERB_SCHEME="${{ secrets.VITE_REVERB_SCHEME || 'https' }}" \
-            --build-arg VITE_APP_NAME="${{ secrets.VITE_APP_NAME || 'Laravel' }}" \
+            --build-arg VITE_REVERB_APP_KEY="${{ vars.VITE_REVERB_APP_KEY || '' }}" \
+            --build-arg VITE_REVERB_HOST="${{ vars.VITE_REVERB_HOST || 'localhost' }}" \
+            --build-arg VITE_REVERB_PORT="${{ vars.VITE_REVERB_PORT || '8081' }}" \
+            --build-arg VITE_REVERB_SCHEME="${{ vars.VITE_REVERB_SCHEME || 'https' }}" \
+            --build-arg VITE_APP_NAME="${{ vars.VITE_APP_NAME || 'Laravel' }}" \
             -t $REGISTRY/${{ steps.repo.outputs.lowercase }}/app:latest \
             -t $REGISTRY/${{ steps.repo.outputs.lowercase }}/app:${{ github.sha }} \
             .
@@ -82,38 +82,38 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/ssr_template
+            cd "${{ env.DEPLOY_PATH }}"
 
             echo "Sync working tree to the commit this deploy was built from (${{ github.sha }})"
             git fetch origin
             git checkout -f ${{ github.sha }}
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GHCR_PAT }}" | docker login ${{ env.REGISTRY }} -u ${{ secrets.GHCR_USER }} --password-stdin
 
             echo "Pull new image from GHCR"
             docker pull ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest
             docker tag ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest stratix_one-app:latest
 
             echo "Restart containers (production compose)"
-            docker compose -f docker-compose.yml up -d --remove-orphans
+            docker compose -f "${{ env.COMPOSE_FILE }}" up -d --remove-orphans
 
-            echo "Copy built static from container to host (for host nginx)"
-            docker compose -f docker-compose.yml run --rm -v /var/www/stratix_one/public:/host/public app sh -c "cp -r /var/www/stratix_one/public/. /host/public/"
+            echo "Sync built static (Vite build) from container to host"
+            sh _Docker/sync-public-build.sh
 
             echo "Run migrations"
-            docker compose -f docker-compose.yml exec -T app php artisan migrate --force
+            docker compose -f "${{ env.COMPOSE_FILE }}" exec -T app php artisan migrate --force
 
             echo "Cache config"
-            docker compose -f docker-compose.yml exec -T app php artisan config:cache
+            docker compose -f "${{ env.COMPOSE_FILE }}" exec -T app php artisan config:cache
 
             echo "Cache routes"
-            docker compose -f docker-compose.yml exec -T app php artisan route:cache
+            docker compose -f "${{ env.COMPOSE_FILE }}" exec -T app php artisan route:cache
 
             echo "Restart queues"
-            docker compose -f docker-compose.yml exec -T app php artisan queue:restart || true
+            docker compose -f "${{ env.COMPOSE_FILE }}" exec -T app php artisan queue:restart || true
 
             echo "Restart Reverb"
-            docker compose -f docker-compose.yml restart reverb || true
+            docker compose -f "${{ env.COMPOSE_FILE }}" restart reverb || true
 
             echo "Clear old images"
             docker image prune -af

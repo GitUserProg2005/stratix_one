@@ -22,7 +22,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->deleteColumn('avatar');
+            // Откат миграции: убираем колонку avatar
+            $table->dropColumn('avatar');
         });
     }
 };

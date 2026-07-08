@@ -7,9 +7,9 @@ set -e
 ############################
 # Пути — правь под свой VDS
 ############################
-CONTAINER_NAME="stratix_one-app"
-CONTAINER_BUILD_PATH="/var/www/stratix_one/public/build"
-HOST_BUILD_PATH="/var/www/stratix_one/public/build"
+CONTAINER_NAME="${CONTAINER_NAME:-stratix_one-app}"
+CONTAINER_BUILD_PATH="${CONTAINER_BUILD_PATH:-/var/www/stratix_one/public/build}"
+HOST_BUILD_PATH="${HOST_BUILD_PATH:-/var/www/stratix_one/public/build}"
 
 ############################
 # 1. Контейнер должен быть запущен
