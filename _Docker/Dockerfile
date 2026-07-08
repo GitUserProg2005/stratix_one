@@ -26,7 +26,8 @@ RUN docker-php-ext-install \
     mbstring \
     zip \
     opcache \
-    pcntl
+    pcntl \
+    sockets
 
 RUN pecl install redis && docker-php-ext-enable redis
 
@@ -74,7 +75,12 @@ ENV VITE_REVERB_APP_KEY=$VITE_REVERB_APP_KEY \
     VITE_APP_NAME=$VITE_APP_NAME
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+# npm ci иногда падает по сети — увеличиваем таймауты/ретраи и используем cache
+ENV NPM_CONFIG_FETCH_RETRIES=5 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
+    NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=600000 \
+    NPM_CONFIG_FETCH_TIMEOUT=600000
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 
 COPY . .
 # Ziggy и др. тянут пути из vendor — копируем из стадии composer
