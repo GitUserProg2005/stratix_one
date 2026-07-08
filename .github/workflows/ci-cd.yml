@@ -85,27 +85,19 @@ jobs:
             set -e
             cd "${{ env.DEPLOY_PATH }}"
 
-            echo "Sync working tree to the commit this deploy was built from (${{ github.sha }})"
-            git fetch origin
-            git checkout -f ${{ github.sha }}
-
             echo "${{ secrets.GHCR_PAT }}" | docker login ${{ env.REGISTRY }} -u ${{ secrets.GHCR_USER }} --password-stdin
 
-            echo "Pull new image from GHCR"
+            echo "Pull new image from GHCR (${{ github.sha }})"
             docker pull ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest
             docker tag ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest stratix_one-app:latest
 
-            echo "Restart containers with new image (no local build)"
+            echo "Restart containers with new image"
             docker compose -f "${{ env.COMPOSE_FILE }}" up -d --no-build --force-recreate --remove-orphans app reverb queue
 
-            echo "Sync built static (Vite build) from container to host"
+            echo "Sync built static from container to host"
             export HOST_BUILD_PATH="${{ env.DEPLOY_PATH }}/public/build"
             export CONTAINER_BUILD_PATH="/var/www/stratix_one/public/build"
             sh _Docker/sync-public-build.sh
-
-            echo "Verify frontend build was synced to host"
-            ls -la "${HOST_BUILD_PATH}" | head -20
-            test -f "${HOST_BUILD_PATH}/manifest.json" || test -f "${HOST_BUILD_PATH}/.vite/manifest.json"
 
             echo "Run migrations"
             docker compose -f "${{ env.COMPOSE_FILE }}" exec -T app php artisan migrate --force
