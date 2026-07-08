@@ -2,11 +2,11 @@
 set -e
 # Удаляем закэшированный список пакетов, чтобы Laravel пересобрал его из vendor.
 # Иначе в томе может остаться старый cache с dev-пакетами (например Pail), которых нет в --no-dev образе.
-CACHE_DIR="/var/www/wix/todo/bootstrap/cache"
+CACHE_DIR="/var/www/stratix_one/bootstrap/cache"
 rm -f "${CACHE_DIR}/packages.php" "${CACHE_DIR}/services.php"
 
 if [ "${DEV_MOUNT:-}" = "1" ]; then
-    cd /var/www/wix/todo
+    cd /var/www/stratix_one
     _need_composer=0
     if [ ! -f vendor/autoload.php ]; then
         _need_composer=1

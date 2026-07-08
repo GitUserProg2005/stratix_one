@@ -92,13 +92,13 @@ jobs:
 
             echo "Pull new image from GHCR"
             docker pull ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest
-            docker tag ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest wix-app:latest
+            docker tag ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest stratix_one-app:latest
 
             echo "Restart containers (production compose)"
             docker compose -f docker-compose.yml up -d --remove-orphans
 
             echo "Copy built static from container to host (for host nginx)"
-            docker compose -f docker-compose.yml run --rm -v /var/www/rus_spotify/public:/host/public app sh -c "cp -r /var/www/wix/todo/public/. /host/public/"
+            docker compose -f docker-compose.yml run --rm -v /var/www/stratix_one/public:/host/public app sh -c "cp -r /var/www/stratix_one/public/. /host/public/"
 
             echo "Run migrations"
             docker compose -f docker-compose.yml exec -T app php artisan migrate --force

@@ -1,3 +1,5 @@
+name: stratix_one-dev
+
 services:
   tileserver:
     image: maptiler/tileserver-gl
@@ -38,9 +40,9 @@ services:
     volumes:
       - ./tmp/db:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: wix
-      POSTGRES_USER: wix_user
-      POSTGRES_PASSWORD: wix@228339
+      POSTGRES_DB: stratix_one
+      POSTGRES_USER: stratix_one_user
+      POSTGRES_PASSWORD: stratix_one@228339
     ports:
       - 5432:5432
 
@@ -64,7 +66,7 @@ services:
 
   # Dev: монтируем проект внутрь контейнера, чтобы не пересобирать образ `app`.
   app:
-    image: wix-app-dev:latest
+    image: stratix_one-app-dev:latest
     build:
       context: .
       dockerfile: _Docker/Dockerfile
@@ -80,11 +82,11 @@ services:
       REDIS_HOST: redis
       DEV_MOUNT: "1"
     volumes:
-      - ./:/var/www/wix/todo
-      - wix-storage-dev:/var/www/wix/todo/storage
-      - wix-cache-dev:/var/www/wix/todo/bootstrap/cache
-      - wix-vendor-dev:/var/www/wix/todo/vendor
-      - wix-node-modules-dev:/var/www/wix/todo/node_modules
+      - ./:/var/www/stratix_one
+      - stratix_one-storage-dev:/var/www/stratix_one/storage
+      - stratix_one-cache-dev:/var/www/stratix_one/bootstrap/cache
+      - stratix_one-vendor-dev:/var/www/stratix_one/vendor
+      - stratix_one-node-modules-dev:/var/www/stratix_one/node_modules
     depends_on:
       - db
       - redis
@@ -94,8 +96,8 @@ services:
       - "9000:9000"
 
   reverb:
-    image: wix-app-dev:latest
-    container_name: wix-reverb-dev
+    image: stratix_one-app-dev:latest
+    container_name: stratix_one-reverb-dev
     command: php artisan reverb:start
     env_file: .env
     environment:
@@ -104,11 +106,11 @@ services:
       REVERB_SERVER_HOST: 0.0.0.0
       REVERB_SERVER_PORT: 8081
     volumes:
-      - ./:/var/www/wix/todo
-      - wix-storage-dev:/var/www/wix/todo/storage
-      - wix-cache-dev:/var/www/wix/todo/bootstrap/cache
-      - wix-vendor-dev:/var/www/wix/todo/vendor
-      - wix-node-modules-dev:/var/www/wix/todo/node_modules
+      - ./:/var/www/stratix_one
+      - stratix_one-storage-dev:/var/www/stratix_one/storage
+      - stratix_one-cache-dev:/var/www/stratix_one/bootstrap/cache
+      - stratix_one-vendor-dev:/var/www/stratix_one/vendor
+      - stratix_one-node-modules-dev:/var/www/stratix_one/node_modules
     depends_on:
       - app
       - redis
@@ -116,19 +118,19 @@ services:
       - "8081:8081"
 
   queue:
-    image: wix-app-dev:latest
-    container_name: wix-queue-dev
+    image: stratix_one-app-dev:latest
+    container_name: stratix_one-queue-dev
     command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
     env_file: .env
     environment:
       DB_HOST: db
       REDIS_HOST: redis
     volumes:
-      - ./:/var/www/wix/todo
-      - wix-storage-dev:/var/www/wix/todo/storage
-      - wix-cache-dev:/var/www/wix/todo/bootstrap/cache
-      - wix-vendor-dev:/var/www/wix/todo/vendor
-      - wix-node-modules-dev:/var/www/wix/todo/node_modules
+      - ./:/var/www/stratix_one
+      - stratix_one-storage-dev:/var/www/stratix_one/storage
+      - stratix_one-cache-dev:/var/www/stratix_one/bootstrap/cache
+      - stratix_one-vendor-dev:/var/www/stratix_one/vendor
+      - stratix_one-node-modules-dev:/var/www/stratix_one/node_modules
     depends_on:
       - app
       - redis
@@ -139,7 +141,11 @@ services:
 volumes:
   meilisearch-data-dev:
   nominatim-data-dev:
-  wix-storage-dev:
-  wix-cache-dev:
-  wix-vendor-dev:
-  wix-node-modules-dev:
+  stratix_one-storage-dev:
+    name: stratix_one-storage-dev
+  stratix_one-cache-dev:
+    name: stratix_one-cache-dev
+  stratix_one-vendor-dev:
+    name: stratix_one-vendor-dev
+  stratix_one-node-modules-dev:
+    name: stratix_one-node-modules-dev

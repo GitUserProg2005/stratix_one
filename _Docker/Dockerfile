@@ -34,7 +34,7 @@ RUN pecl install redis && docker-php-ext-enable redis
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
-WORKDIR /var/www/wix/todo
+WORKDIR /var/www/stratix_one
 
 # Кастомный php.ini (лимиты загрузки, память, время выполнения)
 COPY _Docker/php.ini /usr/local/etc/php/conf.d/99-upload.ini
@@ -84,7 +84,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 
 COPY . .
 # Ziggy и др. тянут пути из vendor — копируем из стадии composer
-COPY --from=composer /var/www/wix/todo/vendor /app/vendor
+COPY --from=composer /var/www/stratix_one/vendor /app/vendor
 RUN npm run build
 
 ############################
@@ -92,8 +92,8 @@ RUN npm run build
 ############################
 FROM base AS app
 
-COPY --from=composer /var/www/wix/todo /var/www/wix/todo
-COPY --from=frontend /app/public/build /var/www/wix/todo/public/build
+COPY --from=composer /var/www/stratix_one /var/www/stratix_one
+COPY --from=frontend /app/public/build /var/www/stratix_one/public/build
 
 # Node/npm в runtime: dev-compose — composer/npm в entrypoint без Node на хосте
 COPY --from=node:20-bookworm-slim /usr/local/bin/node /usr/local/bin/node
@@ -101,9 +101,9 @@ COPY --from=node:20-bookworm-slim /usr/local/lib/node_modules /usr/local/lib/nod
 RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
-RUN chown -R www-data:www-data /var/www/wix/todo/storage /var/www/wix/todo/bootstrap/cache /var/www/wix/todo/public/build \
-    && chmod -R 775 /var/www/wix/todo/storage /var/www/wix/todo/bootstrap/cache \
-    && rm -f /var/www/wix/todo/bootstrap/cache/packages.php /var/www/wix/todo/bootstrap/cache/services.php
+RUN chown -R www-data:www-data /var/www/stratix_one/storage /var/www/stratix_one/bootstrap/cache /var/www/stratix_one/public/build \
+    && chmod -R 775 /var/www/stratix_one/storage /var/www/stratix_one/bootstrap/cache \
+    && rm -f /var/www/stratix_one/bootstrap/cache/packages.php /var/www/stratix_one/bootstrap/cache/services.php
 
 COPY _Docker/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

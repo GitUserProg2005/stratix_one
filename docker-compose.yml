@@ -1,3 +1,5 @@
+name: stratix_one
+
 services:
   tileserver:
     image: maptiler/tileserver-gl
@@ -155,15 +157,15 @@ services:
         VITE_REVERB_PORT: ${VITE_REVERB_PORT}
         VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME}
         VITE_APP_NAME: ${APP_NAME:-Laravel}
-    image: wix-app:latest
-    container_name: wix-app
+    image: stratix_one-app:latest
+    container_name: stratix_one-app
     env_file: .env
     environment:
       DB_HOST: postgres-haproxy
       REDIS_HOST: redis
     volumes:
-      - wix-storage:/var/www/wix/todo/storage
-      - wix-cache:/var/www/wix/todo/bootstrap/cache
+      - stratix_one-storage:/var/www/stratix_one/storage
+      - stratix_one-cache:/var/www/stratix_one/bootstrap/cache
     depends_on:
       - postgres-haproxy
       - redis
@@ -173,8 +175,8 @@ services:
       - "9000:9000"
 
   reverb:
-    image: wix-app:latest
-    container_name: wix-reverb
+    image: stratix_one-app:latest
+    container_name: stratix_one-reverb
     command: php artisan reverb:start --debug
     env_file: .env
     environment:
@@ -183,8 +185,8 @@ services:
       REVERB_SERVER_HOST: 0.0.0.0
       REVERB_SERVER_PORT: 8081
     volumes:
-      - wix-storage:/var/www/wix/todo/storage
-      - wix-cache:/var/www/wix/todo/bootstrap/cache
+      - stratix_one-storage:/var/www/stratix_one/storage
+      - stratix_one-cache:/var/www/stratix_one/bootstrap/cache
     depends_on:
       - app
       - redis
@@ -193,16 +195,16 @@ services:
     restart: unless-stopped
 
   queue:
-    image: wix-app:latest
-    container_name: wix-queue
+    image: stratix_one-app:latest
+    container_name: stratix_one-queue
     command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
     env_file: .env
     environment:
       DB_HOST: postgres-haproxy
       REDIS_HOST: redis
     volumes:
-      - wix-storage:/var/www/wix/todo/storage
-      - wix-cache:/var/www/wix/todo/bootstrap/cache
+      - stratix_one-storage:/var/www/stratix_one/storage
+      - stratix_one-cache:/var/www/stratix_one/bootstrap/cache
     depends_on:
       - app
       - redis
@@ -214,8 +216,10 @@ volumes:
   meilisearch-data:
   nominatim-data:
 
-  wix-storage:
-  wix-cache:
+  stratix_one-storage:
+    name: stratix_one-storage
+  stratix_one-cache:
+    name: stratix_one-cache
 
   postgres_primary_data:
   postgres_replica_data:
