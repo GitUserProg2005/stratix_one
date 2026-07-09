@@ -109,6 +109,26 @@ jobs:
             export CONTAINER_BUILD_PATH="/var/www/stratix_one/public/build"
             sh _Docker/sync-public-build.sh
 
+            echo "Wait for database (postgres-haproxy may need time after restart)"
+            for i in $(seq 1 45); do
+              if docker compose -f "$COMPOSE_FILE" exec -T app php -r '
+                $h = getenv("DB_HOST") ?: "postgres-haproxy";
+                $db = getenv("DB_DATABASE") ?: "laravel";
+                $u = getenv("DB_USERNAME") ?: "postgres";
+                $p = getenv("DB_PASSWORD") ?: "secret";
+                new PDO("pgsql:host=$h;port=5432;dbname=$db", $u, $p);
+              ' >/dev/null 2>&1; then
+                echo "Database is ready"
+                break
+              fi
+              if [ "$i" -eq 45 ]; then
+                echo "Database not ready after 90s" >&2
+                exit 1
+              fi
+              echo "Waiting for database ($i/45)..."
+              sleep 2
+            done
+
             echo "Run migrations"
             docker compose -f "$COMPOSE_FILE" exec -T app php artisan migrate --force
 
