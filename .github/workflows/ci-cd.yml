@@ -77,42 +77,52 @@ jobs:
       # 6. Deploy на сервер
       - name: Deploy to production server
         uses: appleboy/ssh-action@v1
+        env:
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          GHCR_USER: ${{ secrets.GHCR_USER }}
+          IMAGE: ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: GHCR_PAT,GHCR_USER,IMAGE,REGISTRY,DEPLOY_PATH,COMPOSE_FILE
           script: |
             set -e
-            cd "${{ env.DEPLOY_PATH }}"
+            cd "$DEPLOY_PATH"
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ${{ env.REGISTRY }} -u ${{ secrets.GHCR_USER }} --password-stdin
+            if [ -z "$GHCR_PAT" ] || [ -z "$GHCR_USER" ]; then
+              echo "GHCR_PAT or GHCR_USER is empty — check repository secrets" >&2
+              exit 1
+            fi
 
-            echo "Pull new image from GHCR (${{ github.sha }})"
-            docker pull ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest
-            docker tag ${{ env.REGISTRY }}/${{ steps.repo.outputs.lowercase }}/app:latest stratix_one-app:latest
+            printf '%s' "$GHCR_PAT" | docker login "$REGISTRY" -u "$GHCR_USER" --password-stdin
+
+            echo "Pull new image from GHCR"
+            docker pull "$IMAGE"
+            docker tag "$IMAGE" stratix_one-app:latest
 
             echo "Restart containers with new image"
-            docker compose -f "${{ env.COMPOSE_FILE }}" up -d --no-build --force-recreate --remove-orphans app reverb queue
+            docker compose -f "$COMPOSE_FILE" up -d --no-build --force-recreate --remove-orphans app reverb queue
 
             echo "Sync built static from container to host"
-            export HOST_BUILD_PATH="${{ env.DEPLOY_PATH }}/public/build"
+            export HOST_BUILD_PATH="$DEPLOY_PATH/public/build"
             export CONTAINER_BUILD_PATH="/var/www/stratix_one/public/build"
             sh _Docker/sync-public-build.sh
 
             echo "Run migrations"
-            docker compose -f "${{ env.COMPOSE_FILE }}" exec -T app php artisan migrate --force
+            docker compose -f "$COMPOSE_FILE" exec -T app php artisan migrate --force
 
             echo "Cache config"
-            docker compose -f "${{ env.COMPOSE_FILE }}" exec -T app php artisan config:cache
+            docker compose -f "$COMPOSE_FILE" exec -T app php artisan config:cache
 
             echo "Cache routes"
-            docker compose -f "${{ env.COMPOSE_FILE }}" exec -T app php artisan route:cache
+            docker compose -f "$COMPOSE_FILE" exec -T app php artisan route:cache
 
             echo "Restart queues"
-            docker compose -f "${{ env.COMPOSE_FILE }}" exec -T app php artisan queue:restart || true
+            docker compose -f "$COMPOSE_FILE" exec -T app php artisan queue:restart || true
 
             echo "Restart Reverb"
-            docker compose -f "${{ env.COMPOSE_FILE }}" restart reverb || true
+            docker compose -f "$COMPOSE_FILE" restart reverb || true
 
             echo "Clear old images"
             docker image prune -af
