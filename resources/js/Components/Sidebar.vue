@@ -48,7 +48,7 @@ const closeSidebar = () => {
               <div class="flex items-center justify-center gap-3">
                 <span class="title-font-3">STRTX</span>
                 <img src="/img/new_logo.png" class="w-8 object-contain" alt="">
-                <span class="title-font-3">ID</span>
+                <span class="title-font-3">ID 1</span>
               </div>
 
               <!-- Mobile close -->
