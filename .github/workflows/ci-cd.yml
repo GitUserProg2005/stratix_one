@@ -112,12 +112,6 @@ jobs:
             echo "Run migrations"
             docker compose -f "$COMPOSE_FILE" exec -T app php artisan migrate --force
 
-            echo "Cache config"
-            docker compose -f "$COMPOSE_FILE" exec -T app php artisan config:cache
-
-            echo "Cache routes"
-            docker compose -f "$COMPOSE_FILE" exec -T app php artisan route:cache
-
             echo "Restart queues"
             docker compose -f "$COMPOSE_FILE" exec -T app php artisan queue:restart || true
 
