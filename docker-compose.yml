@@ -35,7 +35,10 @@ services:
   #   restart: unless-stopped
 
   db:
-    image: postgres:16
+    build:
+      context: ./_Docker/postgres
+      dockerfile: Dockerfile.single
+    image: stratix_one-db:16-postgis
     container_name: db
     restart: always
     volumes:

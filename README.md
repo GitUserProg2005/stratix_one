@@ -1,42 +1,92 @@
-# Drivee Gamification Platform
+# stratix_one
 
-Laravel 12 + Inertia + Vue 3 приложение для геймификации кампании Drivee.
+[Status](./)
+[Laravel](https://laravel.com/)
+[Inertia](https://inertiajs.com/)
+[Vue](https://vuejs.org/)
+[Docker](https://docs.docker.com/compose/)
+
+No-code **n8n-графовый движок**. Позволяет собирать workflow из нод и связей. Между нодами есть **трансформация данных через AST-конструктор**.
 
 ## Стек
 
 - Laravel 12
 - Inertia.js + Vue 3
-- PostgreSQL (dev/prod конфигурации через Docker Compose)
+- PostgreSQL
 - Redis
 - Meilisearch
 - Reverb (WebSocket)
 - Геосервисы: OSRM, TileServer GL, Nominatim
+- Docker / Docker Compose
+- AI: GigaChat, Mistral (интеграции)
 
-## Быстрый старт (Docker)
+## Деплой (Docker Compose)
 
-1. Скопировать переменные окружения:
+### Копируем .env
 
 ```bash
 cp .env.example .env
 ```
 
-2. Собрать и запустить сервисы:
+### Билдим app
 
 ```bash
-docker compose up -d --build
+docker compose build app
+docker compose up -d
 ```
 
-3. Выполнить миграции:
+### Миграции
 
 ```bash
 docker compose exec app php artisan migrate --force
-```
-
-4. (Опционально) заполнить тестовыми данными:
-
-```bash
 docker compose exec app php artisan db:seed --force
 ```
+
+### Доступ к логам для www-data
+
+```bash
+docker compose exec app chown -R www-data:www-data /var/www/stratix_one/storage /var/www/stratix_one/bootstrap/cache
+docker compose exec app chmod -R 775 /var/www/stratix_one/storage /var/www/stratix_one/bootstrap/cache
+```
+
+### Копирование статики на локальный хост для nginx
+
+```bash
+sh _Docker/sync-public-build.sh
+```
+
+## Фичи
+
+- **Ноды без “каши аккаунтов”**: часть логики делается нативно внутри проекта.
+- **Realtime исполнение**: отслеживание шагов workflow в реальном времени (Reverb).
+- **Мультиворкинг**: несколько людей могут работать над одним workflow + lock от гонок.
+- **Дашборды/метрики**: можно обновлять метрики через ноды.
+- **Каталог workflow**: готовые решения (jsonb структура графа) + копирование.
+- **Тарифная сетка**: ограничения по типам нод.
+- **Трансформация данных**: AST-маппинг input → output.
+- **AI и медиа**: GigaChat, Mistral (text/picture/ocr), Whisper ASR.
+- **Гео-инструменты**: OSRM, TileServer GL, Nominatim, Point-in-Polygon (PostGIS).
+
+## Типы нод (N8N)
+
+Список соответствует `NodeRegistry.php`, `NodeTypeSeeder.php` и `nodeConfigFields.js`.
+
+- `**webhook_trigger`**: триггер входящего вебхука.
+- `**condition**`: условное ветвление.
+- `**ai_request**`: запрос к GigaChat.
+- `**ai_agent_request**`: GigaChat с JSON-режимом (структурированный ответ).
+- `**email_report**`: отправка результата на email.
+- `**osrm**`: построение маршрутов/оптимизаций (route / trip / multi).
+- `**log**`: запись в лог приложения.
+- `**collect_metrics**`: сбор метрик (заглушка).
+- `**update_metric**`: обновление метрик/виджетов.
+- `**schedule**`: расписание (cron).
+- `**page_loader**`: загрузка страницы и конвертация в markdown.
+- `**go_whisper**`: распознавание речи (Whisper ASR).
+- `**mistral_text**`: текстовый запрос к Mistral.
+- `**mistral_picture**`: анализ изображения (Pixtral).
+- `**mistral_ocr**`: OCR документов.
+- `**point_in_polygon**`: проверка “точка в полигоне” (PostGIS).
 
 ## Геосервисы: OSRM, TileServer, Nominatim
 
@@ -113,3 +163,4 @@ docker compose down
 ```bash
 docker compose down -v
 ```
+
