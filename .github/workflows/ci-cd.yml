@@ -9,8 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/var/www/stratix_one' }}
-  COMPOSE_INFRA_FILE: ${{ vars.COMPOSE_INFRA_FILE || 'docker-compose.infra.yml' }}
-  COMPOSE_APP_FILE: ${{ vars.COMPOSE_APP_FILE || 'docker-compose.yml' }}
+  COMPOSE_FILE: ${{ vars.COMPOSE_FILE || 'docker-compose.yml' }}
 
 jobs:
 
@@ -86,14 +85,10 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GHCR_PAT,GHCR_USER,IMAGE,REGISTRY,DEPLOY_PATH,COMPOSE_INFRA_FILE,COMPOSE_APP_FILE
+          envs: GHCR_PAT,GHCR_USER,IMAGE,REGISTRY,DEPLOY_PATH,COMPOSE_FILE
           script: |
             set -e
             cd "$DEPLOY_PATH"
-
-            compose() {
-              docker compose -f "$COMPOSE_INFRA_FILE" -f "$COMPOSE_APP_FILE" "$@"
-            }
 
             if [ -z "$GHCR_PAT" ] || [ -z "$GHCR_USER" ]; then
               echo "GHCR_PAT or GHCR_USER is empty — check repository secrets" >&2
@@ -107,7 +102,7 @@ jobs:
             docker tag "$IMAGE" stratix_one-app:latest
 
             echo "Restart containers with new image"
-            compose up -d --no-build --force-recreate --remove-orphans app reverb queue
+            docker compose -f "$COMPOSE_FILE" up -d --no-build --force-recreate --remove-orphans app reverb queue
 
             echo "Sync built static from container to host"
             export HOST_BUILD_PATH="$DEPLOY_PATH/public/build"
@@ -116,7 +111,7 @@ jobs:
 
             echo "Wait for database"
             for i in $(seq 1 45); do
-              if compose exec -T app php -r '
+              if docker compose -f "$COMPOSE_FILE" exec -T app php -r '
                 $h = getenv("DB_HOST") ?: "db";
                 $db = getenv("DB_DATABASE") ?: "laravel";
                 $u = getenv("DB_USERNAME") ?: "postgres";
@@ -135,19 +130,19 @@ jobs:
             done
 
             echo "Run migrations"
-            compose exec -T app php artisan migrate --force
+            docker compose -f "$COMPOSE_FILE" exec -T app php artisan migrate --force
 
             echo "Cache config"
-            compose exec -T app php artisan config:cache
+            docker compose -f "$COMPOSE_FILE" exec -T app php artisan config:cache
 
             echo "Cache routes"
-            compose exec -T app php artisan route:cache
+            docker compose -f "$COMPOSE_FILE" exec -T app php artisan route:cache
 
             echo "Restart queues"
-            compose exec -T app php artisan queue:restart || true
+            docker compose -f "$COMPOSE_FILE" exec -T app php artisan queue:restart || true
 
             echo "Restart Reverb"
-            compose restart reverb || true
+            docker compose -f "$COMPOSE_FILE" restart reverb || true
 
             echo "Clear old images"
             docker image prune -af
