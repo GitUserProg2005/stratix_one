@@ -2,18 +2,12 @@
 
 namespace App\Services\N8N\Handles;
 
-use App\Enums\NodeStructureSchema;
 use App\Services\AI\Mistral as MistralService;
 use App\Services\N8N\BaseNode;
 
 
 class MistralOcr extends BaseNode
 {
-    public static function nodeStructureSchema(): NodeStructureSchema
-    {
-        return NodeStructureSchema::STATIC;
-    }
-
     public static function inputSchema(): array
     {
         return self::field('file', 'file', true);

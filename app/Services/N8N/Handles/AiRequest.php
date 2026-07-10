@@ -2,18 +2,12 @@
 
 namespace App\Services\N8N\Handles;
 
-use App\Enums\NodeStructureSchema;
 use App\Services\AI\Gigachat;
 use App\Services\N8N\BaseNode;
 
 
 class AiRequest extends BaseNode
 {   
-    public static function nodeStructureSchema(): NodeStructureSchema
-    {
-        return NodeStructureSchema::STATIC;
-    }
-
     public static function inputSchema(): array {
         return self::field('content', 'string', false);
     }

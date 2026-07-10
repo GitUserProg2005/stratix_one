@@ -17,6 +17,15 @@ export const nodeConfigFields = {
             }
         ],
     },
+    http_callback: {
+        fields: [
+            { name: 'callback_url', label: 'Callback URL', type: 'text', required: true },
+            { name: 'signing_secret', label: 'Signing secret', type: 'password', security: true, required: true },
+        ],
+        builder: 'OutputBuilder',
+        builder_root: 'payload', 
+        builder_title: 'Структура callback payload',
+    },
 
     ai_request: {
         fields: [
