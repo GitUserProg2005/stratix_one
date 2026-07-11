@@ -7,19 +7,25 @@ import LendingQuickStartSection from '@/Components/Lending/LendingQuickStartSect
 import LendingOutlineSwiperSection from '@/Components/Lending/LendingOutlineSwiperSection.vue';
 import LendingCtaBannerSection from '@/Components/Lending/LendingCtaBannerSection.vue';
 import LendingServicesSection from '@/Components/Lending/LendingServicesSection.vue';
+import About from '@/Components/Lending/About.vue';
+import Integration from '@/Components/Lending/Integration.vue';
+import LendingRatesSection from '@/Components/Lending/LendingRatesSection.vue';
+import GeoFeatures from '@/Components/Lending/GeoFeatures.vue';
+import LendingTestimonialsSection from '@/Components/Lending/LendingTestimonialsSection.vue';
 </script>
 
 <template>
     <div class="relative bg-body">
         <LendingLayout>
-            <LendingHeroSection />
-            <div class="w-full laser-line"></div>
-            <LendingComponentsIntroSection />
-            <LendingClientsSection />
-            <LendingQuickStartSection />
-            <LendingOutlineSwiperSection />
-            <LendingCtaBannerSection />
-            <LendingServicesSection />
+            <template #hero>
+                <LendingHeroSection />
+                <div class="w-full laser-line"></div>
+            </template>
+            <About />
+            <Integration />
+            <LendingRatesSection />
+            <GeoFeatures />
+            <LendingTestimonialsSection />
         </LendingLayout>
     </div>
 </template>
