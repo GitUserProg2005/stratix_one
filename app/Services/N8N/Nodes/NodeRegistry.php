@@ -2,9 +2,9 @@
 
 namespace App\Services\N8N\Nodes;
 
-use App\Enums\NodeStructureSchema;
 use App\Enums\NodeType;
 use App\Services\N8N\BaseNode;
+use ReflectionMethod;
 
 
 class NodeRegistry {
@@ -26,6 +26,7 @@ class NodeRegistry {
             NodeType::MISTRAL_PICTURE->value => \App\Services\N8N\Handles\MistralPicture::class,
             NodeType::MISTRAL_OCR->value => \App\Services\N8N\Handles\MistralOcr::class,
             NodeType::POINT_IN_POLYGON->value => \App\Services\N8N\Handles\PointInPolygon::class,
+            NodeType::HTTP_CALLBACK->value => \App\Services\N8N\Handles\HttpCallback::class,
         ];
     }
 
@@ -41,6 +42,13 @@ class NodeRegistry {
                 ? $class::inputSchemasByMode()
                 : [];
 
+            $dynamicInputKey = is_subclass_of($class, BaseNode::class)
+                ? $class::dynamicInputConfigKey()
+                : null;
+            $dynamicOutputKey = is_subclass_of($class, BaseNode::class)
+                ? $class::dynamicOutputConfigKey()
+                : null;
+
             $result[$type] = [
                 'inputSchema' => ! empty($inputSchemasByMode)
                     ? ($inputSchemasByMode['route'] ?? reset($inputSchemasByMode))
@@ -51,8 +59,16 @@ class NodeRegistry {
                 'outputSchema' => is_callable([$class, 'outputSchema'])
                     ? $class::outputSchema()
                     : BaseNode::outputSchema(),
-                'dynamic' => is_callable([$class, 'nodeStructureSchema'])
-                    && $class::nodeStructureSchema() === NodeStructureSchema::DYNAMIC,
+                'dynamic_input' => is_subclass_of($class, BaseNode::class) && (
+                    $dynamicInputKey !== null
+                    || $this->usesDynamicSchema($class, 'dynamicInputSchema')
+                ),
+                'dynamic_input_key' => $dynamicInputKey,
+                'dynamic_output' => is_subclass_of($class, BaseNode::class) && (
+                    $dynamicOutputKey !== null
+                    || $this->usesDynamicSchema($class, 'dynamicOutputSchema')
+                ),
+                'dynamic_output_key' => $dynamicOutputKey,
             ];
         }
 
@@ -61,5 +77,16 @@ class NodeRegistry {
         }
 
         return $result;
+    }
+
+    private function usesDynamicSchema(string $class, string $method): bool
+    {
+        if (! is_subclass_of($class, BaseNode::class) || ! method_exists($class, $method)) {
+            return false;
+        }
+
+        return (new ReflectionMethod($class, $method))
+            ->getDeclaringClass()
+            ->getName() !== BaseNode::class;
     }
 }

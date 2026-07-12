@@ -56,11 +56,12 @@ class WebhookController extends Controller
             context: $context,
         );
 
-        $runner->startFromNode($webhook->node_id);
+        $runId = $runner->startFromNode($webhook->node_id);
 
         return response()->json([
-            'result' => 'ok',
-        ]);
+            'result' => 'accepted',
+            'run_id' => $runId,
+        ], 202);
     }
 
     public function tokenByNode(int $nodeId)

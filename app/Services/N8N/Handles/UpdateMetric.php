@@ -6,15 +6,9 @@ use App\Services\N8N\BaseNode;
 
 use App\Models\DashboardWidget;
 
-use App\Enums\NodeStructureSchema;
-
 
 class UpdateMetric extends BaseNode
 {
-    public static function nodeStructureSchema(): NodeStructureSchema {
-        return NodeStructureSchema::STATIC;
-    }
-
     public static function outputSchema(): array {
         return self::field('result', false);
     }

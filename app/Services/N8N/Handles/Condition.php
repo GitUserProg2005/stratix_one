@@ -2,21 +2,11 @@
 
 namespace App\Services\N8N\Handles;
 
-use App\Enums\NodeStructureSchema;
 use App\Services\N8N\BaseNode;
 
 
 class Condition extends BaseNode
 {
-    // public static function outputSchema(): array {
-    //     return self::field('')
-    // }
-
-    public static function nodeStructureSchema(): NodeStructureSchema
-    {
-        return NodeStructureSchema::DYNAMIC;
-    }
-
     protected function dynamicOutputSchema(): ?array
     {
         return $this->rawInput;

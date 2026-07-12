@@ -6,7 +6,7 @@ import { getBezierPath } from '@vue-flow/core';
 import { flattenSchema, flattenArrayPaths } from '../utils/flattenSchema';
 import { buildAST } from '../utils/buildAST';
 import { isValidSchema } from '../utils/isValidSchema';
-import { resolveInputSchema } from '../utils/resolveInputSchema';
+import { resolveDynamicSchema } from '../utils/resolveDynamicSchema';
 import SchemaTree from './SchemaTree.vue';
 import axios from 'axios';
 
@@ -43,30 +43,36 @@ const mappings = ref({});
 const resolvedSourceSchema = computed(() => {
     if (!props.sourceSchema) return null;
 
-    if (props.sourceSchema.dynamic) {
+    if (props.sourceSchema.dynamic_output) {
         return {
             ...props.sourceSchema,
             outputSchema: resolveDynamicSchema(
                 props.sourceNode,
-                'output'
-            )
-        }
+                'output',
+                props.sourceSchema,
+            ),
+        };
     }
 
     return props.sourceSchema;
 });
 
-function resolveDynamicSchema(node, type = 'output') {
-    if (!node?.data?.config) return null;
+const resolvedTargetSchema = computed(() => {
+    if (!props.targetSchema) return null;
 
-    const config = node.data.config;
-
-    if (type === 'output') {
-        return config.output || config.request || null;
+    if (props.targetSchema.dynamic_input) {
+        return {
+            ...props.targetSchema,
+            inputSchema: resolveDynamicSchema(
+                props.targetNode,
+                'input',
+                props.targetSchema,
+            ),
+        };
     }
 
-    return null;
-}
+    return props.targetSchema;
+});
 
 const sourceFields = computed(() => {
     return flattenSchema(resolvedSourceSchema.value?.outputSchema);
@@ -77,11 +83,14 @@ const arraySourceFields = computed(() => {
 });
 
 const targetInputSchema = computed(() => {
-    const schema = resolveInputSchema(
-        props.targetSchema,
-        props.targetNode?.data?.config
-    );
+    const mode = props.targetNode?.data?.config?.mode;
 
+    if (mode && resolvedTargetSchema.value?.inputSchemaModes?.[mode]) {
+        const schema = resolvedTargetSchema.value.inputSchemaModes[mode];
+        return isValidSchema(schema) ? schema : null;
+    }
+
+    const schema = resolvedTargetSchema.value?.inputSchema;
     return isValidSchema(schema) ? schema : null;
 });
 

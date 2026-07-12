@@ -2,21 +2,15 @@
 
 namespace App\Services\N8N\Handles;
 
-use App\Enums\NodeStructureSchema;
 use App\Services\AI\Gigachat;
 use App\Services\N8N\BaseNode;
 
 
 class AiAgentRequest extends BaseNode
 {
-    public static function nodeStructureSchema(): NodeStructureSchema
+    public static function dynamicOutputConfigKey(): ?string
     {
-        return NodeStructureSchema::DYNAMIC;
-    }
-
-    protected function dynamicOutputSchema(): ?array
-    {
-        return $this->getConfig('output');
+        return 'output';
     }
 
     public static function inputSchema(): array {

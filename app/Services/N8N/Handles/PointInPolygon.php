@@ -2,17 +2,11 @@
 
 namespace App\Services\N8N\Handles;
 
-use App\Enums\NodeStructureSchema;
 use App\Services\N8N\BaseNode;
 use Illuminate\Support\Facades\DB;
 
 class PointInPolygon extends BaseNode
 {
-    public static function nodeStructureSchema(): NodeStructureSchema
-    {
-        return NodeStructureSchema::STATIC;
-    }
-
     public static function inputSchema(): array
     {
         return self::group('coordinates', [

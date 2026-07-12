@@ -2,7 +2,6 @@
 
 namespace App\Services\N8N;
 
-use App\Enums\NodeStructureSchema;
 use App\Events\WorkflowFailed;
 use App\Services\FileStorageService;
 
@@ -13,6 +12,7 @@ abstract class BaseNode {
         protected $node,
         protected mixed $rawInput,
         protected ?int $nodeId = null,
+        protected ?string $runId = null,
     ) {
         $this->validateInput();
     }
@@ -39,10 +39,37 @@ abstract class BaseNode {
     }
 
     /*
-    * Резолвит инпут-схему (ноды с mode переопределяют)
+    * Ключ в config ноды для динамической input-схемы
+    */
+    public static function dynamicInputConfigKey(): ?string
+    {
+        return null;
+    }
+
+    /*
+    * Ключ в config ноды для динамической output-схемы
+    */
+    public static function dynamicOutputConfigKey(): ?string
+    {
+        return null;
+    }
+
+    /*
+    * Резолвит input-схему (mode / config / static)
     */
     public function resolveInputSchema(): ?array
     {
+        $schemasByMode = static::inputSchemasByMode();
+        $mode = $this->getConfig('mode');
+
+        if ($mode && ! empty($schemasByMode[$mode])) {
+            return $schemasByMode[$mode];
+        }
+
+        if ($dynamic = $this->dynamicInputSchema()) {
+            return $dynamic;
+        }
+
         $schema = static::inputSchema();
 
         return $schema ?: null;
@@ -56,25 +83,39 @@ abstract class BaseNode {
     }
 
     /*
-    * Структура ноды (статическая или динамическая)
+    * Резолвит output-схему (config / static)
     */
-    public static function nodeStructureSchema(): NodeStructureSchema  {
-        return NodeStructureSchema::STATIC;
-    }
-
-    /*
-    * Резолвит выход-схему в зависимости от структуры ноды
-    */
-    public function resolveOutputSchema(): ?array {
-        if (static::nodeStructureSchema() === NodeStructureSchema::DYNAMIC) {
-            return $this->dynamicOutputSchema();
+    public function resolveOutputSchema(): ?array
+    {
+        if ($dynamic = $this->dynamicOutputSchema()) {
+            return $dynamic;
         }
 
-        return static::outputSchema();
+        $schema = static::outputSchema();
+
+        return $schema ?: null;
     }
 
-    protected function dynamicOutputSchema(): ?array {
-        return null;
+    protected function dynamicInputSchema(): ?array
+    {
+        $key = static::dynamicInputConfigKey();
+
+        if ($key === null) {
+            return null;
+        }
+
+        return $this->getConfig($key);
+    }
+
+    protected function dynamicOutputSchema(): ?array
+    {
+        $key = static::dynamicOutputConfigKey();
+
+        if ($key === null) {
+            return null;
+        }
+
+        return $this->getConfig($key);
     }
 
     protected static function field(string $key, string $type = null, bool $is_required=true): array {

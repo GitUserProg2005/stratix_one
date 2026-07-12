@@ -27,6 +27,7 @@ class NodeTypeSeeder extends Seeder
             ['name' => 'Mistral Picture', 'type' => 'mistral_picture', 'description' => 'Анализ изображения через Mistral Pixtral'],
             ['name' => 'Mistral OCR', 'type' => 'mistral_ocr', 'description' => 'OCR документов через Mistral'],
             ['name' => 'Point In Polygon', 'type' => 'point_in_polygon', 'description' => 'Проверка нахождения точки в полигоне (PostGIS)'],
+            ['name' => 'HTTP Callback', 'type' => 'http_callback', 'description' => 'Отправка результата workflow на внешний URL'],
         ];
 
         foreach ($types as $row) {
@@ -62,6 +63,7 @@ class NodeTypeSeeder extends Seeder
                 'ai_agent_request',
                 'ai_request',
                 'point_in_polygon',
+                'http_callback',
                 'email_report',
                 'page_loader',
             ],

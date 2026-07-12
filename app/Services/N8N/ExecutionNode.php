@@ -27,6 +27,7 @@ class ExecutionNode
         NodeType::MISTRAL_PICTURE->value => \App\Services\N8N\Handles\MistralPicture::class,
         NodeType::MISTRAL_OCR->value => \App\Services\N8N\Handles\MistralOcr::class,
         NodeType::POINT_IN_POLYGON->value => \App\Services\N8N\Handles\PointInPolygon::class,
+        NodeType::HTTP_CALLBACK->value => \App\Services\N8N\Handles\HttpCallback::class,
     ];
 
     protected $handler;
@@ -65,7 +66,13 @@ class ExecutionNode
             throw new \RuntimeException("Handler not found for type: {$nodeData->type}");
         }
 
-        $this->handler = new $handlerClass($this->workflowId, $nodeData, $this->input, $this->nodeId);
+        $this->handler = new $handlerClass(
+            $this->workflowId,
+            $nodeData,
+            $this->input,
+            $this->nodeId,
+            $this->runId,
+        );
     }
 
     public function execute(): mixed
