@@ -481,11 +481,16 @@ html.dark .lending-header-icon-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Тёплое свечение #feeccd: на всю ширину, акцент справа, заметное, длиннее к низу */
+/* Тёплое свечение: fixed в верхней зоне, под контентом */
+.lending-page {
+    position: relative;
+    isolation: isolate;
+}
+
 .lending-layout-glow {
     pointer-events: none;
     position: fixed;
-    z-index: 1;
+    z-index: 0;
     left: 0;
     right: 0;
     top: 0;
@@ -495,9 +500,9 @@ html.dark .lending-header-icon-btn:hover {
     background:
         linear-gradient(
             to bottom,
-            rgba(233, 115, 88, 0.62) 0%,
-            rgba(233, 115, 88, 0.28) 22%,
-            rgba(233, 115, 88, 0.568) 48%,
+            rgba(233, 115, 88, 0.5) 0%,
+            rgba(233, 115, 88, 0.22) 22%,
+            rgba(233, 115, 88, 0.12) 48%,
             rgba(254, 236, 205, 0.02) 72%,
             transparent 92%
         );
@@ -523,7 +528,7 @@ html.dark .lending-header-icon-btn:hover {
 
 html.dark .lending-layout-glow,
 .dark .lending-layout-glow {
-    opacity: 0.55;
+    opacity: 0.45;
 }
 
 /* Base block: единое место для отступов, скруглений и базовой типографики */

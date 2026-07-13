@@ -15,8 +15,7 @@ import LendingTestimonialsSection from '@/Components/Lending/LendingTestimonials
 </script>
 
 <template>
-    <div class="relative bg-content-glass">
-        <LendingLayout>
+    <LendingLayout>
             <template #hero>
                 <LendingHeroSection />
                 <div class="w-full laser-line"></div>
@@ -27,5 +26,4 @@ import LendingTestimonialsSection from '@/Components/Lending/LendingTestimonials
             <GeoFeatures />
             <LendingTestimonialsSection />
         </LendingLayout>
-    </div>
 </template>
