@@ -5,6 +5,7 @@ import { usePage, router, Head, useForm } from '@inertiajs/vue3';
 import Avatar from '@/Components/Avatar.vue';
 import Back from '@/Components/BackButton.vue';
 import Graph2D from '@/Pages/N8N/Components/Graph2D.vue';
+import ProfileBackgroundSelector from '@/Pages/Auth/ProfileBackgroundSelector.vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -12,6 +13,14 @@ const props = defineProps({
     stats: {
         type: Object,
         default: () => ({ workflow_count: 0, dashboard_count: 0 }),
+    },
+    backgrounds: {
+        type: Array,
+        default: () => [],
+    },
+    selected_background_id: {
+        type: [Number, null],
+        default: null,
     },
 });
 
@@ -150,11 +159,11 @@ onMounted(() => {
     <Head :title="isOwnProfile ? 'Профиль' : user.name" />
 
     <AppLayout>
-        <div class="w-full min-h-screen bg-content">
-            <div class="px-4 pb-6">
+        <div class="w-full min-h-screen">
+            <div class="px-4 py-6">
                 <div
                     v-if="!isOwnProfile"
-                    class="sticky top-0 z-30 pt-4 pb-2 bg-content"
+                    class="sticky top-0 z-30 pt-4 pb-2 bg-content-glass"
                 >
                     <Back @back="goBack" />
                 </div>
@@ -268,16 +277,22 @@ onMounted(() => {
                 </p>
 
                 <section class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                    <div class="bg-body p-4 rounded-2xl">
+                    <div class="bg-glass-frost p-4 rounded-2xl">
                         <span class="t-color-secondary title-2">Воркфлоу</span> <br>
                         <span class="title-font t-color-primary">{{ stats.workflow_count }}</span>
                     </div>
 
-                    <div class="bg-body p-4 rounded-2xl">
+                    <div class="bg-glass-frost p-4 rounded-2xl">
                         <span class="t-color-secondary title-2">Дашборды</span> <br>
                         <span class="title-font t-color-primary">{{ stats.dashboard_count }}</span>
                     </div>
                 </section>
+
+                <ProfileBackgroundSelector
+                    v-if="isOwnProfile"
+                    :backgrounds="backgrounds"
+                    :model-value="selected_background_id"
+                />
 
                 <section class="mt-6">
                     <h2 class="title-2 mb-3 flex items-center gap-2 text-sm">

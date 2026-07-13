@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
 
 <template>
     <DashboardLayout>
-        <div class="bg-content px-6 space-y-6">
+        <div class="bg-content-glass px-6 space-y-6">
             <!-- Top metrics -->
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
                 <div class="content-dashboard flex flex-col gap-3">

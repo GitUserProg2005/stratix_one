@@ -92,6 +92,7 @@ Route::get('/profile/{user}/workflow-graph', [ProfileController::class, 'workflo
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/media', [ProfileController::class, 'updateMedia'])->name('profile.media');
+    Route::post('/profile/background', [ProfileController::class, 'updateBackground'])->name('profile.background');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 

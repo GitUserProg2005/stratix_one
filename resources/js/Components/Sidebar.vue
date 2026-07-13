@@ -35,19 +35,20 @@ const closeSidebar = () => {
         lg:translate-x-0 lg:relative 
         z-[100]
         lg:z-[50]
-        bg-content
+        backdrop-blur-2xl
+        rounded-2xl overflow-hidden
         w-4/5 sm:w-72 lg:w-full
       "
       :class="isOpenSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     >
-      <div class="h-full rounded-r-3xl p-0 flex flex-col">
+      <div class="h-full p-0 flex flex-col">
         <div class="p-4 flex flex-col h-full gap-2">
           <!-- Top card -->
           <div class="p-0">
             <div class="flex items-center justify-between lg:justify-center">
               <div class="flex items-center justify-center gap-3">
                 <span class="title-font-3">STRTX</span>
-                <img src="/img/new_logo.png" class="w-8 object-contain" alt="">
+                <img src="/img/logov3.png" class="w-4 object-contain" alt="">
                 <span class="title-font-3">ID</span>
               </div>
 
@@ -57,8 +58,7 @@ const closeSidebar = () => {
                 @click="closeSidebar"
                 aria-label="Close sidebar"
               >
-                <span class="block w-7 h-[2px] bg-white"></span>
-                <span class="block w-7 h-[2px] bg-white mt-1"></span>
+                <i class="fa-solid fa-xmark"></i>
               </button>
             </div>
           </div>

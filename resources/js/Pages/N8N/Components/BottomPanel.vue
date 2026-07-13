@@ -22,7 +22,7 @@ const panelHeight = computed(() =>
 <template>
     <div
         v-if="isOpened"
-        class="absolute z-50 bottom-0 left-0 right-0 bg-content-glass w-full overflow-hidden"
+        class="absolute z-50 bottom-0 left-0 right-0 bg-content-glass rounded-xl w-full overflow-hidden"
         :style="{ height: panelHeight }"
     >
         <div class="flex h-full min-h-0 flex-col">

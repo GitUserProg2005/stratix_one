@@ -40,7 +40,7 @@ onMounted(async () => {
 
 <template>
   <div ref="mapSidebar"  
-    class="bg-content grid grid-cols-1 md:grid-cols-2 gap-4 h-full"
+    class="bg-content-glass grid grid-cols-1 md:grid-cols-2 gap-4 h-full"
   >
     <div class="p-4">
       <h2>Окружение</h2>

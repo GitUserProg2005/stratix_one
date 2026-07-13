@@ -37,7 +37,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto relative bg-body">
+  <div class="max-w-7xl mx-auto relative bg-content-glass">
     <div v-show="isMobileView && isOpenSidebar" class="fixed inset-0 z-40 backdrop-blur-md bg-black/30 dark:bg-black/60 transition-opacity duration-300 lg:hidden" @click="isOpenSidebar = false" />
 
     <header v-show="isMobileView" ref="headerRef" class="fixed top-0 left-0 right-0 z-20 lg:static">
@@ -49,7 +49,7 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <div v-show="isMobileView" class="fixed left-0 inset-y-0 w-[85%] max-w-sm bg-body shadow-xl transform transition-transform duration-300 z-50 flex flex-col lg:hidden border-r border-black/10 dark:border-white/10" :class="{ 'translate-x-0': isOpenSidebar, '-translate-x-full': !isOpenSidebar }">
+    <div v-show="isMobileView" class="fixed left-0 inset-y-0 w-[85%] max-w-sm bg-content-glass shadow-xl transform transition-transform duration-300 z-50 flex flex-col lg:hidden border-r border-black/10 dark:border-white/10" :class="{ 'translate-x-0': isOpenSidebar, '-translate-x-full': !isOpenSidebar }">
       <div class="flex items-center justify-between px-4 py-3 border-b border-black/10 dark:border-white/10">
         <span class="context font-medium">Меню</span>
         <button type="button" class="context hover:opacity-80" @click="isOpenSidebar = false">

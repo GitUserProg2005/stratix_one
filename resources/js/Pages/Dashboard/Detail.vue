@@ -119,8 +119,8 @@ function renderCharts() {
                             label: w.title ?? 'Метрика',
                             data: w.values ?? [],
                             borderWidth: 1,
-                            backgroundColor: isPie ? pieColors((w.labels ?? []).length) : 'rgba(233,115,88,0.28)',
-                            borderColor: isPie ? 'rgba(0,0,0,0.12)' : 'rgba(233,115,88,0.75)',
+                            backgroundColor: isPie ? pieColors((w.labels ?? []).length) : 'rgba(233, 115, 88,0.28)',
+                            borderColor: isPie ? 'rgba(0,0,0,0.12)' : 'rgba(233, 115, 88,0.75)',
                             borderRadius: isPie ? 0 : 10,
                             borderSkipped: false,
                         },
@@ -297,7 +297,7 @@ onBeforeUnmount(() => {
                     <div
                         v-for="i in 4"
                         :key="i"
-                        class="content-glass rounded-2xl p-4"
+                        class="dashboard-card"
                     >
                         <Rectangle height="1rem" width="45%" rounded="rounded-md" />
                         <Rectangle class="mt-4" height="8.125rem" rounded="rounded-xl" />
@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
                         :gs-h="w.h"
                         class="grid-stack-item"
                     >
-                        <div class="grid-stack-item-content content-glass p-4">
+                        <div class="grid-stack-item-content dashboard-card">
                             <div class="context font-semibold truncate">
                                 {{ w.title }}
                             </div>

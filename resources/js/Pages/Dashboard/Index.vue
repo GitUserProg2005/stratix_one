@@ -35,7 +35,7 @@ defineProps({
                     v-for="d in dashboards"
                     :key="d.id"
                     :href="route('dashboard.show', d.id)"
-                    class="content-glass rounded-2xl p-4 border border-transparent hover:border-[var(--border-input)] transition"
+                    class="dashboard-card transition"
                 >
                     <div class="context font-semibold truncate">
                         {{ d.title || `Дашборд #${d.id}` }}

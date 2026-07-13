@@ -36,7 +36,7 @@
     --text-primary: var(--content-primary);
     --text-secondary: var(--content-secondary);
 
-    --accent: #e97358;
+    --accent: #fc7d61;
     --accent-hover: #c8634d;
 
     /* Полная строка для border (outline-карточки, светлая тема) */
@@ -55,8 +55,9 @@
     --tag-border: #000000;
     --tag-text: #000000;
 
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.6);
+    --glass-bg: rgba(255, 255, 255, 0.35);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-blur: 4px;
 
     --corporate-blue-bg: #e9edfc;
     --corporate-blue-text: #000000;
@@ -116,7 +117,7 @@ html.dark,
     --tag-border: transparent;
     --tag-text: var(--content-primary);
 
-    --glass-bg: rgba(26, 26, 26, 0.72);
+    --glass-bg: rgba(26, 26, 26, 0.5);
     --glass-border: transparent;
 
     /* В тёмной теме сайта не slate-blue — те же плашки, что и .content-dark */
@@ -223,7 +224,7 @@ html.dark .bg-content-outline,
  *   • label-glass       — полупрозрачное стекло + лёгкая рамка.
  *   • label-ice         — ледовый фон #e0f2fe, чёрный текст (как .content-ice).
  *   • label-corporate-blue — голубой блок (как .content-corporate-blue).
- *   • label-accent      — акцентный оранжевый, белый текст.
+ *   • label-accent      — акцентный, белый текст.
  *   • label-completed | label-in-progress | label-pending — семантика статусов (как бейджи).
  *   • label-landing     — крупный pill для лендинга: светлая тема — фон #1a1a1a, текст белый;
  *                         тёмная тема — фон белый, текст #1a1a1a (инверсия).
@@ -480,11 +481,16 @@ html.dark .lending-header-icon-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Тёплое свечение #feeccd: на всю ширину, акцент справа, заметное, длиннее к низу */
+/* Тёплое свечение: fixed в верхней зоне, под контентом */
+.lending-page {
+    position: relative;
+    isolation: isolate;
+}
+
 .lending-layout-glow {
     pointer-events: none;
     position: fixed;
-    z-index: 1;
+    z-index: 0;
     left: 0;
     right: 0;
     top: 0;
@@ -494,9 +500,9 @@ html.dark .lending-header-icon-btn:hover {
     background:
         linear-gradient(
             to bottom,
-            rgba(233, 115, 88, 0.62) 0%,
-            rgba(233, 115, 88, 0.28) 22%,
-            rgba(233, 115, 88, 0.568) 48%,
+            rgba(233, 115, 88, 0.5) 0%,
+            rgba(233, 115, 88, 0.22) 22%,
+            rgba(233, 115, 88, 0.12) 48%,
             rgba(254, 236, 205, 0.02) 72%,
             transparent 92%
         );
@@ -522,7 +528,7 @@ html.dark .lending-header-icon-btn:hover {
 
 html.dark .lending-layout-glow,
 .dark .lending-layout-glow {
-    opacity: 0.55;
+    opacity: 0.45;
 }
 
 /* Base block: единое место для отступов, скруглений и базовой типографики */
@@ -657,18 +663,46 @@ html.dark .content-corporate-blue .context,
 
 /* Glass / backdrop-blur block */
 .content-glass {
-    @apply block-base backdrop-blur-md;
+    @apply block-base;
     background-color: var(--glass-bg);
     border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     color: var(--content-primary);
 }
 
 .bg-content-glass {
     background-color: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     color: var(--content-primary);
+}
+
+/* Лёгкое стекло для кнопок/пилюль в шапке — видно на тёмном фоне */
+.bg-glass-frost {
+    background-color: rgba(43, 43, 43, 0.014);
+    border: 1px solid rgba(95, 94, 94, 0.18);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    color: var(--content-primary);
+}
+
+/* Фоновое изображение за колонками дашборда */
+.dashboard-layout-bg {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.dashboard-layout-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    pointer-events: none;
+    z-index: 0;
 }
 
 .content-corporate-orange {
@@ -967,72 +1001,96 @@ html.dark .primary-btn-white-blur:hover,
     @apply opacity-60 cursor-not-allowed;
 }
 
-/* Inputs */
+/* Inputs — тёмное стекло как bg-content-glass */
 .input {
-    @apply px-6 py-3 rounded-lg border-2 outline-none;
-    background-color: var(--bg-card);
+    @apply px-6 py-3 rounded-lg outline-none;
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     color: var(--content-primary);
-    border-color: var(--border-input);
     transition:
         background-color 0.2s ease,
         border-color 0.2s ease,
-        color 0.2s ease,
-        box-shadow 0.2s ease;
+        color 0.2s ease;
 }
 
 .input:focus {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    box-shadow: 0 0 0 2px var(--bg-main), 0 0 0 4px var(--accent);
+    outline: none;
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border));
 }
 
 .search-input {
     @apply input;
-    background-color: var(--bg-card);
+    border: none;
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: none;
+    border: none;
 }
 
 .search-input-white {
     @apply input;
     background-color: var(--bg-main);
+    border-color: var(--border-input);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.input-underline {
+    @apply w-full px-0 py-2 rounded-none text-sm;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: var(--content-primary);
+    outline: none;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.input-underline:hover,
+.input-underline:focus,
+.input-underline:focus-visible,
+.input-underline:active {
+    outline: none;
+    box-shadow: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.input-underline:focus,
+.input-underline:focus-visible {
+    border-bottom-color: color-mix(in srgb, var(--accent) 55%, var(--glass-border));
 }
 
 .select-input {
     @apply px-3 py-2 rounded-lg outline-none text-sm;
-    background-color: var(--bg-main);
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     color: var(--content-primary);
-    border: 1px solid var(--border-input);
     transition:
         background-color 0.2s ease,
         border-color 0.2s ease,
-        color 0.2s ease,
-        box-shadow 0.2s ease;
+        color 0.2s ease;
 }
 
 .select-input:focus {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    box-shadow: 0 0 0 2px var(--bg-main), 0 0 0 4px var(--accent);
+    outline: none;
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border));
 }
 
 .select-input option {
     background-color: var(--bg-main);
     color: var(--content-primary);
-}
-
-/* Тёмная тема: градиентная «волосная» обводка у input (псевдо на <input> не работает) */
-html.dark .input,
-html.dark .search-input,
-.dark .input,
-.dark .search-input {
-    border-width: 1px;
-    border-style: solid;
-    border-color: transparent;
-    background-color: transparent;
-    background-image:
-        linear-gradient(180deg, var(--bg-card), var(--bg-card)),
-        var(--border-hairline-gradient);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
 }
 
 html.dark .search-input-white,
@@ -1046,19 +1104,8 @@ html.dark .search-input-white,
         var(--border-hairline-gradient);
     background-origin: border-box;
     background-clip: padding-box, border-box;
-}
-
-html.dark .select-input,
-.dark .select-input {
-    border-width: 1px;
-    border-style: solid;
-    border-color: transparent;
-    background-color: transparent;
-    background-image:
-        linear-gradient(180deg, var(--bg-main), var(--bg-main)),
-        var(--border-hairline-gradient);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 /* Range slider */
@@ -1372,7 +1419,7 @@ html::-webkit-scrollbar-thumb {
 
 .sidebar-nav-link-active {
     @apply font-semibold;
-    background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+    background-color: color-mix(in srgb, var(--accent) 5%, transparent);
     color: var(--accent);
 }
 
@@ -1402,6 +1449,22 @@ html.dark .badge-neutral,
     background-color: rgba(255, 255, 255, 0.09);
     border-color: rgba(255, 255, 255, 0.14);
     color: var(--content-primary);
+}
+
+/* Карточка дашборда — чуть светлее фона, без тяжёлого glass */
+.dashboard-card {
+    @apply rounded-2xl p-4;
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--content-primary);
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.dashboard-card:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.16);
 }
 
 /* Вложенная карточка внутри content-dashboard */
@@ -1523,7 +1586,7 @@ html.dark .dashboard-progress-track,
   height: 40px; /* Толщина свечения */
   background: radial-gradient(
     ellipse at center, 
-    rgba(233, 115, 88, 0.4) 0%, /* Твой оранжевый #e97358 */
+    rgba(233, 115, 88, 0.4) 0%, /* акцент #e97358 */
     rgba(233, 115, 88, 0) 70%
   );
   filter: blur(10px); /* Тот самый soft-эффект */

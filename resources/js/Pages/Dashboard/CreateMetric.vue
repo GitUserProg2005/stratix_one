@@ -107,7 +107,7 @@ async function sendMetric() {
                             @click="selectedChartType = key"
                         >
                             <div class="flex items-center gap-2">
-                                <div class="w-10 h-10 rounded-xl bg-content flex items-center justify-center">
+                                <div class="w-10 h-10 rounded-xl bg-content-glass flex items-center justify-center">
                                     <i class="fa-solid" :class="t.icon" />
                                 </div>
                                 <span class="context">{{ t.title }}</span>

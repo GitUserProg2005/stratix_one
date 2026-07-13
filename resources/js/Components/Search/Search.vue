@@ -61,7 +61,7 @@ defineExpose({ clearResults });
                 v-model="query"
                 type="text"
                 :placeholder="searchLabel"
-                class="search-input w-full px-4 py-2 pr-10 border rounded"
+                class="search-input w-full px-4 py-2 pr-10 rounded"
             />
 
             <span class="absolute inset-y-1/4 right-2 text-gray-400 pointer-events-none">
@@ -75,8 +75,8 @@ defineExpose({ clearResults });
         <!-- DROPDOWN -->
         <div
             v-if="query"
-            class="w-full absolute left-0 top-12
-                   bg-body rounded-xl p-4 shadow-xl z-50"
+            class="w-full absolute left-0 top-14
+                   bg-content-glass rounded-xl p-4 shadow-xl z-50"
         >
             <h3 class="mb-2 text-sm text-gray-400">Найдено:</h3>
 

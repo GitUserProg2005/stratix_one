@@ -13,6 +13,7 @@ use App\MoonShine\Resources\MoonShineUserResource;
 use App\MoonShine\Resources\MoonShineUserRoleResource;
 use App\MoonShine\Resources\UserResource;
 use App\MoonShine\Resources\RateResource;
+use App\MoonShine\Resources\BackgroundResource;
 use App\MoonShine\Resources\NodeTypeResource;
 
 class MoonShineServiceProvider extends ServiceProvider
@@ -30,6 +31,7 @@ class MoonShineServiceProvider extends ServiceProvider
                 MoonShineUserRoleResource::class,
                 UserResource::class,
                 RateResource::class,
+                BackgroundResource::class,
                 NodeTypeResource::class,
             ])
             ->pages([

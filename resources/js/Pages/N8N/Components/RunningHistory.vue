@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="relative flex h-full w-full min-h-0 flex-col overflow-hidden rounded-tl-2xl bg-content">
+    <div class="relative flex h-full w-full min-h-0 flex-col overflow-hidden rounded-2xl bg-content-glass">
         <div class="shrink-0 border-b border-black/5 px-3 py-3 dark:border-white/10">
             <h3 class="title-2">История запусков</h3>
             <p class="t-mini mt-1">Последние запуски</p>

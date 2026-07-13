@@ -126,7 +126,7 @@ function isLoadingForButton(buttonConfig) {
             <div class="flex min-w-0 flex-col gap-1">
                 <div class="flex flex-wrap items-center gap-2">
                     <h3 class="truncate text-sm font-semibold">{{ data.label }}</h3>
-                    <span v-if="data.status === 'idle'" class="badge badge-pending">{{ data.status }}</span>
+                    <span v-if="data.status === 'idle'" class="badge-neutral">{{ data.status }}</span>
                     <span v-else-if="data.status === 'running'" class="badge badge-in-progress">{{ data.status }}</span>
                     <span v-else-if="data.status === 'done'" class="badge badge-completed">{{ data.status }}</span>
                     <span v-else-if="data.status === 'failed'" class="badge badge-pending">{{ data.status }}</span>
@@ -139,15 +139,15 @@ function isLoadingForButton(buttonConfig) {
             <i v-if="data.status === 'done'" class="fa-solid fa-check text-accent" />
         </div>
 
-        <div class="absolute -bottom-3 right-1/2 translate-x-1/2 label-accent">
+        <!--<div class="absolute -bottom-3 right-1/2 translate-x-1/2 label-accent">
             <button @click.stop="() => emit('open-bottom-panel', 
                 { component: MapEnvironment, props: { node: data } })"
             >
                 <i class="fa-regular fa-map"></i>
             </button>
-        </div>
+        </div>-->
 
-        <div class="absolute -top-5 right-3 label-accent">
+        <div class="absolute -top-9 right-3 label-content">
             <IOSchemas :schemas="schemas" :node-type="data.type" :schemas-loading="schemasLoading" />
         </div>
 

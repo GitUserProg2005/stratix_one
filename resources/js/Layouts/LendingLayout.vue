@@ -36,15 +36,17 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('scroll', handleScroll);
+    document.body.style.cursor = '';
 });
 </script>
 
 <template>
   <Cursor />
 
-  <!-- Тёплое свечение #feeccd сверху справа, очень мягко к низу -->
-  <div class="lending-layout-glow" aria-hidden="true" />
+  <div class="lending-page relative min-h-screen">
+    <div class="lending-layout-glow" aria-hidden="true" />
 
+    <div class="relative z-10">
   <!-- Mobile overlay -->
   <div
     v-if="isOpen"
@@ -68,7 +70,7 @@ onBeforeUnmount(() => {
     <div class="px-4 flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <h1 class="title-font-3-on-dark">STRATIX</h1>
-        <img src="/img/new_logo.png" alt="STRATIX" class="object-contain w-12" />
+        <img src="/img/logov3.png" alt="STRATIX" class="object-contain w-4" />
         <h1 class="title-font-3-on-dark">ID</h1>
       </div>
 
@@ -132,7 +134,7 @@ onBeforeUnmount(() => {
             <div class="flex items-center gap-10">
               <div class="flex items-center gap-3">
                 <h1 class="title-font-3">STRATIX</h1>
-                <img src="/img/new_logo.png" alt="STRATIX" class="object-contain w-12" />
+                <img src="/img/logov3.png" alt="STRATIX" class="object-contain w-4" />
                 <h1 class="title-font-3">ID</h1>
               </div>
 
@@ -201,5 +203,7 @@ onBeforeUnmount(() => {
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 lg:py-10">
       <slot />
     </main>
+    </div>
+    </div>
   </div>
 </template>
