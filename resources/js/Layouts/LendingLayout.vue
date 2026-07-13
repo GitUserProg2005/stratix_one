@@ -36,6 +36,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('scroll', handleScroll);
+    document.body.style.cursor = '';
 });
 </script>
 

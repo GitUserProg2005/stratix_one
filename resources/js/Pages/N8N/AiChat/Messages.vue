@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="flex h-full min-h-0 flex-col">
-        <p v-if="graphSyncHint" class="mb-2 rounded-lg bg-[rgba(233,115,88,0.15)] px-2 py-1 text-xs text-[var(--content-primary)]">
+        <p v-if="graphSyncHint" class="mb-2 rounded-lg bg-[rgba(233, 115, 88,0.15)] px-2 py-1 text-xs text-[var(--content-primary)]">
             {{ graphSyncHint }}
         </p>
 

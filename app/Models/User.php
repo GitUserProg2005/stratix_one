@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'avatar',
         'background',
+        'background_id',
         'email',
         'phone',
         'password',
@@ -66,6 +67,11 @@ class User extends Authenticatable
     public function rate(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\Rate::class);
+    }
+
+    public function interfaceBackground(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Background::class, 'background_id');
     }
 
     public function rooms(): \Illuminate\Database\Eloquent\Relations\HasMany

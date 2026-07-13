@@ -129,7 +129,7 @@ onMounted(() => {
                     type="button"
                     class="rounded-xl border px-3 py-1.5 text-sm transition"
                     :class="Number(modelValue) === Number(room.id)
-                        ? 'border-[var(--accent)] bg-[rgba(233,115,88,0.18)] text-[var(--content-primary)]'
+                        ? 'border-[var(--accent)] bg-[rgba(233, 115, 88,0.18)] text-[var(--content-primary)]'
                         : 'border-[var(--border-input)] bg-content-glass text-[var(--content-primary)] hover:border-[var(--accent)]/50'"
                     @click="selectRoom(room.id)"
                 >

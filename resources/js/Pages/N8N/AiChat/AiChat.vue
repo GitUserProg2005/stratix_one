@@ -23,7 +23,7 @@ const jsonContext = {
 </script>
 
 <template>
-    <div class="bg-content grid h-full min-h-0 grid-cols-1 gap-4 md:grid-cols-2">
+    <div class="bg-content-glass grid h-full min-h-0 grid-cols-1 gap-4 md:grid-cols-2">
         <div class="p-4 border-r-2 border-gray-500/20 h-full min-h-0">
             <h2>AI-агент</h2>
 

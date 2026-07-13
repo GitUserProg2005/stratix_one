@@ -1,6 +1,6 @@
 export function pieColors(count) {
     const base = [
-        'rgba(233,115,88,0.75)',
+        'rgba(233, 115, 88,0.75)',
         'rgba(59,130,246,0.65)',
         'rgba(34,197,94,0.65)',
         'rgba(168,85,247,0.65)',

@@ -108,7 +108,6 @@ getWorkflows();
     <Head title="Workflows" />
     <AppLayout>
         <div class="mx-auto max-w-3xl p-4 lg:p-6">
-            <img src="/img/open_logo.svg" class="mx-auto mb-4 w-36 object-contain" alt="">
 
             <h1 class="title mb-4">Workflows</h1>
             <p class="context mb-6">
@@ -119,7 +118,7 @@ getWorkflows();
                 <input
                     v-model="nameNewWorkflow"
                     type="text"
-                    class="input flex-1 text-sm"
+                    class="input-underline flex-1"
                     placeholder="Название нового workflow"
                     @keydown.enter="createWorkflow"
                 />
@@ -142,7 +141,7 @@ getWorkflows();
                 </template>
             </div>
 
-            <div v-else-if="workflows.length" class="content-outline overflow-hidden p-0">
+            <div v-else-if="workflows.length" class=" max-h-[min(24rem,50vh)] overflow-y-auto no-scrollbar p-0">
                 <template v-for="(workflow, index) in workflows" :key="workflow.id">
                     <hr v-if="index > 0" class="workflow-list-divider">
 

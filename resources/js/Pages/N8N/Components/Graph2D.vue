@@ -126,7 +126,7 @@ const hasGraph = computed(() => Object.keys(graphData.value.nodes).length > 0);
 </script>
 
 <template>
-    <div class="graph2d-root relative size-full min-h-[280px] overflow-hidden rounded-2xl bg-body">
+    <div class="graph2d-root relative size-full min-h-[280px] overflow-hidden rounded-2xl bg-content-glass">
         <VNetworkGraph
             v-if="hasGraph"
             :nodes="graphData.nodes"

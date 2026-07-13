@@ -76,7 +76,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div
-                class="sticky top-0 z-20 w-full overflow-hidden bg-content transition-[height] duration-100 ease-out"
+                class="sticky top-0 z-20 w-full overflow-hidden transition-[height] duration-100 ease-out"
                 :style="{ height: `${graphHeight}px` }"
             >
                 <Graph3D

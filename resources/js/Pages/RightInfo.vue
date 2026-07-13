@@ -13,10 +13,10 @@ const flowId = computed(() =>
 </script>
 
 <template>
-    <aside class="flex h-full min-h-0 w-full flex-col overflow-hidden bg-body">
+    <aside class="flex h-full min-h-0 w-full flex-col overflow-hidden">
         <section
             v-if="flowId"
-            class="h-1/2 min-h-0 w-full shrink-0 overflow-hidden"
+            class="h-1/2 min-h-0 w-full bg-content-glass rounded-2xl shrink-0 overflow-hidden"
         >
             <Graph3D :key="flowId" :flow-id="flowId" class="size-full" />
         </section>
@@ -32,7 +32,6 @@ const flowId = computed(() =>
             v-if="!flowId"
             class="h-full flex flex-1 flex-col items-center justify-center px-3 text-center text-sm text-gray-400"
         >
-            <img src="/img/list_graph.png" class="object-contain w-64" alt="">
 
             <p class="text-sm text-gray-400 mt-4 ">Откройте workflow для просмотра 3D-графа</p>
         </div>

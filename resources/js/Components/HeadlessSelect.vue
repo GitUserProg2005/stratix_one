@@ -84,7 +84,7 @@ const selectedToneClass = computed(() => {
                         <li
                             class="flex cursor-pointer select-none items-center gap-1.5 px-3 py-2 text-sm"
                             :class="[
-                                active ? 'bg-[rgba(233,115,88,0.16)]' : '',
+                                active ? 'bg-[rgba(233, 115, 88,0.16)]' : '',
                                 selected ? 'font-semibold text-[var(--accent)]' : 'text-[var(--content-primary)]',
                                 option.tone === 'file' ? 'text-sky-500' : '',
                             ]"

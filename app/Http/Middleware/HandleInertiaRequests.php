@@ -32,11 +32,12 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
 
         if ($user) {
-            $user->loadMissing('rate');
+            $user->loadMissing(['rate', 'interfaceBackground']);
         }
 
         return [
             ...parent::share($request),
+            'background_url' => $user?->interfaceBackground?->picture_url,
             'mapServices' => [
                 'tileserverUrl' => config('services.map.tileserver_url'),
                 'osrmUrl' => config('services.map.osrm_url'),
@@ -50,6 +51,7 @@ class HandleInertiaRequests extends Middleware
                     'phone' => $user->phone,
                     'avatar_url' => $user->avatar_url,
                     'background_url' => $user->background_url,
+                    'background_id' => $user->background_id,
                     'role' => $user->role?->value ?? 'passenger',
                     'rate' => $user->rate ? [
                         'id' => $user->rate->id,

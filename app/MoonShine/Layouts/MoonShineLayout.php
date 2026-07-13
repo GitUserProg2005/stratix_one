@@ -32,6 +32,7 @@ use MoonShine\UI\Components\{Breadcrumbs,
     When};
 use App\MoonShine\Resources\UserResource;
 use MoonShine\MenuManager\MenuItem;
+use App\MoonShine\Resources\BackgroundResource;
 use App\MoonShine\Resources\RateResource;
 
 final class MoonShineLayout extends CompactLayout
@@ -49,6 +50,7 @@ final class MoonShineLayout extends CompactLayout
             ...parent::menu(),
             MenuItem::make('Users', UserResource::class),
             MenuItem::make('Rates', RateResource::class),
+            MenuItem::make('Backgrounds', BackgroundResource::class),
         ];
     }
 

@@ -6,7 +6,7 @@ import VerticalProgressBar from '@/Components/ProgressBars/VerticalProgressBar.v
 </script>
 
 <template>
-    <div class="bg-body min-h-screen">
+    <div class="bg-content-glass min-h-screen">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <header class="py-8 flex items-center justify-between">
                 <div class="flex items-center gap-3">

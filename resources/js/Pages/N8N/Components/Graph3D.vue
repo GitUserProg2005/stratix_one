@@ -76,7 +76,7 @@ function formatGraphData() {
 }
 
 function nodeColor(node) {
-    return node.nodeType === 'webhook_trigger' ? '#10b981' : '#E97358';
+    return node.nodeType === 'webhook_trigger' ? '#10b981' : '#e97358';
 }
 
 function createGlowNode(node) {
@@ -154,7 +154,7 @@ function initGraph() {
         .nodeColor(nodeColor)
         .nodeLabel(
             (node) =>
-                `<div style="background:#0f172a;color:#fff;padding:6px 10px;border-radius:8px;border:1px solid #334155;font-size:12px;">${node.name}</div>`,
+                `<div style="color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;">${node.name}</div>`,
         )
         .nodeRelSize(5)
         .linkColor(() => '#ffffff')
@@ -215,12 +215,17 @@ watch(graphSignature, () => {
 </script>
 
 <template>
-    <div class="graph-root relative size-full min-h-0 overflow-hidden rounded-bl-2xl bg-content">
+    <div class="graph-root relative size-full min-h-0 overflow-hidden rounded-bl-2xl">
         <div ref="graphContainer" class="size-full min-h-0 touch-none" />
     </div>
 </template>
 
 <style scoped>
+.graph-root,
+.graph-root :deep(.scene-container) {
+    background: transparent !important;
+}
+
 .graph-root :deep(.scene-container) {
     position: absolute !important;
     inset: 0;

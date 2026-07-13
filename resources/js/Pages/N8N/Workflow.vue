@@ -563,7 +563,7 @@ onBeforeUnmount(() => {
 <template>  
     <AppLayout>
         <div class="relative">
-            <div class="px-4 md:px-6 flex flex-row items-center gap-3 mt-4 mb-4">
+            <div class="md:px-6 flex flex-row items-center gap-3 mt-4 mb-4">
                 <BackButton :backUrl="'workflows.index'" />
 
                 <h2 class="title-2">
@@ -573,9 +573,9 @@ onBeforeUnmount(() => {
                 </h2>
             </div>
 
-        <div class="px-4 md:px-6 flex flex-col custom-scroll">
+        <div class=" md:px-6 flex flex-col custom-scroll">
             <div
-                class="dashboard-chart-wrap relative flex w-full flex-col !h-auto min-h-[80vh]"
+                class="dashboard-chart-wrap relative flex w-full flex-col !h-auto min-h-[80vh] !p-0 overflow-hidden"
             >
                 <!--<HandContoller />-->
                 <!--<SmartBlur v-model="isBlurred" />-->
@@ -612,7 +612,7 @@ onBeforeUnmount(() => {
                     @node-drag-stop="onNodeDragStop"
                     @connect="onConnect"
                 >
-                    <Background variant="dots" :gap="15" :size="2" color="rgba(120,120,152,0.13)" />
+                    <Background variant="lines" :gap="15" :size="2" color="rgba(120,120,152,0.13)" />
 
                     <ChangeListener
                         :workflow-id="workflow.id"
@@ -673,7 +673,7 @@ onBeforeUnmount(() => {
                         />
                     </template>
 
-                    <Panel position="top-left" class="!m-3 flex max-w-[min(100%,28rem)] flex-col gap-2">
+                    <Panel position="top-left" class="!m-4 flex max-w-[min(100%,28rem)] flex-col gap-2">
                         <div class="dashboard-inset flex flex-wrap items-center gap-2">
                             <button
                                 type="button"
@@ -703,8 +703,8 @@ onBeforeUnmount(() => {
                         <Participants :participants="presenceParticipants" />
                     </Panel>
 
-                    <Panel position="top-right" class="!m-3 flex max-w-[min(100%,28rem)] flex-col gap-2">
-                        <div class="dashboard-inset flex flex-wrap items-center gap-2">
+                    <Panel position="top-right" class="!m-4 flex max-w-[min(100%,28rem)] flex-col gap-2">
+                        <div class="dashboard-inset flex flex-wrap items-center gap-2 text-sm">
                             <DeployWorkflow :workflow-id="workflow.id" />
 
                             <button class="primary-btn" @click.stop="openBottomPanel({ component: AiChat, 
@@ -719,7 +719,7 @@ onBeforeUnmount(() => {
                         </div>
                     </Panel>
 
-                    <Panel position="bottom-center" class="!m-3 w-[min(100%,calc(100%-1.5rem))] max-w-none">
+                    <Panel position="bottom-center" class="!m-0 w-full max-w-none px-4 pb-4 box-border">
                         <div
                             class="dashboard-inset cursor-pointer"
                             :class="showLogsModal ? 'max-h-48' : 'max-h-14 overflow-hidden'"

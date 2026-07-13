@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\UpdateProfileMediaRequest;
+use App\Models\Background;
 use App\Models\Dashboard;
 use App\Models\Edge;
 use App\Models\Node;
 use App\Models\User;
 use App\Models\Workflow;
 use App\Services\FileStorageService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +31,7 @@ class ProfileController extends Controller
         return Inertia::render('Auth/Profile', [
             'user' => $user,
             'stats' => $this->profileStats($user),
+            ...$this->backgroundPickerProps($user),
         ]);
     }
 
@@ -37,9 +40,12 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+
         return Inertia::render('Auth/Profile', [
-            'user' => $request->user(),
-            'stats' => $this->profileStats($request->user()),
+            'user' => $user,
+            'stats' => $this->profileStats($user),
+            ...$this->backgroundPickerProps($user),
         ]);
     }
 
@@ -113,6 +119,44 @@ class ProfileController extends Controller
         }
 
         return Redirect::route('profile.edit');
+    }
+
+    /**
+     * Сохраняем выбранный фон интерфейса.
+     */
+    public function updateBackground(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'background_id' => ['nullable', 'integer', 'exists:backgrounds,id'],
+        ]);
+
+        $user = $request->user();
+        $user->background_id = $validated['background_id'] ?? null;
+        $user->save();
+        $user->loadMissing('interfaceBackground');
+
+        return response()->json([
+            'result' => 'ok',
+            'background_id' => $user->background_id,
+            'background_url' => $user->interfaceBackground?->picture_url,
+        ]);
+    }
+
+    private function backgroundPickerProps(User $user): array
+    {
+        return [
+            'backgrounds' => Background::query()
+                ->orderBy('title')
+                ->get()
+                ->map(fn (Background $background) => [
+                    'id' => $background->id,
+                    'title' => $background->title,
+                    'picture_url' => $background->picture_url,
+                ])
+                ->values()
+                ->all(),
+            'selected_background_id' => $user->background_id,
+        ];
     }
 
     /**

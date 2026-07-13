@@ -15,7 +15,7 @@ import LendingTestimonialsSection from '@/Components/Lending/LendingTestimonials
 </script>
 
 <template>
-    <div class="relative bg-body">
+    <div class="relative bg-content-glass">
         <LendingLayout>
             <template #hero>
                 <LendingHeroSection />

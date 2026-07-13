@@ -1,25 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none" aria-hidden="true">
-  <line x1="60" y1="128" x2="60" y2="14" stroke="#E97358" stroke-width="1.75" stroke-linecap="round"/>
-  <path d="M60 108 Q46 100 34 94" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <path d="M60 108 Q74 100 86 94" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <path d="M60 92 Q42 82 26 74" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <path d="M60 92 Q78 82 94 74" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <path d="M60 74 Q38 62 18 52" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <path d="M60 74 Q82 62 102 52" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <path d="M60 54 Q34 42 12 30" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <path d="M60 54 Q86 42 108 30" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <path d="M60 36 Q30 24 8 14" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <path d="M60 36 Q90 24 112 14" stroke="#E97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
-  <circle cx="60" cy="8" r="9" stroke="#E97358" stroke-width="1.5" fill="none" opacity="0.55"/>
-  <circle cx="60" cy="8" r="4.5" fill="#E97358"/>
-  <circle cx="34" cy="94" r="4.5" fill="#E97358"/>
-  <circle cx="86" cy="94" r="4.5" fill="#E97358"/>
-  <circle cx="26" cy="74" r="4.5" fill="#E97358"/>
-  <circle cx="94" cy="74" r="4.5" fill="#E97358"/>
-  <circle cx="18" cy="52" r="4.5" fill="#E97358"/>
-  <circle cx="102" cy="52" r="4.5" fill="#E97358"/>
-  <circle cx="12" cy="30" r="4.5" fill="#E97358"/>
-  <circle cx="108" cy="30" r="4.5" fill="#E97358"/>
-  <circle cx="8" cy="14" r="4.5" fill="#E97358"/>
-  <circle cx="112" cy="14" r="4.5" fill="#E97358"/>
+  <line x1="60" y1="128" x2="60" y2="14" stroke="#e97358" stroke-width="1.75" stroke-linecap="round"/>
+  <path d="M60 108 Q46 100 34 94" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <path d="M60 108 Q74 100 86 94" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <path d="M60 92 Q42 82 26 74" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <path d="M60 92 Q78 82 94 74" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <path d="M60 74 Q38 62 18 52" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <path d="M60 74 Q82 62 102 52" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <path d="M60 54 Q34 42 12 30" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <path d="M60 54 Q86 42 108 30" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <path d="M60 36 Q30 24 8 14" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <path d="M60 36 Q90 24 112 14" stroke="#e97358" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+  <circle cx="60" cy="8" r="9" stroke="#e97358" stroke-width="1.5" fill="none" opacity="0.55"/>
+  <circle cx="60" cy="8" r="4.5" fill="#e97358"/>
+  <circle cx="34" cy="94" r="4.5" fill="#e97358"/>
+  <circle cx="86" cy="94" r="4.5" fill="#e97358"/>
+  <circle cx="26" cy="74" r="4.5" fill="#e97358"/>
+  <circle cx="94" cy="74" r="4.5" fill="#e97358"/>
+  <circle cx="18" cy="52" r="4.5" fill="#e97358"/>
+  <circle cx="102" cy="52" r="4.5" fill="#e97358"/>
+  <circle cx="12" cy="30" r="4.5" fill="#e97358"/>
+  <circle cx="108" cy="30" r="4.5" fill="#e97358"/>
+  <circle cx="8" cy="14" r="4.5" fill="#e97358"/>
+  <circle cx="112" cy="14" r="4.5" fill="#e97358"/>
 </svg>

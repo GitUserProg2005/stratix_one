@@ -287,7 +287,7 @@ onMounted(() => {
                     </div>
 
                     <!-- DEBUG -->
-                    <pre class="text-xs bg-content my-4 rounded-xl p-4">
+                    <pre class="text-xs bg-content-glass my-4 rounded-xl p-4">
                         {{ mappings }}
                     </pre>
 

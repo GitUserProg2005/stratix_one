@@ -81,7 +81,7 @@ function payRate(rate) {
           :key="rate.id"
           class="content p-5 rounded-2xl flex flex-col"
         >
-          <div v-if="rate.picture" class="mb-3 rounded-xl overflow-hidden aspect-video bg-content">
+          <div v-if="rate.picture" class="mb-3 rounded-xl overflow-hidden aspect-video bg-content-glass">
             <img
               :src="rate.picture"
               :alt="rate.title"

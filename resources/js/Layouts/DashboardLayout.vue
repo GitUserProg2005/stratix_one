@@ -20,6 +20,25 @@ const searchFn = async () => []
 const page = usePage();
 const currentUser = computed(() => page.props.auth?.user || null);
 const username = computed(() => currentUser.value?.name ?? 'Username');
+const interfaceBackgroundUrl = computed(() => page.props.background_url ?? null);
+
+const dashboardBgStyle = computed(() => {
+    if (!interfaceBackgroundUrl.value) {
+        return {};
+    }
+
+    return {
+        backgroundImage: `url('${interfaceBackgroundUrl.value}')`,
+    };
+});
+
+const workflowId = computed(
+    () => page.props.workflow?.id ?? page.props.dashboard?.workflow?.id ?? null,
+);
+const flowId = computed(() =>
+    workflowId.value ? `workflow-${workflowId.value}` : null,
+);
+const showRightInfo = computed(() => Boolean(workflowId.value && flowId.value));
 
 const onDocumentClick = (e) => {
   // Закрываем выпадашку при клике вне области.
@@ -41,14 +60,20 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="
-      h-screen min-h-0 overflow-hidden
-      grid grid-cols-1
-      lg:grid-cols-[16rem_minmax(0,1fr)_16rem]
-      select-none
-      gap-2
-    "
+    class="dashboard-layout-bg h-screen min-h-0 overflow-hidden"
+    :style="dashboardBgStyle"
   >
+    <div
+      class="
+        relative z-10
+        h-[calc(100%-1rem)] min-h-0 overflow-hidden
+        grid grid-cols-1
+        select-none
+        gap-2
+        m-2
+      "
+      :class="showRightInfo ? 'lg:grid-cols-[16rem_minmax(0,1fr)_16rem]' : 'lg:grid-cols-[16rem_minmax(0,1fr)]'"
+    >
     <!-- Sidebar -->
     <Sidebar
       :is-open-sidebar="isOpenSidebar"
@@ -56,13 +81,12 @@ onBeforeUnmount(() => {
     />
 
     <!-- Main -->
-    <main class="min-h-0 overflow-y-auto overflow-x-hidden bg-content no-scrollbar">
-      <header class="sticky top-0 z-50 backdrop-blur-xl px-4">
-        <div class="py-6">
-          <div class="flex justify-between items-center gap-6 w-full">
+    <main class="flex h-full min-h-0 flex-col overflow-hidden gap-2">
+      <header class="shrink-0 pt-1">
+        <div class="flex justify-between items-center gap-3 sm:gap-6 w-full">
             <!-- Mobile burger -->
             <button
-              class="lg:hidden w-10 h-10 rounded-full bg-[#e97358]/10 text-[#e97358] flex flex-col p-3 items-center justify-center"
+              class="lg:hidden w-10 h-10 shrink-0 rounded-full bg-content-glass text-[#e97358] flex flex-col p-3 items-center justify-center"
               @click="isOpenSidebar = true"
               aria-label="Open menu"
             >
@@ -76,68 +100,68 @@ onBeforeUnmount(() => {
             </div>
 
             <!-- Notifications + user -->
-            <div class="flex items-center gap-4 shrink-0">
-              <div class="hidden lg:flex items-center gap-4">
-                <button
-                  class="relative w-10 h-10 rounded-full bg-[#e97358]/10 text-[#e97358] flex items-center justify-center"
-                  aria-label="Notifications"
-                >
-                  <i class="fa-solid fa-bell text-sm" />
-                  <span class="absolute top-2 right-2 w-2 h-2 bg-[#e97358] rounded-full" />
-                </button>
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+              <button
+                class="relative w-10 h-10 shrink-0 rounded-full bg-content-glass text-[#e97358] flex items-center justify-center"
+                aria-label="Notifications"
+              >
+                <i class="fa-solid fa-bell text-sm" />
+                <span class="absolute top-2 right-2 w-2 h-2 bg-[#e97358] rounded-full" />
+              </button>
 
-                <button
-                  class="w-10 h-10 rounded-full bg-[#e97358]/10 text-[#e97358] flex items-center justify-center"
-                  aria-label="Messages"
-                >
-                  <i class="fa-solid fa-envelope text-sm" />
-                </button>
-              </div>
+              <button
+                class="w-10 h-10 shrink-0 rounded-full bg-content-glass text-[#e97358] flex items-center justify-center"
+                aria-label="Messages"
+              >
+                <i class="fa-solid fa-envelope text-sm" />
+              </button>
 
               <div
                 ref="mobileActionsWrap"
-                class="relative shrink-0 flex items-center gap-3"
+                class="relative shrink-0"
               >
-                <Link
-                  :href="route('profile.edit')"
-                  class="flex items-center gap-3 min-w-0"
-                  @click="isMobileActionsOpen = false"
-                >
-                  <Avatar
-                    :name="username"
-                    :src="currentUser?.avatar_url"
-                    :userId="currentUser?.id"
-                    :no-link="true"
-                    size="md"
-                  />
+                <div class="bg-content-glass rounded-full flex items-center gap-1 sm:gap-2 pl-1 pr-1.5 sm:pr-2 py-1">
+                  <Link
+                    :href="route('profile.edit')"
+                    class="flex items-center gap-2 sm:gap-3 min-w-0"
+                    @click="isMobileActionsOpen = false"
+                  >
+                    <Avatar
+                      :name="username"
+                      :src="currentUser?.avatar_url"
+                      :userId="currentUser?.id"
+                      :no-link="true"
+                      size="md"
+                    />
 
-                  <div class="min-w-0 hidden sm:block">
-                    <div class="text-xs font-semibold truncate">
-                      {{ username }}
+                    <div class="min-w-0 hidden sm:block">
+                      <div class="text-xs font-semibold truncate">
+                        {{ username }}
+                      </div>
+                      <div class="t-mini truncate">
+                        {{ currentUser?.email }}
+                      </div>
                     </div>
-                    <div class="t-mini truncate">
-                      {{ currentUser?.email }}
-                    </div>
-                  </div>
-                </Link>
+                  </Link>
 
-                <button
-                  type="button"
-                  class="lg:hidden w-8 h-8 rounded-full bg-[#e97358]/10 text-[#e97358] flex items-center justify-center shrink-0"
-                  aria-label="Open user actions"
-                  @click.stop="isMobileActionsOpen = !isMobileActionsOpen"
-                >
-                  <i class="fa-solid fa-chevron-down text-xs" />
-                </button>
+                  <button
+                    type="button"
+                    class="lg:hidden w-8 h-8 rounded-full text-[#e97358] flex items-center justify-center shrink-0"
+                    aria-label="Open user actions"
+                    @click.stop="isMobileActionsOpen = !isMobileActionsOpen"
+                  >
+                    <i class="fa-solid fa-chevron-down text-xs" />
+                  </button>
+                </div>
 
                 <!-- Mobile actions dropdown (under avatar) -->
                 <div
                   v-if="isMobileActionsOpen"
-                  class="lg:hidden absolute right-0 top-12 w-44 bg-white/80 backdrop-blur-xl border border-black/5 rounded-2xl shadow-2xl p-2 z-[60]"
+                  class="lg:hidden absolute right-0 top-12 w-44 bg-content-glass rounded-2xl shadow-2xl p-2 z-[60]"
                   @click.stop
                 >
                   <button
-                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#e97358]/10 text-[#1a1a1a]"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:opacity-80"
                     aria-label="Notifications"
                     @click="isMobileActionsOpen = false"
                   >
@@ -146,7 +170,7 @@ onBeforeUnmount(() => {
                   </button>
 
                   <button
-                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#e97358]/10 text-[#1a1a1a]"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:opacity-80"
                     aria-label="Messages"
                     @click="isMobileActionsOpen = false"
                   >
@@ -156,7 +180,7 @@ onBeforeUnmount(() => {
 
                   <Link
                     :href="route('profile.edit')"
-                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#e97358]/10 text-[#1a1a1a]"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:opacity-80"
                     @click="isMobileActionsOpen = false"
                   >
                     <i class="fa-solid fa-user text-sm text-[#e97358]" />
@@ -165,11 +189,10 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </div>
-          </div>
         </div>
       </header>
 
-      <div class="w-full">
+      <div class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden no-scrollbar bg-content-glass rounded-2xl px-4 pb-4">
         <div class="space-y-6">
           <slot />
         </div>
@@ -177,7 +200,11 @@ onBeforeUnmount(() => {
     </main>
 
     <!-- Right sidebar -->
-    <RightInfo class="hidden lg:block min-h-0 h-full overflow-hidden" />
+    <RightInfo
+      v-if="showRightInfo"
+      class="hidden lg:block min-h-0 h-full overflow-hidden rounded-2xl"
+    />
+    </div>
   </div>
 </template>
 

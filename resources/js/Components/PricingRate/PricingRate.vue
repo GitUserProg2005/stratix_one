@@ -111,7 +111,7 @@ onMounted(() => {
                         class="h-full w-full object-contain"
                     />
                 </div>
-                <div v-else class="mb-3 flex aspect-video items-center justify-center rounded-xl bg-content">
+                <div v-else class="mb-3 flex aspect-video items-center justify-center rounded-xl bg-content-glass">
                     <i class="fa-solid fa-crown text-3xl text-gray-500" />
                 </div>
 
