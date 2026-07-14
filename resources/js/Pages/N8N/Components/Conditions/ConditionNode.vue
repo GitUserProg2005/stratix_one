@@ -43,6 +43,11 @@ const groupOperatorOptions = computed(() => [
     { value: 'and', label: 'И' },
     { value: 'or', label: 'ИЛИ' },
 ]);
+
+function onLeftUpdate(value) {
+    // Явная запись в дерево условий (deep-watch ConditionBuilder подхватит)
+    props.condition.left = value;
+}
 </script>
 
 <template>
@@ -55,9 +60,10 @@ const groupOperatorOptions = computed(() => [
                 placeHolder="Предыдущая нода"
             >-->
 
-            <GetOutputFields 
+            <GetOutputFields
                 :nodes="nodes"
-                v-model="condition.left"
+                :model-value="condition.left"
+                @update:model-value="onLeftUpdate"
             />
             
             <HeadlessSelect
@@ -89,7 +95,7 @@ const groupOperatorOptions = computed(() => [
                     type="button"
                     class="tag t-mini"
                     title="Добавить условие"
-                    @click="addCondition({ left: '', operator: '=', right: '' }, condition)"
+                    @click="addCondition({ left: null, operator: '=', right: '' }, condition)"
                 >
                     +C
                 </button>

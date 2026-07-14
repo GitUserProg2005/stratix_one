@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, nextTick } from 'vue';
 import axios from 'axios';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import Rectangle from '@/Components/Skeleton/Rectangle.vue';
@@ -11,10 +11,10 @@ const props = defineProps({
     },
     nodeId: {
         type: [Number, String],
-        required: true,
+        default: null,
     },
     workflowId: {
-        type: Number,
+        type: [Number, String],
         default: null,
     },
     onSave: {
@@ -32,10 +32,25 @@ const selectedWidgetId = ref(null);
 const selectedLabel = ref('');
 const amount = ref(1);
 
+const rows = ref([]);
+
+watch(
+    () => props.modelValue,
+    (v) => {
+        rows.value = Array.isArray(v) ? v.map((r) => ({ ...r })) : [];
+    },
+    { immediate: true, deep: true },
+);
+
+function syncRows(next) {
+    rows.value = next;
+    emit('update:modelValue', next);
+}
+
 const widgetOptions = computed(() => {
     return (metrics.value || []).map((m) => ({
         label: m.title,
-        value: m.id,
+        value: Number(m.id),
     }));
 });
 
@@ -48,8 +63,6 @@ const labelOptions = computed(() => {
     if (!Array.isArray(labels)) return [];
     return labels.map((l) => ({ label: String(l), value: String(l) }));
 });
-
-const rows = computed(() => (Array.isArray(props.modelValue) ? props.modelValue : []));
 
 async function loadMetrics() {
     if (!props.workflowId) return;
@@ -77,29 +90,49 @@ watch(selectedWidgetId, () => {
     selectedLabel.value = '';
 });
 
-function addRow() {
-    if (!selectedWidgetId.value || !selectedLabel.value) return;
+function buildDraftRow() {
+    if (!selectedWidgetId.value || !selectedLabel.value) return null;
     const n = Number(amount.value);
-    const row = {
+    return {
         widget_id: Number(selectedWidgetId.value),
         label: String(selectedLabel.value),
         amount: Number.isFinite(n) ? n : 0,
     };
-    emit('update:modelValue', [...rows.value, row]);
+}
+
+function addRow() {
+    const row = buildDraftRow();
+    if (!row) return;
+    syncRows([...rows.value, row]);
+    selectedWidgetId.value = null;
+    selectedLabel.value = '';
     amount.value = 1;
 }
 
 function removeRow(index) {
-    const next = rows.value.filter((_, i) => i !== index);
-    emit('update:modelValue', next);
+    syncRows(rows.value.filter((_, i) => i !== index));
 }
 
 function updateAmount(index, value) {
     const n = Number(value);
-    const next = rows.value.map((r, i) =>
-        i === index ? { ...r, amount: Number.isFinite(n) ? n : 0 } : r,
+    syncRows(
+        rows.value.map((r, i) =>
+            i === index ? { ...r, amount: Number.isFinite(n) ? n : 0 } : r,
+        ),
     );
-    emit('update:modelValue', next);
+}
+
+// Перед сохранением докидываем текущий черновик из селектов (если есть)
+async function handleSave() {
+    const row = buildDraftRow();
+    if (row) {
+        syncRows([...rows.value, row]);
+        selectedWidgetId.value = null;
+        selectedLabel.value = '';
+        amount.value = 1;
+        await nextTick();
+    }
+    props.onSave?.();
 }
 </script>
 
@@ -151,7 +184,7 @@ function updateAmount(index, value) {
                     Добавить
                 </button>
 
-                <button v-if="onSave" type="button" class="btn-secondary" @click="onSave()">
+                <button v-if="onSave" type="button" class="btn-secondary" @click="handleSave">
                     Сохранить в ноду
                 </button>
             </div>
@@ -187,4 +220,3 @@ function updateAmount(index, value) {
         </div>
     </div>
 </template>
-

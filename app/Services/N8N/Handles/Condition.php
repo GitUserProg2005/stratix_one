@@ -72,12 +72,18 @@ class Condition extends BaseNode
 
     protected static function evaluateComparison(array $condition, array $data)
     {
-        $leftValue = self::extractValue($data,
-            $condition['left']['path']
-        );
-        $rightValue = $condition['right'];
+        // left должен быть { path: "..." }; пустая строка с фронта Laravel превращает в null
+        $left = $condition['left'] ?? null;
+        $path = is_array($left) ? ($left['path'] ?? null) : null;
 
-        return match ($condition['operator']) {
+        if (!$path) {
+            return false;
+        }
+
+        $leftValue = self::extractValue($data, $path);
+        $rightValue = $condition['right'] ?? null;
+
+        return match ($condition['operator'] ?? '') {
             '=' => $leftValue == $rightValue,
             '!=' => $leftValue != $rightValue,
             '>' => $leftValue > $rightValue,
@@ -92,6 +98,10 @@ class Condition extends BaseNode
     {
         if (! $path) {
             return null;
+        }
+
+        if (! isset($data['fields']) || ! array_key_exists('name', $data)) {
+            return data_get($data, $path);
         }
 
         $parts = explode('.', $path);

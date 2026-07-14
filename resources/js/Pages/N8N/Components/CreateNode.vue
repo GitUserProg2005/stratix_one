@@ -1,6 +1,7 @@
 <script setup>
 import LibraryNodes from '../NodeTypeSelection/LibraryNodes.vue';
 import ConditionBuilder from './Conditions/ConditionBuilder.vue';
+import ConfigQueriesConfigure from './ConfigQueriesConfigure.vue';
 import OutputBuilder from './OutputSchema/OutputBuilder.vue';
 import Modal from '@/Components/Modal.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
@@ -23,6 +24,7 @@ const { workflowId, nodes } = defineProps({
 const buildersMap = {
     ConditionBuilder,
     OutputBuilder,
+    ConfigQueriesConfigure,
 };
 
 const showModal = ref(false);
@@ -40,9 +42,25 @@ useNodeTypeWatcher({
 
 const emit = defineEmits(['onCreatedNode']);
 
-watch(() => nodeType.value, () => {
-    config.value = {};
+function isArrayBuilder(type) {
+    return nodeConfigFields[type]?.builder === 'ConfigQueriesConfigure';
+}
+
+watch(() => nodeType.value, (type) => {
+    const root = nodeConfigFields[type]?.builder_root;
+    if (!root) {
+        config.value = {};
+        return;
+    }
+    // update_metric — массив; condition/output — объект (их билдеры сами задают дефолт)
+    config.value = isArrayBuilder(type) ? { [root]: [] } : {};
 });
+
+function setBuilderValue(value) {
+    const root = nodeConfigFields[nodeType.value]?.builder_root;
+    if (!root) return;
+    config.value = { ...config.value, [root]: value };
+}
 
 function openModal() {
     showModal.value = true;
@@ -54,13 +72,19 @@ function closeModal() {
 
 async function createNode() {
     const position = { x: 100, y: 100 };
+    const root = nodeConfigFields[nodeType.value]?.builder_root;
+    const payloadConfig = { ...config.value };
+
+    if (root && isArrayBuilder(nodeType.value) && !Array.isArray(payloadConfig[root])) {
+        payloadConfig[root] = [];
+    }
 
     const newNode = {
         workflow_id: workflowId,
         type: nodeType.value,
         order: nodes.length + 1,
         title: title.value,
-        config: config.value || {},
+        config: payloadConfig,
         position,
     };
 
@@ -196,15 +220,18 @@ async function createNode() {
                                 </div>
                             </section>
 
-                            <div v-else class="mt-2 ">
+                            <div v-else-if="!nodeConfigFields[nodeType].builder" class="mt-2 ">
                                 <h4 class="context">Не принимает параметров</h4>
                             </div>
 
                             <component
                                 v-if="nodeConfigFields[nodeType].builder"
                                 :is="buildersMap[nodeConfigFields[nodeType].builder]"
-                                v-model="config[nodeConfigFields[nodeType].builder_root]"
+                                :model-value="config[nodeConfigFields[nodeType].builder_root]"
                                 :nodes="nodes"
+                                :node-id="0"
+                                :workflow-id="workflowId"
+                                @update:model-value="setBuilderValue"
                             />
                         </div>     
                     </div>

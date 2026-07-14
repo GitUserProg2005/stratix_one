@@ -1,24 +1,35 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import { useNodeSchemas } from '../../composables/useNodeSchemas';
+import { resolveDynamicSchema } from '../../utils/resolveDynamicSchema';
 
 const props = defineProps({
     nodes: {
         type: Array,
         required: true,
     },
-    modelValue: Object,
+    modelValue: {
+        type: [Object, String],
+        default: null,
+    },
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const { schemas } = useNodeSchemas();
+
 const selectedNodeId = ref('');
 const availableFields = ref([]);
-const selectedField = ref(props.modelValue ?? '');
+const selectedField = ref('');
 
 const nodeOptions = computed(() => {
     const options = [{ value: '', label: 'Выберите ноду' }];
-    for (const node of props.nodes) {
-        options.push({ value: node.id, label: node.data.label });
+    for (const node of props.nodes || []) {
+        options.push({
+            value: String(node.id),
+            label: node.data?.label ?? String(node.id),
+        });
     }
     return options;
 });
@@ -35,7 +46,7 @@ function extractFields(output, basePath = '') {
     if (!output) return [];
 
     if (Array.isArray(output)) {
-        return output.flatMap(item => extractFields(item, basePath));
+        return output.flatMap((item) => extractFields(item, basePath));
     }
 
     if (output.type === 'field') {
@@ -46,10 +57,17 @@ function extractFields(output, basePath = '') {
     }
 
     if (output.type === 'group' && Array.isArray(output.fields)) {
-        const nextPath = output.name ? 
-            (basePath ? `${basePath}.${output.name}` : output.name) 
+        const nextPath = output.name
+            ? (basePath ? `${basePath}.${output.name}` : output.name)
             : basePath;
-        return output.fields.flatMap(f => extractFields(f, nextPath));
+        return output.fields.flatMap((f) => extractFields(f, nextPath));
+    }
+
+    if (output.type === 'array' && output.items) {
+        const nextPath = output.name
+            ? (basePath ? `${basePath}.${output.name}` : output.name)
+            : basePath;
+        return extractFields(output.items, nextPath);
     }
 
     return [];
@@ -74,81 +92,104 @@ function parseConfig(configStr) {
     return null;
 }
 
-watch(() => props.nodes, () => {
-    if (!props.modelValue) return;
+// Схема: dynamic из config → static outputSchema из registry
+function resolveOutputSchema(node) {
+    if (!node?.data) return null;
 
-    const { node_id, path } = props.modelValue || {};
+    const type = node.data.type;
+    const nodeSchema = schemas.value?.[type] || null;
+    const config = parseConfig(node.data.config) || {};
 
-    selectedNodeId.value = node_id || '';
+    const dynamic = resolveDynamicSchema(node, 'output', nodeSchema);
+    if (dynamic) return dynamic;
 
-    const node = props.nodes.find(n => n.id === node_id);
+    for (const key of ['output', 'request', 'payload']) {
+        if (config[key] && typeof config[key] === 'object') {
+            return config[key];
+        }
+    }
 
-    if (!node?.data?.config) return;
+    return nodeSchema?.outputSchema || null;
+}
 
-    const parsedConfig = parseConfig(node.data.config);
-    if (!parsedConfig?.output) return;
+function loadFieldsForNode(nodeId) {
+    const id = String(nodeId || '');
+    const node = (props.nodes || []).find((n) => String(n.id) === id);
 
-    availableFields.value = extractFields(parsedConfig.output);
-    selectedField.value = path || '';
-}, { immediate: true });
-
-watch(selectedNodeId, (id, prevId) => {
-    if (id === prevId) return;
-
-    const node = props.nodes.find(n => n.id === id);
-
-    if (!node?.data?.config) {
+    if (!node) {
         availableFields.value = [];
-        selectedField.value = '';
         return;
     }
 
-    const parsedConfig = parseConfig(node.data.config);
-    if (!parsedConfig?.output) return;
+    availableFields.value = extractFields(resolveOutputSchema(node));
+}
 
-    availableFields.value = extractFields(parsedConfig.output);
-
-    if (props.modelValue?.node_id !== id) {
+function syncFromModel() {
+    const value = props.modelValue;
+    if (!value || typeof value !== 'object') {
+        selectedNodeId.value = '';
         selectedField.value = '';
-    }
-});
-
-
-watch(selectedField, (path) => {
-    if (!path) {
-        emit('update:modelValue', '');
+        availableFields.value = [];
         return;
     }
 
-    try {
-        emit('update:modelValue', {
-            node_id: selectedNodeId.value,
-            path: path
-        });
-    } catch (e) {
-        console.error('Ошибка парсинга выбранного поля:', e);
+    selectedNodeId.value = value.node_id != null ? String(value.node_id) : '';
+    loadFieldsForNode(selectedNodeId.value);
+    selectedField.value = value.path || '';
+}
+
+watch(
+    () => [props.modelValue, props.nodes, schemas.value],
+    () => {
+        syncFromModel();
+    },
+    { immediate: true, deep: true },
+);
+
+function onNodeSelect(id) {
+    selectedNodeId.value = id ? String(id) : '';
+    selectedField.value = '';
+    loadFieldsForNode(selectedNodeId.value);
+
+    // Не шлём "" — Laravel ConvertEmptyStringsToNull превратит left в null
+    emit('update:modelValue', null);
+}
+
+function onFieldSelect(path) {
+    selectedField.value = path || '';
+
+    if (!path || !selectedNodeId.value) {
+        emit('update:modelValue', null);
+        return;
     }
-});
+
+    emit('update:modelValue', {
+        node_id: selectedNodeId.value,
+        path,
+    });
+}
 </script>
 
 <template>
     <div v-if="nodes.length" class="t-small">
         <HeadlessSelect
-            v-model="selectedNodeId"
+            :model-value="selectedNodeId"
             :options="nodeOptions"
             button-class="select-input mt-3 w-full min-w-[8rem]"
             placeholder="Выберите ноду"
+            @update:model-value="onNodeSelect"
         />
 
-        <div 
-            v-if="availableFields.length" 
+        <div
+            v-if="availableFields.length"
             class="mt-3"
         >
             <HeadlessSelect
-                v-model="selectedField"
+                :model-value="selectedField"
                 :options="fieldOptions"
                 button-class="select-input w-full min-w-[8rem]"
                 placeholder="Выберите поле"
+                @update:model-value="onFieldSelect"
             />
         </div>
     </div>

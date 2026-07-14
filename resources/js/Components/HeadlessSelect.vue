@@ -32,7 +32,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const selectedOption = computed(() => {
-    return props.options.find((option) => option.value === props.modelValue) ?? null;
+    return props.options.find((option) => String(option.value) === String(props.modelValue)) ?? null;
 });
 
 const selectedLabel = computed(() => {

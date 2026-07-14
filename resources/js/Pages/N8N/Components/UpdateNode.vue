@@ -35,8 +35,6 @@ const props = defineProps({
     },
 });
 
-console.log(props.nodeData);
-
 const buildersMap = {
     ConditionBuilder,
     OutputBuilder,
@@ -61,25 +59,47 @@ const resolvedWorkflowId = computed(() => {
 
 const emit = defineEmits(['close', 'onUpdatedNode', 'onDeletedNode']);
 
+function isArrayBuilder(type) {
+    return nodeConfigFields[type]?.builder === 'ConfigQueriesConfigure';
+}
+
+// Грузим конфиг только при открытии модалки — иначе любой remap data (статус, echo)
+// затирает несохранённые updatable_metrics.
+function loadFromNodeData() {
+    const newNode = props.nodeData;
+    if (!newNode) {
+        return;
+    }
+
+    nodeType.value = newNode.type || '';
+    title.value = newNode.label || '';
+
+    const raw = newNode.config
+        ? typeof newNode.config === 'string'
+            ? JSON.parse(newNode.config)
+            : newNode.config
+        : {};
+
+    // config из БД иногда приходит как [] вместо {}
+    const cfg = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {};
+
+    const root = nodeConfigFields[nodeType.value]?.builder_root;
+    // Только для metric-билдера нужен массив; condition/output ждут объект или undefined
+    if (root && isArrayBuilder(nodeType.value) && !Array.isArray(cfg[root])) {
+        cfg[root] = [];
+    }
+
+    config.value = cfg;
+}
+
 watch(
-    () => props.nodeData,
-    (newNode) => {
-        if (!newNode) {
-            return;
+    () => props.show,
+    (isOpen) => {
+        if (isOpen) {
+            loadFromNodeData();
         }
-
-        nodeType.value = newNode.type || '';
-        title.value = newNode.label || '';
-
-        const cfg = newNode.config
-            ? typeof newNode.config === 'string'
-                ? JSON.parse(newNode.config)
-                : newNode.config
-            : {};
-
-        config.value = { ...cfg };
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 async function fetchBackendOptionsForField(field) {
@@ -135,11 +155,18 @@ watch(
 
 async function updateNode() {
     const id = nodeId();
+    const root = nodeConfigFields[nodeType.value]?.builder_root;
+    const payloadConfig = { ...config.value };
+
+    if (root && isArrayBuilder(nodeType.value) && !Array.isArray(payloadConfig[root])) {
+        payloadConfig[root] = [];
+    }
+
     const updatedNode = {
         id,
         title: title.value,
         type: nodeType.value,
-        config: config.value,
+        config: payloadConfig,
     };
 
     try {
@@ -152,6 +179,12 @@ async function updateNode() {
     } catch (error) {
         console.error('Ошибка при обновлении узла:', error);
     }
+}
+
+function setBuilderValue(value) {
+    const root = nodeConfigFields[nodeType.value]?.builder_root;
+    if (!root) return;
+    config.value = { ...config.value, [root]: value };
 }
 
 async function deleteNode() {
@@ -305,11 +338,12 @@ async function getQueries() {
                     <component
                         v-if="nodeType && nodeConfigFields[nodeType]?.builder"
                         :is="buildersMap[nodeConfigFields[nodeType].builder]"
-                        v-model="config[nodeConfigFields[nodeType].builder_root]"
+                        :model-value="config[nodeConfigFields[nodeType].builder_root]"
                         :nodes="nodes"
                         :node-id="nodeId()"
                         :workflow-id="resolvedWorkflowId"
                         :on-save="updateNode"
+                        @update:model-value="setBuilderValue"
                     />
                 </div>
 
