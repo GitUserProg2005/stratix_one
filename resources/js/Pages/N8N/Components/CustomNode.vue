@@ -148,7 +148,7 @@ function isLoadingForButton(buttonConfig) {
         </div>-->
 
         <div class="absolute -top-9 right-3 label-content">
-            <IOSchemas :schemas="schemas" :node-type="data.type" :schemas-loading="schemasLoading" />
+            <IOSchemas :schemas="schemas" :node="data" :node-type="data.type" :schemas-loading="schemasLoading" />
         </div>
 
         <Handle type="source" :position="Position.Right" />

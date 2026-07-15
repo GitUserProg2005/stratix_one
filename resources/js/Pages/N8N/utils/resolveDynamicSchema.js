@@ -1,5 +1,8 @@
 export function resolveDynamicSchema(node, type, nodeSchema) {
-    if (!node?.data?.config || !nodeSchema) {
+    // VueFlow-нода: node.data.config | data из CustomNode: node.config
+    const config = node?.data?.config ?? node?.config ?? null;
+
+    if (!config || !nodeSchema) {
         return null;
     }
 
@@ -11,5 +14,5 @@ export function resolveDynamicSchema(node, type, nodeSchema) {
         return null;
     }
 
-    return node.data.config[key] ?? null;
+    return config[key] ?? null;
 }
