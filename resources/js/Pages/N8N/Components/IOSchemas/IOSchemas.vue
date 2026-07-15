@@ -1,12 +1,16 @@
 <script setup>
 import Modal from '@/Components/Modal.vue';
 import SchemaTree from './SchemaTree.vue';
+import { resolveDynamicSchema } from '@/Pages/N8N/utils/resolveDynamicSchema';
+
 import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 import Text from '@/Components/Skeleton/Text.vue';
+
 import { ref, computed } from 'vue';
 
 const props = defineProps({
     schemas: Object,
+    node: Object,
     nodeType: String,
     schemasLoading: {
         type: Boolean,
@@ -14,16 +18,35 @@ const props = defineProps({
     },
 });
 
+// Resolve + взятие input/output схем конкретной ноды
 const nodeSchema = computed(() => {
-    return props.schemas?.[props.nodeType] || null;
+    const typeSchema = props.schemas?.[props.nodeType];
+    if (!typeSchema) {
+        return null;
+    }
+
+    return {
+        inputSchema: typeSchema.dynamic_input
+            ? resolveDynamicSchema(props.node, 'input', typeSchema)
+            : typeSchema.inputSchema,
+        outputSchema: typeSchema.dynamic_output
+            ? resolveDynamicSchema(props.node, 'output', typeSchema)
+            : typeSchema.outputSchema,
+    };
 });
+
+const hasSchemaTree = (schema) => {
+    if (!schema) return false;
+    if (Array.isArray(schema)) return schema.length > 0;
+    return typeof schema === 'object' && Object.keys(schema).length > 0;
+};
 
 const isOpenModal = ref(false);
 
 function toggleModal() {
     isOpenModal.value = !isOpenModal.value;
 }
-</script> 
+</script>
 
 <template>
     <button @click="toggleModal">
@@ -32,7 +55,7 @@ function toggleModal() {
 
     <Modal :show="isOpenModal" @close="toggleModal">
         <div class="custom-scroll max-h-[90vh] space-y-6 overflow-y-auto p-4 md:p-6">
-            
+
             <!-- Header -->
             <div class="flex items-center justify-between gap-3">
                 <h2 class="title-2">
@@ -82,7 +105,7 @@ function toggleModal() {
                     </h3>
 
                     <div
-                        v-if="!Object.keys(nodeSchema.inputSchema || {}).length"
+                        v-if="!hasSchemaTree(nodeSchema.inputSchema)"
                         class="opacity-70"
                     >
                         Нет входных данных
@@ -92,11 +115,7 @@ function toggleModal() {
                         v-else
                         class="flex flex-wrap items-center gap-2"
                     >
-                        <div v-if="nodeSchema.inputSchema">
-                            <SchemaTree
-                                :schema="nodeSchema.inputSchema"
-                            />
-                        </div>
+                        <SchemaTree :schema="nodeSchema.inputSchema" />
                     </div>
                 </section>
 
@@ -107,7 +126,7 @@ function toggleModal() {
                     </h3>
 
                     <div
-                        v-if="!Object.keys(nodeSchema.outputSchema || {}).length"
+                        v-if="!hasSchemaTree(nodeSchema.outputSchema)"
                         class="opacity-70"
                     >
                         Нет выходных данных
@@ -117,11 +136,7 @@ function toggleModal() {
                         v-else
                         class="flex flex-wrap items-center gap-2"
                     >
-                        <div v-if="nodeSchema.outputSchema">
-                            <SchemaTree
-                                :schema="nodeSchema.outputSchema"
-                            />
-                        </div>
+                        <SchemaTree :schema="nodeSchema.outputSchema" />
                     </div>
                 </section>
             </template>
