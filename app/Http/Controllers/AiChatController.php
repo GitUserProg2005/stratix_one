@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\MessageRole;
 use App\Enums\MessageType;
-use App\Models\Context;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -134,6 +133,7 @@ class AiChatController extends Controller
             'userPrompt' => $validated['text'],
             'workflowId' => (int) $workflowId,
             'mode' => MessageType::from($validated['type']),
+            'room' => $room,
         ])->handle();
 
         $bundle = $result['result'];
@@ -188,20 +188,5 @@ class AiChatController extends Controller
         return response()->json(
             $room->context?->load('workflow')
         );
-    }
-
-    public function createContext(Request $request)
-    {
-        $validated = $request->validate([
-            'context' => ['required', 'string'],
-            'workflow_id' => ['nullable', 'integer', 'exists:workflows,id'],
-        ]);
-
-        $context = Context::create([
-            'body' => $validated['context'],
-            'workflow_id' => $validated['workflow_id'] ?? null,
-        ]);
-
-        return response()->json($context, 201);
     }
 }

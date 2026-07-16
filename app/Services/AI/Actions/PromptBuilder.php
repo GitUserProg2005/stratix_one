@@ -12,24 +12,41 @@ class PromptBuilder
         string $nodesJson,
         string $edgesJson,
         string $nodeTypesCsv,
+        string $context = '',
     ): string {
         return match ($mode) {
-            MessageType::ASK => self::ask($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv),
-            MessageType::AGENT => self::agent($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv),
-            MessageType::PLAN => self::plan($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv),
+            MessageType::ASK => self::ask($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv, $context),
+            MessageType::AGENT => self::agent($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv, $context),
+            MessageType::PLAN => self::plan($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv, $context),
         };
     }
 
-    /** Режим ask: только связный текст, без JSON и без изменений workflow. */
-    private static function ask(string $userPrompt, string $nodesJson, string $edgesJson, string $nodeTypesCsv): string
+    private static function contextBlock(string $context): string
     {
+        $body = trim($context) !== '' ? $context : 'Не заданы.';
+
+        return <<<BLOCK
+ПРАВИЛА_АГЕНТА (контекст сессии):
+Это правила, по которым ты должен действовать в текущей сессии. Соблюдай их при формировании ответа.
+
+{$body}
+BLOCK;
+    }
+
+    /** Режим ask: только связный текст, без JSON и без изменений workflow. */
+    private static function ask(string $userPrompt, string $nodesJson, string $edgesJson, string $nodeTypesCsv, string $context): string
+    {
+        $contextBlock = self::contextBlock($context);
+
         return <<<PROMPT
 Ты помощник по workflow (движок в духе n8n).
 
 Режим ASK — только объясняй и отвечай обычным текстом на русском. НЕ возвращай JSON, НЕ давай технические патчи графа, не перечисляй «как выполнить create/update» в машинном формате.
 
-Контекст:
+Справка:
 - Допустимые типы узлов: {$nodeTypesCsv}.
+
+{$contextBlock}
 
 ТЕКУЩИЕ_УЗЛЫ:
 {$nodesJson}
@@ -43,8 +60,10 @@ PROMPT;
     }
 
     /** Режим agent — полный промпт мутаций графа (JSON). */
-    private static function agent(string $userPrompt, string $nodesJson, string $edgesJson, string $nodeTypesCsv): string
+    private static function agent(string $userPrompt, string $nodesJson, string $edgesJson, string $nodeTypesCsv, string $context): string
     {
+        $contextBlock = self::contextBlock($context);
+
         return <<<PROMPT
 Ты AI-агент — конструктор workflow на движке в духе n8n (узлы и связи между ними).
 
@@ -100,10 +119,10 @@ PROMPT;
 - edges.source_node_id и edges.target_node_id — id узлов из того же ответа.
 
 СХЕМА NODE:
-{ "id": number, "type": string, "order": number, "title": string|null, "config": object|null, "position": { "x": number, "y": number } }
+{ "id": number, "type": string, "title": string|null, "config": object|null, "position": { "x": number, "y": number } }
 
 СХЕМА EDGE:
-{ "id": number, "source_node_id": number, "target_node_id": number, "type": string, "label": string|null, "data": object|null, "transform": object|null }
+{ "id": number, "source_node_id": number, "target_node_id": number, "type": string (ПИШИ ВСЕГДА "custom"), "label": string|null, "data": object|null, "transform": object|null }
 
 РАССТАНОВКА position (логика канвы, как в n8n):
 - position всегда объект { "x", "y" } в пикселях/условных единицах канвы, без null для узлов в create; при update меняй position только если перестраиваешь граф — иначе бери координаты из «ТЕКУЩИЕ_УЗЛЫ».
@@ -115,12 +134,13 @@ PROMPT;
 
 ПО УМОЛЧАНИЮ:
 - Если поле неизвестно: title=null, config=null; для position при create используй правила расстановки выше (не null).
-- order: целое число, по возрастанию логики потока.
 - edge.type: строка, например "custom" или "default".
 
 Если запрос неоднозначен и в «ТЕКУЩИЕ_УЗЛЫ» уже есть узлы — ставь update; в nodes/edges выводи только то, что уверенно сопоставил с данными (тип, title, id), иначе пустые массивы и в answer попроси уточнить у пользователя; create с nodes=[], edges=[] только если текущего графа нет (нет узлов в блоке ниже).
 
 Верни только JSON без пояснений.
+
+{$contextBlock}
 
 ТЕКУЩИЕ_УЗЛЫ (JSON):
 {$nodesJson}
@@ -134,8 +154,10 @@ PROMPT;
     }
 
     /** Режим plan — JSON со списком шагов (todo) для UI, без мутаций графа на бэкенде из этого промпта. */
-    private static function plan(string $userPrompt, string $nodesJson, string $edgesJson, string $nodeTypesCsv): string
+    private static function plan(string $userPrompt, string $nodesJson, string $edgesJson, string $nodeTypesCsv, string $context): string
     {
+        $contextBlock = self::contextBlock($context);
+
         return <<<PROMPT
 Ты составляешь ПЛАН доработок workflow (канва в духе n8n).
 
@@ -157,6 +179,8 @@ PROMPT;
 - Типы узлов в плане: {$nodeTypesCsv}.
 - Перечисляй todo в порядке выполнения (сверху вниз).
 - Можно добавить элементы только с title и color; других ключей не требуется.
+
+{$contextBlock}
 
 ТЕКУЩИЕ_УЗЛЫ (JSON):
 {$nodesJson}

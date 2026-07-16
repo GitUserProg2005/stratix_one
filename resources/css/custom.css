@@ -835,6 +835,11 @@ html.dark .content-glass,
     color: var(--content-primary);
 }
 
+.title-3 {
+    @apply text-base font-semibold tracking-tight break-words leading-[1.2];
+    color: var(--content-primary);
+}
+
 /*
  * Заголовки на тёмной плашке (.content-dark, hero поверх фото и т.д.):
  * в светлой теме страницы --content-primary тёмный, поэтому базовые .title

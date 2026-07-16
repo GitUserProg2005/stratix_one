@@ -34,7 +34,6 @@ class UpdateNodesEdgesDB
                         'title' => array_key_exists('title', $payload) ? $payload['title'] : $model->title,
                         'config' => array_key_exists('config', $payload) ? $payload['config'] : $model->config,
                         'position' => array_key_exists('position', $payload) ? $payload['position'] : $model->position,
-                        'order' => array_key_exists('order', $payload) ? $payload['order'] : $model->order,
                         'type' => array_key_exists('type', $payload) ? $payload['type'] : $model->type,
                     ]);
                     $nodeIdMap[(int) $payload['id']] = $model->id;
@@ -45,7 +44,7 @@ class UpdateNodesEdgesDB
                 $model = Node::create([
                     'workflow_id' => $workflowId,
                     'type' => array_key_exists('type', $payload) ? $payload['type'] : 'log',
-                    'order' => array_key_exists('order', $payload) ? $payload['order'] : 0,
+                    'order' => 0,
                     'title' => array_key_exists('title', $payload) ? $payload['title'] : null,
                     'config' => array_key_exists('config', $payload) ? $payload['config'] : null,
                     'position' => array_key_exists('position', $payload) ? $payload['position'] : null,
@@ -85,6 +84,7 @@ class UpdateNodesEdgesDB
 
                 if ($existingEdges->has($payload['id'])) {
                     $edgeModel = $existingEdges->get($payload['id']);
+                    
                     $edgeModel->update([
                         'source_node_id' => $sourceDb,
                         'target_node_id' => $targetDb,

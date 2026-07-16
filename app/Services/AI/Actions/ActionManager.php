@@ -6,6 +6,7 @@ use App\Enums\MessageType;
 use App\Enums\NodeType;
 use App\Models\Edge;
 use App\Models\Node;
+use App\Models\Room;
 use App\Services\AI\Actions\Handlers\CreateNodesEdgesDB;
 use App\Services\AI\Actions\Handlers\DeleteNodesEdgesDB;
 use App\Services\AI\Actions\Handlers\UpdateNodesEdgesDB;
@@ -18,6 +19,7 @@ class ActionManager
         public int $workflowId,
         public MessageType $mode,
         protected Gigachat $gigachat,
+        public Room $room,
     ) {}
 
     public function buildPrompt(): string
@@ -27,13 +29,12 @@ class ActionManager
         $nodesJson = json_encode(
             Node::query()
                 ->where('workflow_id', $this->workflowId)
-                ->orderBy('order')
+                ->orderBy('id')
                 ->get()
                 ->map(fn (Node $n) => [
                     'id' => $n->id,
                     'workflow_id' => $n->workflow_id,
                     'type' => $n->type,
-                    'order' => $n->order,
                     'title' => $n->title,
                     'config' => $n->config,
                     'position' => $n->position,
@@ -58,12 +59,17 @@ class ActionManager
             JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
         );
 
+        // Подгружаем body контекста, привязанного к комнате
+        $this->room->loadMissing('context');
+        $context = (string) ($this->room->context?->body ?? '');
+
         return PromptBuilder::build(
             $this->mode,
             $this->userPrompt,
             $nodesJson,
             $edgesJson,
-            $nodeTypes
+            $nodeTypes,
+            $context,
         );
     }
 

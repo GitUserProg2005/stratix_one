@@ -2,50 +2,69 @@
 
 namespace App\Services\AI\Actions\Handlers;
 
+use App\Models\Edge;
+use App\Models\Node;
 use Illuminate\Support\Facades\DB;
 
-use App\Models\Node;
-use App\Models\Edge;
-
-
-class CreateNodesEdgesDB {
-    public static function handle(int $workflowId, array $workflowData) {
+class CreateNodesEdgesDB
+{
+    public static function handle(int $workflowId, array $workflowData): array
+    {
         DB::beginTransaction();
 
         try {
-            $nodes = $workflowData['nodes'];
-            $edges = $workflowData['edges'];
             $nodesMapId = [];
 
-            foreach ($nodes as $index => $node) {
+            // Создаём узлы с безопасным разбором payload
+            foreach ($workflowData['nodes'] ?? [] as $index => $payload) {
+                if (! isset($payload['id'], $payload['type'])) {
+                    continue;
+                }
+
                 $nodeModel = Node::create([
                     'workflow_id' => $workflowId,
-                    'type' => $node['type'],
-                    'order' => $node['order'],
-                    'title' => $node['title'],
-                    'config' => $node['config'],
-                    'position' => $node['position'],
+                    'type' => $payload['type'],
+                    'order' => 0,
+                    'title' => array_key_exists('title', $payload) ? $payload['title'] : null,
+                    'config' => array_key_exists('config', $payload) ? $payload['config'] : null,
+                    'position' => array_key_exists('position', $payload) ? $payload['position'] : null,
                 ]);
 
-                $nodesMapId[$node['id']] = $nodeModel->id;
-
+                $nodesMapId[(int) $payload['id']] = $nodeModel->id;
                 $workflowData['nodes'][$index]['id'] = $nodeModel->id;
             }
 
-            foreach ($edges as $index => $edge) {
-                $edge = Edge::create([
+            // Создаём связи с безопасным разбором payload
+            foreach ($workflowData['edges'] ?? [] as $index => $payload) {
+                if (! isset($payload['source_node_id'], $payload['target_node_id'])) {
+                    continue;
+                }
+
+                $sourceTemp = (int) $payload['source_node_id'];
+                $targetTemp = (int) $payload['target_node_id'];
+
+                if (! isset($nodesMapId[$sourceTemp], $nodesMapId[$targetTemp])) {
+                    throw new \RuntimeException(
+                        'Edge ссылается на несуществующие временные id узлов: '.$sourceTemp.', '.$targetTemp
+                    );
+                }
+
+                $sourceDb = $nodesMapId[$sourceTemp];
+                $targetDb = $nodesMapId[$targetTemp];
+
+                $edgeModel = Edge::create([
                     'workflow_id' => $workflowId,
-                    'source_node_id' => $nodesMapId[$edge['source_node_id']],
-                    'target_node_id' => $nodesMapId[$edge['target_node_id']],
-                    'type' => $edge['type'] ?? 'custom',
-                    'label' => $edge['label'],
-                    'data' => $edge['data'],
-                    'transform' => $edge['transform'],
+                    'source_node_id' => $sourceDb,
+                    'target_node_id' => $targetDb,
+                    'type' => $payload['type'] ?? 'custom',
+                    'label' => array_key_exists('label', $payload) ? $payload['label'] : null,
+                    'data' => array_key_exists('data', $payload) ? $payload['data'] : null,
+                    'transform' => array_key_exists('transform', $payload) ? $payload['transform'] : null,
                 ]);
 
-                $workflowData['edges'][$index]['source_node_id'] = $nodesMapId[$edge['source_node_id']];
-                $workflowData['edges'][$index]['target_node_id'] = $nodesMapId[$edge['target_node_id']];
-                $workflowData['edges'][$index]['id'] = $edge->id;
+                $workflowData['edges'][$index]['id'] = $edgeModel->id;
+                $workflowData['edges'][$index]['source_node_id'] = $sourceDb;
+                $workflowData['edges'][$index]['target_node_id'] = $targetDb;
             }
 
             $workflowData['action_type'] = 'create';
@@ -53,17 +72,17 @@ class CreateNodesEdgesDB {
             DB::commit();
 
             return [
+                'success' => true,
                 'result' => 'ok',
                 'workflowData' => $workflowData,
             ];
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
-
             report($e);
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }

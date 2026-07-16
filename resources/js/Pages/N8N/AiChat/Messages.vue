@@ -65,8 +65,30 @@ const isProcessing = ref(false);
 const messagesContainer = ref(null);
 
 const graphSyncHint = ref('');
+const copiedMessageId = ref(null);
 
 let workflowDiffChannel = null;
+let copiedTimer = null;
+
+async function copyMessageText(message) {
+    const text = typeof message?.text === 'string' ? message.text : '';
+    if (!text) {
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(text);
+        copiedMessageId.value = message.id;
+        if (copiedTimer) {
+            clearTimeout(copiedTimer);
+        }
+        copiedTimer = setTimeout(() => {
+            copiedMessageId.value = null;
+        }, 1500);
+    } catch (error) {
+        console.error('Failed to copy message', error);
+    }
+}
 
 function roleIsAi(message) {
     const r = message?.role;
@@ -202,6 +224,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     leaveWorkflowDiffChannel();
+    if (copiedTimer) {
+        clearTimeout(copiedTimer);
+    }
 });
 </script>
 
@@ -249,22 +274,37 @@ onBeforeUnmount(() => {
                     :class="roleIsAi(message) ? 'justify-start' : 'justify-end'"
                 >
                 <div
-                    class="flex max-w-[82%] flex-col gap-2"
+                    class="group/msg flex max-w-[82%] flex-col gap-2"
                     :class="roleIsAi(message) ? 'items-stretch' : 'items-end'"
                 >
                     <div
-                        class="rounded-2xl px-3 py-2 text-sm break-words"
+                        class="relative rounded-2xl px-3 py-2 text-sm break-words"
                         :class="roleIsAi(message)
                             ? 'bg-content-glass text-[var(--content-primary)] rounded-bl-sm'
                             : 'bg-[var(--accent)] text-white rounded-br-sm whitespace-pre-wrap'"
                     >
+                        <button
+                            type="button"
+                            class="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-lg opacity-0 transition group-hover/msg:opacity-100"
+                            :class="roleIsAi(message)
+                                ? 'bg-black/10 text-[var(--content-secondary)] hover:bg-black/15 hover:text-[var(--accent)] dark:bg-white/10 dark:hover:bg-white/15'
+                                : 'bg-white/15 text-white/80 hover:bg-white/25 hover:text-white'"
+                            :title="copiedMessageId === message.id ? 'Скопировано' : 'Копировать'"
+                            @click="copyMessageText(message)"
+                        >
+                            <i
+                                class="text-xs"
+                                :class="copiedMessageId === message.id ? 'fa-solid fa-check' : 'fa-regular fa-copy'"
+                            />
+                        </button>
+
                         <div
                             v-if="roleIsAi(message)"
-                            class="prose prose-sm prose-neutral max-w-none dark:prose-invert prose-p:my-1.5 prose-headings:mb-2 prose-headings:mt-3 prose-headings:text-[var(--content-primary)] prose-p:text-[var(--content-primary)] prose-li:text-[var(--content-primary)] prose-strong:text-[var(--content-primary)] prose-a:text-[var(--accent)] prose-a:no-underline hover:prose-a:underline prose-pre:max-h-64 prose-pre:overflow-auto prose-pre:rounded-lg prose-pre:border prose-pre:border-[var(--border-input)] prose-pre:bg-black/[0.08] dark:prose-pre:bg-white/[0.06] prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-code:text-[var(--content-primary)] prose-code:before:content-none prose-code:after:content-none prose-code:bg-black/10 dark:prose-code:bg-white/10"
+                            class="prose prose-sm prose-neutral max-w-none pr-8 dark:prose-invert prose-p:my-1.5 prose-headings:mb-2 prose-headings:mt-3 prose-headings:text-[var(--content-primary)] prose-p:text-[var(--content-primary)] prose-li:text-[var(--content-primary)] prose-strong:text-[var(--content-primary)] prose-a:text-[var(--accent)] prose-a:no-underline hover:prose-a:underline prose-pre:max-h-64 prose-pre:overflow-auto prose-pre:rounded-lg prose-pre:border prose-pre:border-[var(--border-input)] prose-pre:bg-black/[0.08] dark:prose-pre:bg-white/[0.06] prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-code:text-[var(--content-primary)] prose-code:before:content-none prose-code:after:content-none prose-code:bg-black/10 dark:prose-code:bg-white/10"
                             v-html="renderAiMarkdown(message.text)"
                         />
                         <template v-else>
-                            {{ message.text }}
+                            <span class="pr-8">{{ message.text }}</span>
                         </template>
                     </div>
 
