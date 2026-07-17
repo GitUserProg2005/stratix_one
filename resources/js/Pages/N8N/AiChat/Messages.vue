@@ -1,9 +1,10 @@
 <script setup>
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import Text from '@/Components/Skeleton/Text.vue';
+import StateProcessing from './StateProcessing.vue';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import axios from 'axios';
 
 marked.use({
@@ -29,22 +30,11 @@ const props = defineProps({
     },
 });
 
-const emits = defineEmits(['workflow-updated']);
-
 const resolvedRoomId = computed(() => {
     if (props.roomId === null || props.roomId === undefined || props.roomId === '') {
         return null;
     }
     const n = Number(props.roomId);
-
-    return Number.isFinite(n) ? n : null;
-});
-
-const resolvedWorkflowId = computed(() => {
-    if (props.workflowId === null || props.workflowId === undefined || props.workflowId === '') {
-        return null;
-    }
-    const n = Number(props.workflowId);
 
     return Number.isFinite(n) ? n : null;
 });
@@ -64,10 +54,8 @@ const isMessagesLoading = ref(false);
 const isProcessing = ref(false);
 const messagesContainer = ref(null);
 
-const graphSyncHint = ref('');
 const copiedMessageId = ref(null);
 
-let workflowDiffChannel = null;
 let copiedTimer = null;
 
 async function copyMessageText(message) {
@@ -100,45 +88,6 @@ function roleIsAi(message) {
     }
 
     return false;
-}
-
-function leaveWorkflowDiffChannel() {
-    if (typeof window.Echo === 'undefined' || resolvedWorkflowId.value === null) {
-        return;
-    }
-
-    const name = `workflow-diff-applied.${resolvedWorkflowId.value}`;
-    try {
-        window.Echo.leave(`private-${name}`);
-    } catch {
-        try {
-            window.Echo.leave(name);
-        } catch {
-            /* noop */
-        }
-    }
-    workflowDiffChannel = null;
-}
-
-function subscribeWorkflowDiffChannel() {
-    if (typeof window.Echo === 'undefined' || resolvedWorkflowId.value === null) {
-        return;
-    }
-
-    leaveWorkflowDiffChannel();
-
-    workflowDiffChannel = window.Echo
-        .private(`workflow-diff-applied.${resolvedWorkflowId.value}`)
-        .listen('WorkflowDiffApplied', (e) => {
-            if (Number(e.workflowId) !== Number(resolvedWorkflowId.value)) {
-                return;
-            }
-            graphSyncHint.value = 'Граф обновлён';
-            window.setTimeout(() => {
-                graphSyncHint.value = '';
-            }, 4000);
-            emits('workflow-updated', { workflowId: e.workflowId, payload: e });
-        });
 }
 
 const scrollToBottom = async () => {
@@ -177,18 +126,33 @@ const sendMessage = async () => {
 
     isLoading.value = true;
     isProcessing.value = true;
+    inputText.value = '';
+
+    // Ждём монтирование StateProcessing и подписку на Echo до старта запроса
+    await nextTick();
+
     try {
-        await axios.post(route('ai-chat.process-message', { room: id }), {
+        const { data } = await axios.post(route('ai-chat.process-message', { room: id }), {
             text,
             type: mode.value,
         });
 
-        inputText.value = '';
-        await getMessages();
+        if (data?.user_message) {
+            messages.value.push(data.user_message);
+        }
+        if (data?.ai_message) {
+            messages.value.push(data.ai_message);
+        }
 
-        emits('workflow-updated', { workflowId: props.workflowId });
+        // HTTP fallback: канва обновляется даже если Echo не доставил событие
+        if (data?.workflow_diff) {
+            window.dispatchEvent(new CustomEvent('workflow-diff-applied', {
+                detail: data.workflow_diff,
+            }));
+        }
     } catch (error) {
         console.error('Failed to send message', error);
+        inputText.value = text;
     } finally {
         isLoading.value = false;
         isProcessing.value = false;
@@ -214,16 +178,7 @@ watch(resolvedRoomId, async () => {
     }
 }, { immediate: true });
 
-watch(resolvedWorkflowId, () => {
-    subscribeWorkflowDiffChannel();
-});
-
-onMounted(() => {
-    subscribeWorkflowDiffChannel();
-});
-
 onBeforeUnmount(() => {
-    leaveWorkflowDiffChannel();
     if (copiedTimer) {
         clearTimeout(copiedTimer);
     }
@@ -232,10 +187,6 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="flex h-full min-h-0 flex-col">
-        <p v-if="graphSyncHint" class="mb-2 rounded-lg bg-[rgba(233, 115, 88,0.15)] px-2 py-1 text-xs text-[var(--content-primary)]">
-            {{ graphSyncHint }}
-        </p>
-
         <div
             ref="messagesContainer"
             class="custom-scroll min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 pb-2"
@@ -335,30 +286,11 @@ onBeforeUnmount(() => {
                 </div>
             </template>
 
-            <div
-                v-if="isProcessing"
-                class="flex w-full justify-start"
-                aria-live="polite"
-                aria-busy="true"
-            >
-                <div class="relative max-w-[82%] overflow-hidden rounded-2xl rounded-bl-sm bg-content-glass px-3 py-3">
-                    <div
-                        class="pointer-events-none absolute inset-0 overflow-hidden"
-                        aria-hidden="true"
-                    >
-                        <div
-                            class="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent dark:via-white/10 animate-shimmer-slide"
-                        />
-                    </div>
-                    <div class="relative flex items-center gap-2.5 text-sm text-[var(--content-primary)]">
-                        <i
-                            class="fa-solid fa-spinner fa-spin shrink-0 text-base text-[var(--accent)]"
-                            aria-hidden="true"
-                        />
-                        <span>Обрабатываю...</span>
-                    </div>
-                </div>
-            </div>
+            <StateProcessing
+                v-if="resolvedRoomId"
+                :room-id="resolvedRoomId"
+                :is-processing="isProcessing"
+            />
         </div>
 
         <form class="mt-3" @submit.prevent="sendMessage">

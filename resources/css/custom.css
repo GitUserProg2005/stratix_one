@@ -820,6 +820,12 @@ html.dark .content-glass,
     color: #ef4444;
 }
 
+.ai-thought-broken {
+    color: #ef4444;
+    background: color-mix(in srgb, #ef4444 12%, transparent);
+    border: 1px solid color-mix(in srgb, #ef4444 40%, transparent);
+}
+
 .over-title {
     @apply text-4xl sm:text-4xl lg:text-5xl font-semibold tracking-tight break-words leading-[1.1];
     color: var(--content-primary);

@@ -3,6 +3,9 @@
 namespace App\Services\AI\Actions;
 
 use App\Enums\MessageType;
+use App\Services\AI\Actions\Prompts\Agent;
+use App\Services\AI\Actions\Prompts\Ask;
+use App\Services\AI\Actions\Prompts\Plan;
 
 class PromptBuilder
 {
@@ -13,183 +16,12 @@ class PromptBuilder
         string $edgesJson,
         string $nodeTypesCsv,
         string $context = '',
+        string $revisions = '',
     ): string {
         return match ($mode) {
-            MessageType::ASK => self::ask($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv, $context),
-            MessageType::AGENT => self::agent($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv, $context),
-            MessageType::PLAN => self::plan($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv, $context),
+            MessageType::ASK => Ask::build($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv, $context),
+            MessageType::AGENT => Agent::build($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv, $context, $revisions),
+            MessageType::PLAN => Plan::build($userPrompt, $nodesJson, $edgesJson, $nodeTypesCsv, $context),
         };
-    }
-
-    private static function contextBlock(string $context): string
-    {
-        $body = trim($context) !== '' ? $context : 'Не заданы.';
-
-        return <<<BLOCK
-ПРАВИЛА_АГЕНТА (контекст сессии):
-Это правила, по которым ты должен действовать в текущей сессии. Соблюдай их при формировании ответа.
-
-{$body}
-BLOCK;
-    }
-
-    /** Режим ask: только связный текст, без JSON и без изменений workflow. */
-    private static function ask(string $userPrompt, string $nodesJson, string $edgesJson, string $nodeTypesCsv, string $context): string
-    {
-        $contextBlock = self::contextBlock($context);
-
-        return <<<PROMPT
-Ты помощник по workflow (движок в духе n8n).
-
-Режим ASK — только объясняй и отвечай обычным текстом на русском. НЕ возвращай JSON, НЕ давай технические патчи графа, не перечисляй «как выполнить create/update» в машинном формате.
-
-Справка:
-- Допустимые типы узлов: {$nodeTypesCsv}.
-
-{$contextBlock}
-
-ТЕКУЩИЕ_УЗЛЫ:
-{$nodesJson}
-
-ТЕКУЩИЕ_СВЯЗИ:
-{$edgesJson}
-
-ВОПРОС ПОЛЬЗОВАТЕЛЯ:
-{$userPrompt}
-PROMPT;
-    }
-
-    /** Режим agent — полный промпт мутаций графа (JSON). */
-    private static function agent(string $userPrompt, string $nodesJson, string $edgesJson, string $nodeTypesCsv, string $context): string
-    {
-        $contextBlock = self::contextBlock($context);
-
-        return <<<PROMPT
-Ты AI-агент — конструктор workflow на движке в духе n8n (узлы и связи между ними).
-
-Твоя задача:
-1) Понять запрос пользователя из блока «ЗАПРОС_ПОЛЬЗОВАТЕЛЯ».
-2) Выбрать действие: create | update | delete (поле action_type и дублирующее поле type — одно и то же значение).
-3) Вернуть строго валидный JSON по схеме ниже, без Markdown и без текста вне JSON.
-
-КРИТИЧЕСКИ ВАЖНО:
-- Используй только данные из «ЗАПРОС_ПОЛЬЗОВАТЕЛЯ», «ТЕКУЩИЕ_УЗЛЫ» и «ТЕКУЩИЕ_СВЯЗИ».
-- Допустимые типы узлов (поле type у node): только значения из перечня: {$nodeTypesCsv}.
-- Связь (edge) между двумя уже существующими узлами из «ТЕКУЩИЕ_УЗЛЫ» — это всегда сценарий update (новое ребро при необходимости приходит в edges с реальными source_node_id/target_node_id узлов из БД), а не create.
-- Для create/update связи должны указывать на узлы верно: при create — временные id узлов (1..n); при update/delete — реальные id узлов из БД «ТЕКУЩИЕ_УЗЛЫ», для нового ребра в режиме update id ребра может быть новым временным числом, не совпадающим с уже существующими id из «ТЕКУЩИЕ_СВЯЗИ».
-- Для create у узлов и рёбер используй последовательные временные id: 1, 2, 3, … (узлы и рёбы нумеруй независимо в своих массивах или сквозь — главное, чтобы source_node_id/target_node_id указывали на существующие в ответе id узлов).
-- Для update/delete используй реальные числовые id из «ТЕКУЩИЕ_УЗЛЫ» / «ТЕКУЩИЕ_СВЯЗИ».
-- Нельзя ссылаться edge на несуществующий узел.
-- Поле answer — развёрнуто распиши свои действия и ход мыслей: как понял запрос, почему выбрал action_type, какие узлы/связи трогаешь и зачем; структурные изменения по-прежнему только в nodes/edges (или в node_ids/edge_ids для delete).
-
-КАК ВЫБИРАТЬ action_type / type (важно, не путать):
-- update — основной режим для уже существующего workflow из «ТЕКУЩИЕ_УЗЛЫ». Внутри него допускаются: правка узлов; правка рёбер; добавление новой связи между существующими узлами; добавление нового узла при необходимости (бэкенд обработает). Если на канве уже есть хотя бы один узел из БД и задача меняет граф — почти всегда это update, а не create.
-- create — только когда пользователь явно описывает **новый workflow с нуля** или нужны узлы/связи, **не опирающиеся на текущее содержимое** «ТЕКУЩИЕ_УЗЛЫ» (пустая или игнорируемая текущая схема, «создай сценарий с нуля»). Не использовать create просто потому что «добавляется связь».
-- delete — удалить узлы и/или связи по id.
-
-ЛЕКСИКА (при непустых «ТЕКУЩИЕ_УЗЛЫ» это почти всегда update):
-- По-русски: «связать», «соединить», «подключить», «провести связь», «добавь связь/ребро между …», «от ноды … к …», «после вебхука на …», «интегрировать узлы» при указании уже существующих нод по смыслу или типам из списка — это update (достань id из данных, добавь или измени edge).
-- По-английски: connect, link, wire, attach, add edge между существующими узлами — update.
-- create по смыслу: «создай workflow», «нарисуй с нуля», «ещё один отдельный поток без опоры на текущие узлы», «добавь новый узел который на канве пока вообще не описан как новое имя типа без привязки к id» только если речь не про линковку уже показанных нод.
-
-Если в ответах сомневаешься между create и update, а в «ТЕКУЩИЕ_УЗЛЫ» уже есть узлы и запрос звучит как изменение связей/полей — выбирай update.
-
-ФОРМАТ ОТВЕТА (строго JSON):
-{
-  "action_type": "create | update | delete",
-  "type": "create | update | delete",
-  "answer": "string (подробно: действия, рассуждения, обоснование)",
-  "nodes": [],
-  "edges": [],
-  "node_ids": [],
-  "edge_ids": []
-}
-
-ВАЖНО ДЛЯ delete:
-- Для delete заполняй только node_ids и edge_ids (массивы числовых id из БД). Поля nodes и edges — пустые массивы [].
-- Не выдумывай id: только из «ТЕКУЩИЕ_УЗЛЫ» / «ТЕКУЩИЕ_СВЯЗИ».
-
-ВАЖНО ДЛЯ update:
-- Для связей (edges) возвращай полный объект по схеме, если правишь существующее ребро или добавляешь новое.
-- Для узлов (nodes) допускаются частичные объекты: минимум "id" и только изменённые поля (например только "title" при переименовании); недостающие поля бэкенд сохранит из базы по этому id. Удобно так отдавать переименование узла без дублирования config/position.
-- Добавление узла «между» двумя существующими: обязательно включи НОВЫЙ узел в массив nodes с новым временным id (не совпадающим с чужими id из БД), затем в edges укажи source/target либо реальные id из «ТЕКУЩИЕ_УЗЛЫ», либо этот временный id для нового узла. Нельзя указывать в edge число, которого нет ни в «ТЕКУЩИЕ_УЗЛЫ», ни среди id в твоём массиве nodes — иначе связь не создастся.
-
-ВАЖНО ДЛЯ create:
-- У каждого node и edge в массивах обязателен числовой id (временный, 1..n).
-- edges.source_node_id и edges.target_node_id — id узлов из того же ответа.
-
-СХЕМА NODE:
-{ "id": number, "type": string, "title": string|null, "config": object|null, "position": { "x": number, "y": number } }
-
-СХЕМА EDGE:
-{ "id": number, "source_node_id": number, "target_node_id": number, "type": string (ПИШИ ВСЕГДА "custom"), "label": string|null, "data": object|null, "transform": object|null }
-
-РАССТАНОВКА position (логика канвы, как в n8n):
-- position всегда объект { "x", "y" } в пикселях/условных единицах канвы, без null для узлов в create; при update меняй position только если перестраиваешь граф — иначе бери координаты из «ТЕКУЩИЕ_УЗЛЫ».
-- Вход в граф слева: узлы типов webhook_trigger и schedule ставь первыми (старт потока), например первая точка около x=100, y=100; несколько триггеров — смещай по y (шаг ~150–200), x оставь ~100.
-- Основная цепочка после старта — слева направо: для следующих узлов вдоль основного пути увеличивай x на шаг ~220–280, y совпадает у линейного участка.
-- Ветвление (condition): разводи исходящие цепочки по y (например ±80…120 от базовой линии), чтобы ветки не перекрывались.
-- Не клади разные узлы в одни x,y; расставляй по порядку исполнения по edges так, чтобы читалось «слева направо, сверху вниз при параллельных ветках».
-- Шаги можешь чуть подстраивать под число узлов — главное единообразие и читаемость.
-
-ПО УМОЛЧАНИЮ:
-- Если поле неизвестно: title=null, config=null; для position при create используй правила расстановки выше (не null).
-- edge.type: строка, например "custom" или "default".
-
-Если запрос неоднозначен и в «ТЕКУЩИЕ_УЗЛЫ» уже есть узлы — ставь update; в nodes/edges выводи только то, что уверенно сопоставил с данными (тип, title, id), иначе пустые массивы и в answer попроси уточнить у пользователя; create с nodes=[], edges=[] только если текущего графа нет (нет узлов в блоке ниже).
-
-Верни только JSON без пояснений.
-
-{$contextBlock}
-
-ТЕКУЩИЕ_УЗЛЫ (JSON):
-{$nodesJson}
-
-ТЕКУЩИЕ_СВЯЗИ (JSON):
-{$edgesJson}
-
-ЗАПРОС_ПОЛЬЗОВАТЕЛЯ:
-{$userPrompt}
-PROMPT;
-    }
-
-    /** Режим plan — JSON со списком шагов (todo) для UI, без мутаций графа на бэкенде из этого промпта. */
-    private static function plan(string $userPrompt, string $nodesJson, string $edgesJson, string $nodeTypesCsv, string $context): string
-    {
-        $contextBlock = self::contextBlock($context);
-
-        return <<<PROMPT
-Ты составляешь ПЛАН доработок workflow (канва в духе n8n).
-
-Режим PLAN: не симулируй вызов create/update/delete в БД — только спланируй шаги. Верни строго один JSON без markdown и без текста вне JSON.
-
-Схема ответа (пример формы — верни свой JSON такой же структуры):
-{
-  "answer": "Краткий статус, например: Составляю план по реализации изменений пользователя.",
-  "todo": [
-    { "title": "Краткая формулировка шага", "color": "#234567" },
-    { "title": "Следующий шаг", "color": "#89abcd" }
-  ]
-}
-
-Про color: только строка в виде HEX из 7 символов (# и 6 шестнадцатеричных цифр), подбери контрастные цвета для разных строк.
-
-Примечания:
-- Опирайся на «ЗАПРОС», «ТЕКУЩИЕ_УЗЛЫ» и «ТЕКУЩИЕ_СВЯЗИ».
-- Типы узлов в плане: {$nodeTypesCsv}.
-- Перечисляй todo в порядке выполнения (сверху вниз).
-- Можно добавить элементы только с title и color; других ключей не требуется.
-
-{$contextBlock}
-
-ТЕКУЩИЕ_УЗЛЫ (JSON):
-{$nodesJson}
-
-ТЕКУЩИЕ_СВЯЗИ (JSON):
-{$edgesJson}
-
-ЗАПРОС:
-{$userPrompt}
-PROMPT;
     }
 }

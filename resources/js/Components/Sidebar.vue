@@ -48,7 +48,7 @@ const closeSidebar = () => {
             <div class="flex items-center justify-between lg:justify-center">
               <div class="flex items-center justify-center gap-3">
                 <span class="title-font-3">STRTX</span>
-                <img src="/img/logov3.png" class="w-4 object-contain" alt="">
+                <img src="/img/logo-mountains.png" class="w-8 object-contain" alt="">
                 <span class="title-font-3">ID</span>
               </div>
 
