@@ -2,6 +2,8 @@
 
 namespace App\Services\AI\Actions\Prompts;
 
+use App\Models\Room;
+
 final class Agent implements ModePrompt
 {
     public static function build(
@@ -9,10 +11,11 @@ final class Agent implements ModePrompt
         string $nodesJson,
         string $edgesJson,
         string $nodeTypesCsv,
+        Room $room,
         string $context = '',
         string $revisions = '',
     ): string {
-        $contextBlock = PromptContext::block($context);
+        $contextBlock = PromptContext::block($context, $room);
         $revisionsBlock = self::revisionsBlock($revisions);
 
         return <<<PROMPT

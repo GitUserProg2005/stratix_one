@@ -122,6 +122,18 @@ function isLoadingForButton(buttonConfig) {
             <img v-if="data.type === 'mistral_ocr'" src="/img/nodes/mistral_ocr.png"
                 class="w-12 h-12 object-contain select-none pointer-events-none" alt="Mistral OCR"
             >
+            <img v-if="data.type === 'point_in_polygon'" src="/img/nodes/point_in_polygon.png"
+                class="w-12 h-12 object-contain select-none pointer-events-none" alt="Mistral OCR"
+            >
+            <img v-if="data.type === 'http_callback'" src="/img/nodes/callback.png"
+                class="w-12 h-12 object-contain select-none pointer-events-none" alt="Mistral OCR"
+            >
+            <img v-if="data.type === 'update_metric'" src="/img/nodes/update_metric.png"
+                class="w-12 h-12 object-contain select-none pointer-events-none" alt="Mistral OCR"
+            >
+            <img v-if="data.type === 'condition'" src="/img/nodes/condition.png"
+                class="w-12 h-12 object-contain select-none pointer-events-none" alt="Mistral OCR"
+            >
             
             <div class="flex min-w-0 flex-col gap-1">
                 <div class="flex flex-wrap items-center gap-2">

@@ -2,6 +2,8 @@
 
 namespace App\Services\AI\Actions\Prompts;
 
+use App\Models\Room;
+
 interface ModePrompt
 {
     public static function build(
@@ -9,6 +11,7 @@ interface ModePrompt
         string $nodesJson,
         string $edgesJson,
         string $nodeTypesCsv,
+        Room $room,
         string $context = '',
     ): string;
 }

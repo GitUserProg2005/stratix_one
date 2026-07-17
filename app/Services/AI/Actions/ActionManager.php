@@ -38,6 +38,7 @@ class ActionManager
             $nodesJson,
             $edgesJson,
             $nodeTypes,
+            $this->room,
             $context,
             $revisions,
         );

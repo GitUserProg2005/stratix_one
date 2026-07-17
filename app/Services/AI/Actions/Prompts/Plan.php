@@ -2,6 +2,8 @@
 
 namespace App\Services\AI\Actions\Prompts;
 
+use App\Models\Room;
+
 final class Plan implements ModePrompt
 {
     public static function build(
@@ -9,9 +11,10 @@ final class Plan implements ModePrompt
         string $nodesJson,
         string $edgesJson,
         string $nodeTypesCsv,
+        Room $room,
         string $context = '',
     ): string {
-        $contextBlock = PromptContext::block($context);
+        $contextBlock = PromptContext::block($context, $room);
 
         return <<<PROMPT
 Ты составляешь ПЛАН доработок workflow (канва в духе n8n).
