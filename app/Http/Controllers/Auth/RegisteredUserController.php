@@ -74,4 +74,22 @@ class RegisteredUserController extends Controller
             return null;
         }
     }
+
+    /**
+     * Генерируем / регенерируем API-ключ текущего пользователя.
+     */
+    public function regenerateApiKey(Request $request)
+    {
+        $user = $request->user();
+
+        // 1. Создаём новый ключ (hash в БД, plaintext только в ответе)
+        $apiKey = $user->regenerateApiKey();
+
+        // 2. Отдаём plaintext один раз + prefix для UI
+        return response()->json([
+            'success' => true,
+            'api_key' => $apiKey,
+            'prefix_api_key' => $user->api_key_prefix,
+        ]);
+    }
 }

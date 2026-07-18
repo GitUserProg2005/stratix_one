@@ -1,12 +1,8 @@
 <script setup>
-import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
+import Settings from '@/Pages/Settings.vue';
 
-const page = usePage();
-const currentUser = computed(() => page.props.auth?.user || null);
-
-const props = defineProps({
+defineProps({
     isOpenSidebar: {
         type: Boolean,
         required: true,
@@ -112,6 +108,8 @@ const closeSidebar = () => {
                   <i class="fa-solid fa-bars-staggered text-sm"></i>
                     Каталог
                   </Link>
+
+                  <Settings @open="closeSidebar" />
                 </div>
               </div>
             </div>

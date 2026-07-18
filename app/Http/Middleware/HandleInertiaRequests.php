@@ -53,6 +53,7 @@ class HandleInertiaRequests extends Middleware
                     'background_url' => $user->background_url,
                     'background_id' => $user->background_id,
                     'role' => $user->role?->value ?? 'passenger',
+                    'prefix_api_key' => $user->api_key_prefix,
                     'rate' => $user->rate ? [
                         'id' => $user->rate->id,
                         'title' => $user->rate->title,

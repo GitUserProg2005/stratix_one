@@ -17,21 +17,32 @@ class WebhookController extends Controller
 {
     public function trigger(string $token, Request $request, IncomingDataNormalizer $normalizer, CheckRate $checkRate)
     {
-        $webhook = Webhook::where('token', $token)
-            ->firstOrFail();
+        // 1. Находим webhook по URL-токену
+        $webhook = Webhook::where('token', $token)->firstOrFail();
 
+        // 2. Берём владельца webhook
+        $owner = User::query()->whereKey($webhook->user_id)->firstOrFail();
+
+        // 3. Проверяем API-ключ из заголовка против ключа владельца
+        if (! $owner->verifyApiKey($request->header('X-Api-Key'))) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Invalid API key',
+            ], 401);
+        }
+
+        // 4. Проверяем тариф владельца по нодам workflow
         $workflow = Workflow::with('nodes', 'nodes.edges')
             ->findOrFail($webhook->workflow_id);
 
-        $userRateId = User::query()->whereKey($webhook->user_id)->value('rate_id');
-
-        if (!$checkRate->checkRate($userRateId, $workflow->nodes)) {
+        if (! $checkRate->checkRate($owner->rate_id, $workflow->nodes)) {
             return response()->json([
                 'result' => 'error',
                 'message' => 'У владельца webhook нет доступа к нодам этого workflow',
             ], 403);
         }
 
+        // 5. Нормализуем вход по схеме webhook-ноды
         $edges = $workflow->nodes->flatMap(fn ($node) => $node->edges ?? []);
 
         $webhookNode = $workflow->nodes->firstWhere('id', $webhook->node_id);
@@ -49,6 +60,7 @@ class WebhookController extends Controller
             ], 422);
         }
 
+        // 6. Запускаем runner с webhook-ноды
         $runner = new Runner(
             workflowId: $workflow->id,
             nodes: $workflow->nodes,

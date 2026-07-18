@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -38,6 +39,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'api_key_hash',
     ];
 
     /**
@@ -92,6 +94,38 @@ class User extends Authenticatable
     public function catalogWorkflows(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\CatalogWorkflow::class, 'author_id');
+    }
+
+    /**
+     * Генерируем API-ключ: в БД только hash, plaintext возвращаем один раз.
+     */
+    public function regenerateApiKey(): string
+    {
+        // 1. Собираем plaintext-ключ
+        $plain = 'sk_' . Str::random(48);
+
+        // 2. Пишем hash и prefix, plaintext не храним
+        $this->forceFill([
+            'api_key_hash' => hash('sha256', $plain),
+            'api_key_prefix' => substr($plain, 0, 11),
+        ])->save();
+
+        // 3. Отдаём ключ для показа пользователю
+        return $plain;
+    }
+
+    /**
+     * Проверяем входящий API-ключ.
+     */
+    public function verifyApiKey(?string $plain): bool
+    {
+        // 1. Без ключа или без hash — отказ
+        if (! $plain || ! $this->api_key_hash) {
+            return false;
+        }
+
+        // 2. Сравниваем hash в constant-time
+        return hash_equals($this->api_key_hash, hash('sha256', $plain));
     }
 
     /**

@@ -9,6 +9,7 @@ use App\Http\Controllers\N8N\RunController;
 use App\Http\Controllers\N8N\WorkflowController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\RateController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\WorkflowCatalogController;
@@ -96,6 +97,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/background', [ProfileController::class, 'updateBackground'])->name('profile.background');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/api-key/regenerate', [RegisteredUserController::class, 'regenerateApiKey'])
+        ->name('profile.api-key.regenerate');
 
     Route::get('/ai-chat/rooms', [AiChatController::class, 'getRooms'])->name('ai-chat.rooms');
     Route::post('/ai-chat/rooms', [AiChatController::class, 'createRoom'])->name('ai-chat.rooms.create');
