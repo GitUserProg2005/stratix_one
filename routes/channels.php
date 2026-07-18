@@ -26,3 +26,14 @@ Broadcast::channel('workflow-presence.{workflowId}', function ($user, $workflowI
 Broadcast::channel('workflow-updated.{workflowId}', function ($user, $workflowId) {
     return $user !== null;
 });
+
+Broadcast::channel('ai-chat-states.{roomId}', function ($user, $roomId) {
+    if ($user === null) {
+        return false;
+    }
+
+    return \App\Models\Room::query()
+        ->whereKey($roomId)
+        ->where('owner_id', $user->id)
+        ->exists();
+});

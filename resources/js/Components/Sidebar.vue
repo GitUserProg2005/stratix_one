@@ -1,12 +1,8 @@
 <script setup>
-import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
+import Settings from '@/Pages/Settings.vue';
 
-const page = usePage();
-const currentUser = computed(() => page.props.auth?.user || null);
-
-const props = defineProps({
+defineProps({
     isOpenSidebar: {
         type: Boolean,
         required: true,
@@ -48,7 +44,7 @@ const closeSidebar = () => {
             <div class="flex items-center justify-between lg:justify-center">
               <div class="flex items-center justify-center gap-3">
                 <span class="title-font-3">STRTX</span>
-                <img src="/img/logov3.png" class="w-4 object-contain" alt="">
+                <img src="/img/logo-mountains.png" class="w-8 object-contain" alt="">
                 <span class="title-font-3">ID</span>
               </div>
 
@@ -112,6 +108,8 @@ const closeSidebar = () => {
                   <i class="fa-solid fa-bars-staggered text-sm"></i>
                     Каталог
                   </Link>
+
+                  <Settings @open="closeSidebar" />
                 </div>
               </div>
             </div>

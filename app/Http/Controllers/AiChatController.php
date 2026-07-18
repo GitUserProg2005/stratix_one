@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\MessageRole;
 use App\Enums\MessageType;
-use App\Models\Context;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -134,6 +133,7 @@ class AiChatController extends Controller
             'userPrompt' => $validated['text'],
             'workflowId' => (int) $workflowId,
             'mode' => MessageType::from($validated['type']),
+            'room' => $room,
         ])->handle();
 
         $bundle = $result['result'];
@@ -165,21 +165,30 @@ class AiChatController extends Controller
             && isset($bundle['workflowData'])
             && (($bundle['success'] ?? false) === true || ($bundle['result'] ?? null) === 'ok');
 
+        $diff = null;
         if ($ok) {
             $wf = $bundle['workflowData'];
+            $actionType = $result['action_type'] ?? 'create';
 
-            broadcast(new WorkflowDiffApplied((int) $workflowId, [
-                'action_type' => $result['action_type'] ?? 'create',
+            // Собираем diff для канвы (removed_* только для delete)
+            $diff = [
+                'action_type' => $actionType,
                 'nodes' => $wf['nodes'] ?? [],
                 'edges' => $wf['edges'] ?? [],
-                'removed_node_ids' => $wf['node_ids'] ?? [],
-                'removed_edge_ids' => $wf['edge_ids'] ?? [],
-            ]));
+            ];
+
+            if ($actionType === 'delete') {
+                $diff['removed_node_ids'] = $wf['node_ids'] ?? [];
+                $diff['removed_edge_ids'] = $wf['edge_ids'] ?? [];
+            }
+
+            broadcast(new WorkflowDiffApplied((int) $workflowId, $diff));
         }
 
         return response()->json([
             'user_message' => $message->load('user'),
             'ai_message' => $aiMessage->load('user'),
+            'workflow_diff' => $diff,
         ], 201);
     }
 
@@ -188,20 +197,5 @@ class AiChatController extends Controller
         return response()->json(
             $room->context?->load('workflow')
         );
-    }
-
-    public function createContext(Request $request)
-    {
-        $validated = $request->validate([
-            'context' => ['required', 'string'],
-            'workflow_id' => ['nullable', 'integer', 'exists:workflows,id'],
-        ]);
-
-        $context = Context::create([
-            'body' => $validated['context'],
-            'workflow_id' => $validated['workflow_id'] ?? null,
-        ]);
-
-        return response()->json($context, 201);
     }
 }

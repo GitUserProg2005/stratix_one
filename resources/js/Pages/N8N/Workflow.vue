@@ -26,7 +26,7 @@ import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import { Background } from '@vue-flow/background';
 
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -46,7 +46,7 @@ const vueFlowInstanceId = `workflow-${props.workflow.id}`;
 
 const { schemas, isLoading: isSchemasLoading } = useNodeSchemas();
 
-const { addNodes, project } = useVueFlow(vueFlowInstanceId);
+const { addNodes, addEdges, updateNode, updateNodeData, removeNodes, removeEdges, findNode, project } = useVueFlow(vueFlowInstanceId);
 
 const workflowIsRunning = ref(false);
 const workflowFailed = ref(null);
@@ -241,7 +241,9 @@ function rawEdgeToVueFlow(raw) {
 }
 
 /** Пэйлоад с backend: workflowId, action_type, nodes, edges, removed_node_ids, removed_edge_ids */
-function applyWorkflowDiff(e) {
+async function applyWorkflowDiff(e) {
+    console.log('[WorkflowDiffApplied]', e);
+
     if (Number(e.workflowId) !== Number(props.workflow.id)) {
         return;
     }
@@ -251,77 +253,110 @@ function applyWorkflowDiff(e) {
     if (action === 'create') {
         for (const raw of e.nodes || []) {
             const next = rawNodeToVueFlow(raw);
-            if (nodes.value.some((n) => n.id === next.id)) {
+            if (findNode(next.id)) {
                 continue;
             }
-            
             addNodes(next);
         }
 
-        let nextEdges = [...edges.value];
+        // Ждём появления нод в store — иначе Vue Flow отбрасывает рёбра
+        await nextTick();
+
         for (const raw of e.edges || []) {
             const edge = rawEdgeToVueFlow(raw);
-            if (!nextEdges.some((x) => x.id === edge.id)) {
-                nextEdges.push(edge);
+            if (edges.value.some((x) => x.id === edge.id)) {
+                continue;
             }
+            addEdges(edge);
         }
-        edges.value = nextEdges;
 
         return;
     }
 
     if (action === 'update') {
-        nodes.value = nodes.value.map((node) => {
-            const raw = (e.nodes || []).find(
-                (n) => String(n.id) === node.id || Number(n.id) === Number(node.data?.id)
-            );
-            if (!raw) {
-                return node;
+        // Обновляем через API Vue Flow — иначе кастомные ноды не перерисовываются
+        for (const raw of e.nodes || []) {
+            const id = String(raw.id);
+            const existing = findNode(id);
+
+            if (existing) {
+                const dataPatch = {};
+
+                if (Object.prototype.hasOwnProperty.call(raw, 'title')) {
+                    dataPatch.label = raw.title ?? '';
+                }
+                if (Object.prototype.hasOwnProperty.call(raw, 'type') && raw.type != null) {
+                    dataPatch.type = raw.type;
+                }
+                if (
+                    Object.prototype.hasOwnProperty.call(raw, 'config')
+                    && raw.config !== null
+                    && typeof raw.config === 'object'
+                ) {
+                    dataPatch.config = raw.config;
+                }
+
+                if (Object.keys(dataPatch).length) {
+                    updateNodeData(id, dataPatch);
+                }
+
+                if (raw.position && typeof raw.position === 'object') {
+                    updateNode(id, {
+                        position: {
+                            x: Number(raw.position.x),
+                            y: Number(raw.position.y),
+                        },
+                    });
+                }
+
+                continue;
             }
 
-            const pos = raw.position && typeof raw.position === 'object'
-                ? { x: Number(raw.position.x), y: Number(raw.position.y) }
-                : node.position;
-
-            return {
-                ...node,
-                position: pos,
-                data: {
-                    ...node.data,
-                    label: raw.title ?? node.data.label,
-                    type: raw.type ?? node.data.type,
-                    config: typeof raw.config === 'object' && raw.config !== null ? raw.config : node.data.config,
-                },
-            };
-        });
-
-        let nextEdges = [...edges.value];
-        for (const raw of e.edges || []) {
-            const edge = rawEdgeToVueFlow(raw);
-            const idx = nextEdges.findIndex((x) => x.id === edge.id);
-            if (idx >= 0) {
-                nextEdges[idx] = { ...nextEdges[idx], ...edge };
-            } else {
-                nextEdges.push(edge);
+            // Новая нода внутри update (агент добавил узел)
+            if (raw.type) {
+                addNodes(rawNodeToVueFlow(raw));
             }
         }
-        edges.value = nextEdges;
+
+        await nextTick();
+
+        for (const raw of e.edges || []) {
+            const edge = rawEdgeToVueFlow(raw);
+            const idx = edges.value.findIndex((x) => x.id === edge.id);
+
+            if (idx >= 0) {
+                edges.value = edges.value.map((x) => (x.id === edge.id ? { ...x, ...edge } : x));
+            } else {
+                addEdges(edge);
+            }
+        }
 
         return;
     }
 
     if (action === 'delete') {
-        const nIds = new Set((e.removed_node_ids || e.node_ids || []).map((id) => String(id)));
-        const eIds = new Set((e.removed_edge_ids || e.edge_ids || []).map((id) => String(id)));
+        const nIds = (e.removed_node_ids || e.node_ids || []).map((id) => String(id));
+        const eIds = (e.removed_edge_ids || e.edge_ids || []).map((id) => String(id));
 
-        if (nIds.size) {
-            nodes.value = nodes.value.filter((n) => !nIds.has(n.id));
+        if (nIds.length) {
+            removeNodes(nIds);
         }
-
-        if (eIds.size) {
-            edges.value = edges.value.filter((edge) => !eIds.has(edge.id));
+        if (eIds.length) {
+            removeEdges(eIds);
         }
     }
+}
+
+/** HTTP fallback после agent (без Echo.leave в Messages) */
+function onWindowWorkflowDiff(ev) {
+    const detail = ev?.detail;
+    if (!detail || typeof detail !== 'object') {
+        return;
+    }
+    applyWorkflowDiff({
+        workflowId: props.workflow.id,
+        ...detail,
+    });
 }
 
 function subscribeWorkflowDiffChannel() {
@@ -551,11 +586,13 @@ onMounted(() => {
     getEdges();
     subscribeWorkflowChannel();
     subscribeWorkflowDiffChannel();
+    window.addEventListener('workflow-diff-applied', onWindowWorkflowDiff);
 });
 
 onBeforeUnmount(() => {
     leaveWorkflowChannel();
     leaveWorkflowDiffChannel();
+    window.removeEventListener('workflow-diff-applied', onWindowWorkflowDiff);
     workflowIsRunning.value = false;
 });
 </script>
@@ -599,7 +636,7 @@ onBeforeUnmount(() => {
 
                 <VueFlow
                     :id="vueFlowInstanceId"
-                    :key="`${vueFlowInstanceId}-${nodes.length}`"
+                    :key="vueFlowInstanceId"
 
                     v-model:nodes="nodes"
                     v-model:edges="edges"

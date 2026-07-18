@@ -20,6 +20,7 @@ const rooms = ref([]);
 const title = ref('');
 const isLoading = ref(false);
 const isRoomsLoading = ref(true);
+const showCreate = ref(false);
 
 const loadRooms = async () => {
     isRoomsLoading.value = true;
@@ -28,8 +29,8 @@ const loadRooms = async () => {
         const allRooms = Array.isArray(data) ? data : [];
         const wf = Number(props.workflowId);
         rooms.value = Number.isFinite(wf)
-            ? allRooms.filter((room) => room?.context != null && Number(room.context.workflow_id) === wf)
-            : [];
+            ? allRooms.filter((room) => room?.context == null || Number(room.context.workflow_id) === wf)
+            : allRooms;
 
         if (!rooms.value.length) {
             emit('update:modelValue', null);
@@ -56,17 +57,12 @@ const createRoom = async () => {
 
     isLoading.value = true;
     try {
-        const { data: context } = await axios.post(route('ai-chat.context.create'), {
-            context: `workflow_id: ${props.workflowId}`,
-            workflow_id: props.workflowId,
-        });
-
         const { data: room } = await axios.post(route('ai-chat.rooms.create'), {
             title: value,
-            context_id: context?.id ?? null,
         });
 
         title.value = '';
+        showCreate.value = false;
         await loadRooms();
         if (room?.id) {
             emit('update:modelValue', Number(room.id));
@@ -75,6 +71,13 @@ const createRoom = async () => {
         console.error('Failed to create room', error);
     } finally {
         isLoading.value = false;
+    }
+};
+
+const toggleCreate = () => {
+    showCreate.value = !showCreate.value;
+    if (!showCreate.value) {
+        title.value = '';
     }
 };
 
@@ -92,50 +95,89 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="space-y-3">
-        <div class="flex items-center gap-2">
-            <input
-                v-model="title"
-                type="text"
-                class="input w-full"
-                placeholder="Название комнаты"
-                :disabled="isLoading"
-                @keydown.enter.prevent="createRoom"
-            >
+    <aside class="dashboard-inset flex h-full min-h-0 flex-col gap-2 overflow-hidden">
+        <button
+            type="button"
+            class="dashboard-icon-slot mx-auto shrink-0 transition hover:bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]"
+            title="Создать сессию"
+            :disabled="isLoading"
+            @click="toggleCreate"
+        >
+            <i class="fa-solid fa-plus text-[var(--accent)]" />
+        </button>
+
+        <input
+            v-if="showCreate"
+            v-model="title"
+            type="text"
+            class="input w-full !px-2 !py-1.5 text-xs"
+            placeholder="Имя"
+            :disabled="isLoading"
+            @keydown.enter.prevent="createRoom"
+            @keydown.escape.prevent="toggleCreate"
+        >
+
+        <div
+            v-if="isRoomsLoading"
+            class="min-h-0 flex-1 space-y-2 overflow-y-auto no-scrollbar"
+            aria-busy="true"
+            aria-label="Загрузка комнат"
+        >
+            <Rectangle
+                v-for="i in 4"
+                :key="i"
+                height="2.5rem"
+                width="100%"
+                rounded="rounded-xl"
+            />
+        </div>
+
+        <div
+            v-else-if="rooms.length"
+            class="min-h-0 flex-1 space-y-1.5 overflow-y-auto no-scrollbar"
+        >
             <button
+                v-for="room in rooms"
+                :key="room.id"
                 type="button"
-                class="primary-btn whitespace-nowrap"
-                :disabled="isLoading || !title.trim()"
-                @click="createRoom"
+                class="room-side-btn"
+                :class="{ 'room-side-btn--active': Number(modelValue) === Number(room.id) }"
+                :title="room.title"
+                @click="selectRoom(room.id)"
             >
-                Создать
+                <span class="room-side-btn__text">{{ room.title }}</span>
             </button>
         </div>
 
-        <div class="overflow-x-auto pb-1">
-            <div v-if="isRoomsLoading" class="flex min-w-max items-center gap-2" aria-busy="true" aria-label="Загрузка комнат">
-                <Rectangle
-                    v-for="i in 3"
-                    :key="i"
-                    height="2.25rem"
-                    width="6rem"
-                    rounded="rounded-xl"
-                />
-            </div>
-            <div v-else class="flex min-w-max items-center gap-2">
-                <button
-                    v-for="room in rooms"
-                    :key="room.id"
-                    type="button"
-                    class="rounded-xl border px-3 py-1.5 text-sm transition"
-                    :class="Number(modelValue) === Number(room.id)
-                        ? 'border-[var(--accent)] bg-[rgba(233, 115, 88,0.18)] text-[var(--content-primary)]'
-                        : 'border-[var(--border-input)] bg-content-glass text-[var(--content-primary)] hover:border-[var(--accent)]/50'"
-                    @click="selectRoom(room.id)"
-                >
-                    {{ room.title }}
-                </button>
-            </div>
-        </div>
-    </div>
+        <p v-else class="t-mini text-center">
+            —
+        </p>
+    </aside>
 </template>
+
+<style scoped>
+.room-side-btn {
+    @apply flex w-full items-center justify-center rounded-xl border px-1 py-2 text-xs font-medium transition;
+    border-color: var(--border-input);
+    background-color: transparent;
+    color: var(--content-primary);
+    min-height: 2.5rem;
+}
+
+.room-side-btn:hover {
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.room-side-btn--active {
+    border-color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.room-side-btn__text {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>

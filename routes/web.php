@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AiChatController;
+use App\Http\Controllers\ContextController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CounterController;
 use App\Http\Controllers\N8N\NodeController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\N8N\RunController;
 use App\Http\Controllers\N8N\WorkflowController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\RateController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\WorkflowCatalogController;
@@ -95,6 +97,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/background', [ProfileController::class, 'updateBackground'])->name('profile.background');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/api-key/regenerate', [RegisteredUserController::class, 'regenerateApiKey'])
+        ->name('profile.api-key.regenerate');
 
     Route::get('/ai-chat/rooms', [AiChatController::class, 'getRooms'])->name('ai-chat.rooms');
     Route::post('/ai-chat/rooms', [AiChatController::class, 'createRoom'])->name('ai-chat.rooms.create');
@@ -102,7 +106,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/ai-chat/rooms/{room}/messages', [AiChatController::class, 'getMessages'])->name('ai-chat.messages');
     Route::post('/ai-chat/rooms/{room}/process-message', [AiChatController::class, 'processMessage'])->name('ai-chat.process-message');
     Route::get('/ai-chat/rooms/{room}/context', [AiChatController::class, 'getContext'])->name('ai-chat.context');
-    Route::post('/ai-chat/context', [AiChatController::class, 'createContext'])->name('ai-chat.context.create');
+    Route::patch('/ai-chat/rooms/{room}/context', [ContextController::class, 'updateRoomContext'])->name('ai-chat.rooms.context.update');
+
+    Route::get('/ai-chat/contexts', [ContextController::class, 'index'])->name('ai-chat.contexts.index');
+    Route::post('/ai-chat/contexts', [ContextController::class, 'store'])->name('ai-chat.contexts.store');
+    Route::put('/ai-chat/contexts/{context}', [ContextController::class, 'update'])->name('ai-chat.contexts.update');
+    Route::delete('/ai-chat/contexts/{context}', [ContextController::class, 'destroy'])->name('ai-chat.contexts.destroy');
 
     Route::get('/workflows', function () {
         return Inertia::render('N8N/Workflows');
