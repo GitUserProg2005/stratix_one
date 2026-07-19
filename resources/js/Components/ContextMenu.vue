@@ -35,7 +35,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="relative" @contextmenu="toggleOpen">
+    <div class="relative h-full" @contextmenu="toggleOpen">
         <!--Контент-->
         <slot />
 
@@ -44,9 +44,12 @@ onBeforeUnmount(() => {
             v-if="isOpen"
             ref="menuRef"
             @click.stop
-            class="absolute top-2 left-2 z-50 content-outline"
+            class="absolute top-2 left-10 z-50 backdrop-blur-xl bg-content-outline px-4 py-2 rounded-lg"
         >
-            <slot name="menu" :toggleOpen="toggleOpen" />
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-pencil"></i>
+                <slot name="menu" :toggleOpen="toggleOpen" />
+            </div>
         </div>
     </div>
 </template>

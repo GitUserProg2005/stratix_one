@@ -158,9 +158,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/projects', [ProjectController::class, 'store'])
         ->middleware('verified')
         ->name('projects.store');
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])
+        ->middleware('verified')
+        ->name('projects.update');
     Route::get('/projects/users/search', [ProjectController::class, 'searchUsers'])
         ->middleware('verified')
         ->name('projects.users.search');
+    Route::get('/projects/list', [ProjectController::class, 'getProjects'])
+        ->middleware('verified')
+        ->name('projects.list');
 
     Route::get('/store', [WorkflowCatalogController::class, 'index'])->name('catalog.index');
     Route::get('/store-categories', [WorkflowCatalogController::class, 'categories'])->name('catalog.categories');

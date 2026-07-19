@@ -1,17 +1,24 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import Workflow from './Workflow.vue';
+import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import ContextMenu from '@/Components/ContextMenu.vue';
 import Rectangle from '@/Components/Skeleton/Rectangle.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, nextTick } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import axios from 'axios';
 
 const workflows = ref([]);
+const projects = ref([]);
+const projectId = ref(null);
 const isLoading = ref(false);
 const nameNewWorkflow = ref('');
 const editingWorkflow = ref(null);
 const editedName = ref('');
+
+const projectOptions = computed(() => [
+    { value: null, label: 'Без проекта' },
+    ...projects.value.map((p) => ({ value: p.id, label: p.title })),
+]);
 
 async function getWorkflows() {
     isLoading.value = true;
@@ -27,6 +34,17 @@ async function getWorkflows() {
     }
 }
 
+async function getProjects() {
+    try {
+        const response = await axios.get(route('projects.list'));
+        if (response.data.result === 'ok') {
+            projects.value = response.data.projects;
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 async function createWorkflow() {
     if (!nameNewWorkflow.value.trim()) {
         return;
@@ -36,10 +54,12 @@ async function createWorkflow() {
         const response = await axios.post(route('create.workflow'), {
             name: nameNewWorkflow.value.trim(),
             meta: null,
+            project_id: projectId.value,
         });
         if (response.data.result === 'ok') {
             workflows.value.push(response.data.workflow);
             nameNewWorkflow.value = '';
+            projectId.value = null;
         }
     } catch (e) {
         console.error(e);
@@ -101,6 +121,7 @@ function handleEditKeydown(event, workflow) {
     }
 }
 
+getProjects();
 getWorkflows();
 </script>
 
@@ -114,13 +135,19 @@ getWorkflows();
                 Визуальные сценарии: ноды, связи, запуск и лог.
             </p>
 
-            <div class="mb-6 flex flex-col gap-2 sm:flex-row">
+            <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <input
                     v-model="nameNewWorkflow"
                     type="text"
                     class="input-underline flex-1"
                     placeholder="Название нового workflow"
                     @keydown.enter="createWorkflow"
+                />
+                <HeadlessSelect
+                    v-model="projectId"
+                    class="sm:w-52 shrink-0"
+                    :options="projectOptions"
+                    placeholder="Проект"
                 />
                 <button type="button" class="primary-btn shrink-0 text-sm" :disabled="isLoading" @click="createWorkflow">
                     Создать

@@ -53,7 +53,7 @@ const selectedToneClass = computed(() => {
 <template>
     <Listbox :model-value="modelValue" :disabled="disabled" @update:model-value="(value) => emit('update:modelValue', value)">
         <div class="relative">
-            <ListboxButton :class="[buttonClass, 'flex items-center justify-between gap-2 text-left disabled:opacity-60 disabled:cursor-not-allowed']">
+            <ListboxButton :class="[buttonClass, 'flex items-center justify-between dashboard-inset gap-2 text-left disabled:opacity-60 disabled:cursor-not-allowed']">
                 <span class="flex min-w-0 items-center gap-1.5 truncate" :class="selectedToneClass">
                     <i
                         v-if="selectedOption?.icon"
@@ -77,7 +77,7 @@ const selectedToneClass = computed(() => {
                 leave-to-class="transform opacity-0 scale-95"
             >
                 <ListboxOptions
-                    class="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-[var(--border-input)] bg-[var(--bg-main)] py-1 shadow-lg focus:outline-none"
+                    class="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-content-glass no-scrollbar py-2 shadow-lg focus:outline-none"
                     :class="optionsClass"
                 >
                     <ListboxOption v-for="option in options" :key="`opt-${String(option.value)}`" v-slot="{ active, selected }" :value="option.value" as="template">

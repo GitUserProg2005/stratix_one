@@ -213,7 +213,7 @@ async function submit() {
 
                 <p v-if="error" class="context text-[var(--accent)]">{{ error }}</p>
 
-                <div class="flex justify-end gap-2 pt-2">
+                <div class="flex justify-start gap-2 pt-2">
                     <button type="button" class="primary-btn" :disabled="loading" @click="submit">
                         {{ loading ? 'Создание…' : 'Создать' }}
                     </button>

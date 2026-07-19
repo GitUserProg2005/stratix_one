@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\N8N;
 
 use App\Http\Controllers\Controller;
+use App\Models\Membership;
 use App\Models\Workflow;
 use App\Services\N8N\CheckRate;
 use App\Services\N8N\Runner;
@@ -35,14 +36,33 @@ class WorkflowController extends Controller
 
     public function createWorkflow(Request $request)
     {
+        // 1. Валидация
         $data = $request->validate([
             'name' => 'required|string',
             'meta' => 'nullable|array',
+            'project_id' => 'nullable|exists:projects,id',
         ]);
 
+        // 2. Если указан проект — проверяем членство
+        if (! empty($data['project_id'])) {
+            $isMember = Membership::query()
+                ->where('project_id', $data['project_id'])
+                ->where('user_id', $request->user()->id)
+                ->exists();
+
+            if (! $isMember) {
+                return response()->json([
+                    'result' => 'error',
+                    'message' => 'Нет доступа к проекту',
+                ], 403);
+            }
+        }
+
+        // 3. Создаём workflow
         $workflow = Workflow::create([
             'name' => $data['name'],
             'meta' => $data['meta'] ?? null,
+            'project_id' => $data['project_id'] ?? null,
         ]);
 
         return response()->json([

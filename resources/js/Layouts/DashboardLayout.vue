@@ -200,7 +200,7 @@ onBeforeUnmount(() => {
       </header>
 
       <div
-        class="min-h-0 flex-1 overflow-x-hidden no-scrollbar bg-content-glass rounded-2xl px-4 pb-4"
+        class="min-h-0 flex-1 overflow-x-hidden no-scrollbar backdrop-blur-2xl rounded-2xl px-4 pb-4"
         :class="fillHeight ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'"
       >
         <div :class="fillHeight ? 'min-h-0 flex-1 flex flex-col overflow-hidden' : 'space-y-6'">

@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -117,6 +118,89 @@ class ProjectController extends Controller
         ], 201);
     }
 
+    public function update(Request $request, Project $project): JsonResponse
+    {
+        // 1. Только owner может менять проект
+        $isOwner = Membership::query()
+            ->where('project_id', $project->id)
+            ->where('user_id', $request->user()->id)
+            ->whereHas('role', fn ($q) => $q->where('name', ProjectRoleName::Owner->value))
+            ->exists();
+
+        if (! $isOwner) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Только создатель может изменять проект',
+            ], 403);
+        }
+
+        // 2. Валидация
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'status' => ['nullable', Rule::enum(ProjectStatus::class)],
+            'member_ids' => 'nullable|array',
+            'member_ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $memberRoleId = Role::query()->where('name', ProjectRoleName::Member->value)->value('id');
+        $ownerRoleId = Role::query()->where('name', ProjectRoleName::Owner->value)->value('id');
+
+        DB::transaction(function () use ($data, $project, $memberRoleId, $ownerRoleId) {
+            // 3. Обновляем название и статус
+            $payload = ['title' => $data['title']];
+
+            if (array_key_exists('status', $data) && $data['status'] !== null) {
+                $payload['status'] = $data['status'];
+            }
+
+            $project->update($payload);
+
+            // 4. Синхронизируем участников (owner не трогаем)
+            $memberIds = collect($data['member_ids'] ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+
+            $ownerUserIds = Membership::query()
+                ->where('project_id', $project->id)
+                ->where('role_id', $ownerRoleId)
+                ->pluck('user_id');
+
+            $memberIds = $memberIds->reject(fn ($id) => $ownerUserIds->contains($id))->values();
+
+            // 5. Удаляем member-ов, которых убрали из списка
+            Membership::query()
+                ->where('project_id', $project->id)
+                ->where('role_id', $memberRoleId)
+                ->whereNotIn('user_id', $memberIds)
+                ->delete();
+
+            // 6. Добавляем новых member-ов
+            $existingMemberIds = Membership::query()
+                ->where('project_id', $project->id)
+                ->where('role_id', $memberRoleId)
+                ->pluck('user_id');
+
+            foreach ($memberIds as $userId) {
+                if ($existingMemberIds->contains($userId)) {
+                    continue;
+                }
+
+                Membership::query()->create([
+                    'project_id' => $project->id,
+                    'user_id' => $userId,
+                    'role_id' => $memberRoleId,
+                ]);
+            }
+        });
+
+        // 7. Отдаём обновлённый проект
+        return response()->json([
+            'result' => 'ok',
+            'project' => $project->fresh()->load(['memberships.role', 'memberships.user:id,name,email']),
+        ]);
+    }
+
     public function searchUsers(Request $request): JsonResponse
     {
         // 1. Валидация поиска
@@ -132,5 +216,22 @@ class ProjectController extends Controller
 
         // 3. Отдаём список (avatar_url через appends модели)
         return response()->json($users);
+    }
+
+    public function getProjects(Request $request): JsonResponse
+    {
+        // 1. Проекты, где юзер — участник
+        $projects = Project::query()
+            ->whereHas('memberships', function ($q) use ($request) {
+                $q->where('user_id', $request->user()->id);
+            })
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
+        // 2. Отдаём список
+        return response()->json([
+            'result' => 'ok',
+            'projects' => $projects,
+        ]);
     }
 }

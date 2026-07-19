@@ -61,7 +61,7 @@ defineExpose({ clearResults });
                 v-model="query"
                 type="text"
                 :placeholder="searchLabel"
-                class="search-input w-full px-4 py-2 pr-10 rounded"
+                class="input-underline backdrop-blur-2xl w-full px-4 py-2 pr-10 rounded"
             />
 
             <span class="absolute inset-y-1/4 right-2 text-gray-400 pointer-events-none">
