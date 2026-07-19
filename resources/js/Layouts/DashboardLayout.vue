@@ -10,6 +10,13 @@ import Avatar from '@/Components/Avatar.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3';
 
+defineProps({
+  fillHeight: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const isOpenSidebar = ref(false)
 const isMobileActionsOpen = ref(false)
 const mobileActionsWrap = ref(null)
@@ -192,8 +199,11 @@ onBeforeUnmount(() => {
         </div>
       </header>
 
-      <div class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden no-scrollbar bg-content-glass rounded-2xl px-4 pb-4">
-        <div class="space-y-6">
+      <div
+        class="min-h-0 flex-1 overflow-x-hidden no-scrollbar bg-content-glass rounded-2xl px-4 pb-4"
+        :class="fillHeight ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'"
+      >
+        <div :class="fillHeight ? 'min-h-0 flex-1 flex flex-col overflow-hidden' : 'space-y-6'">
           <slot />
         </div>
       </div>

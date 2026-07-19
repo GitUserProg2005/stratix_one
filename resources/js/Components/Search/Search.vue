@@ -76,7 +76,8 @@ defineExpose({ clearResults });
         <div
             v-if="query"
             class="w-full absolute left-0 top-14
-                   bg-content-glass rounded-xl p-4 shadow-xl z-50"
+                   bg-content-glass rounded-xl p-4 shadow-xl z-[220]
+                   max-h-60 overflow-y-auto custom-scroll"
         >
             <h3 class="mb-2 text-sm text-gray-400">Найдено:</h3>
 

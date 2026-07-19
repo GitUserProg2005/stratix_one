@@ -119,7 +119,7 @@ services:
   #   restart: unless-stopped
 
   meilisearch:
-    image: getmeili/meilisearch:v0.28
+    image: getmeili/meilisearch:v1.11
     container_name: app_meilisearch_bot
     environment:
       - MEILI_NO_ANALYTICS=true

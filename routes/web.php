@@ -12,6 +12,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\RateController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaskContoller;
 use App\Http\Controllers\WorkflowCatalogController;
 use App\Services\Prometheus\Metrics;
 use Illuminate\Foundation\Application;
@@ -142,6 +144,23 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/get-node-schemas', [NodeController::class, 'getNodeSchemas'])->name('get.node.schemas');
     Route::get('/webhook-token/{nodeId}', [WebhookController::class, 'tokenByNode'])->name('webhook.token');
+
+    Route::get('/tasks', [TaskContoller::class, 'index'])
+        ->middleware('verified')
+        ->name('tasks.index');
+    Route::post('/tasks', [TaskContoller::class, 'store'])
+        ->middleware('verified')
+        ->name('tasks.store');
+
+    Route::get('/projects', [ProjectController::class, 'index'])
+        ->middleware('verified')
+        ->name('projects.index');
+    Route::post('/projects', [ProjectController::class, 'store'])
+        ->middleware('verified')
+        ->name('projects.store');
+    Route::get('/projects/users/search', [ProjectController::class, 'searchUsers'])
+        ->middleware('verified')
+        ->name('projects.users.search');
 
     Route::get('/store', [WorkflowCatalogController::class, 'index'])->name('catalog.index');
     Route::get('/store-categories', [WorkflowCatalogController::class, 'categories'])->name('catalog.categories');

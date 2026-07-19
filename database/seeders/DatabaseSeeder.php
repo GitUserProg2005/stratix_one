@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call(RateSeeder::class);
+        $this->call(RoleSeeder::class);
         $this->call(NodeTypeSeeder::class);
         $this->call(WorkflowCategorySeeder::class);
         $this->call(WorkflowSeeder::class);

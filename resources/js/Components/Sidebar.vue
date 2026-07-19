@@ -101,6 +101,24 @@ const closeSidebar = () => {
                   </Link>
 
                   <Link
+                    :href="route('tasks.index')"
+                    class="sidebar-nav-link-nested"
+                    @click="closeSidebar"
+                  >
+                  <i class="fa-solid fa-list-check text-sm"></i>
+                    Задачи
+                  </Link>
+
+                  <Link
+                    :href="route('projects.index')"
+                    class="sidebar-nav-link-nested"
+                    @click="closeSidebar"
+                  >
+                    <i class="fa-solid fa-code text-sm"></i>
+                    Проекты
+                  </Link>
+
+                  <Link
                     :href="route('catalog.index')"
                     class="sidebar-nav-link-nested"
                     @click="closeSidebar"
