@@ -206,15 +206,26 @@ class ProjectController extends Controller
         // 1. Валидация поиска
         $data = $request->validate([
             'query' => 'required|string|min:2|max:100',
+            'inside_project_id' => 'nullable|integer|exists:projects,id',
         ]);
 
-        // 2. Ищем юзеров через Meilisearch, себя исключаем
-        $users = User::search($data['query'])
-            ->query(fn ($q) => $q->where('id', '!=', $request->user()->id))
-            ->take(10)
-            ->get();
+        // 2. Ищем юзеров через Meilisearch
+        $builder = User::search($data['query']);
 
-        // 3. Отдаём список (avatar_url через appends модели)
+        // 3. Если передан inside_project_id — только участники проекта
+        if (! empty($data['inside_project_id'])) {
+            $projectId = (int) $data['inside_project_id'];
+            $builder->query(fn ($q) => $q->whereHas(
+                'projects',
+                fn ($q) => $q->where('projects.id', $projectId)
+            ));
+        } else {
+            $builder->query(fn ($q) => $q->where('id', '!=', $request->user()->id));
+        }
+
+        // 4. Отдаём список (avatar_url через appends модели)
+        $users = $builder->take(10)->get();
+
         return response()->json($users);
     }
 

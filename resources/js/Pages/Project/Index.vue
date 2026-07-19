@@ -83,8 +83,8 @@ const hiddenMembersCount = (project, limit = 4) => Math.max(0, projectMembers(pr
     <Head title="Проекты" />
 
     <DashboardLayout>
-        <div class="p-4 space-y-4">
-            <div class="flex items-center justify-between gap-3">
+        <div class="p-2 lg:p-4 space-y-4">
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-start lg:justify-between gap-3">
                 <div class="flex items-center gap-4">
                     <BackButton :href="route('dashboard')" />
                     <h1 class="title">Проекты</h1>
@@ -96,7 +96,7 @@ const hiddenMembersCount = (project, limit = 4) => Math.max(0, projectMembers(pr
             <UpdateProject ref="updateRef" />
 
             <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_2fr] mt-8">
-                <aside class="lg:sticky lg:top-4 lg:self-start grid grid-cols-2 gap-4">
+                <aside class="lg:sticky lg:top-4 lg:self-start grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div class="dashboard-inset">
                         <p>Всего проектов</p>
                         <div class="title-font-2 mt-1 text-[#fc7d61]">{{ stats.total }}</div>

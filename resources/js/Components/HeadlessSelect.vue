@@ -51,9 +51,15 @@ const selectedToneClass = computed(() => {
 </script>
 
 <template>
-    <Listbox :model-value="modelValue" :disabled="disabled" @update:model-value="(value) => emit('update:modelValue', value)">
+    <Listbox
+        :model-value="modelValue"
+        :disabled="disabled"
+        @update:model-value="(value) => emit('update:modelValue', value)"
+    >
         <div class="relative">
-            <ListboxButton :class="[buttonClass, 'flex items-center justify-between dashboard-inset gap-2 text-left disabled:opacity-60 disabled:cursor-not-allowed']">
+            <ListboxButton
+                :class="[buttonClass, 'flex items-center justify-between dashboard-inset gap-2 text-left disabled:opacity-60 disabled:cursor-not-allowed']"
+            >
                 <span class="flex min-w-0 items-center gap-1.5 truncate" :class="selectedToneClass">
                     <i
                         v-if="selectedOption?.icon"
@@ -70,18 +76,24 @@ const selectedToneClass = computed(() => {
 
             <transition
                 enter-active-class="transition ease-out duration-100"
-                enter-from-class="transform opacity-0 scale-95"
-                enter-to-class="transform opacity-100 scale-100"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
                 leave-active-class="transition ease-in duration-75"
-                leave-from-class="transform opacity-100 scale-100"
-                leave-to-class="transform opacity-0 scale-95"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
             >
                 <ListboxOptions
-                    class="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-content-glass no-scrollbar py-2 shadow-lg focus:outline-none"
+                    class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-white/10 bg-[rgba(26,26,26,0.85)] py-2 shadow-lg focus:outline-none no-scrollbar"
                     :class="optionsClass"
                 >
-                    <ListboxOption v-for="option in options" :key="`opt-${String(option.value)}`" v-slot="{ active, selected }" :value="option.value" as="template">
-                        <li
+                    <ListboxOption
+                        v-for="option in options"
+                        :key="`opt-${String(option.value)}`"
+                        v-slot="{ active, selected }"
+                        :value="option.value"
+                        as="template"
+                    >
+                        <div
                             class="flex cursor-pointer select-none items-center gap-1.5 px-3 py-2 text-sm"
                             :class="[
                                 active ? 'bg-[rgba(233, 115, 88,0.16)]' : '',
@@ -96,7 +108,7 @@ const selectedToneClass = computed(() => {
                                 aria-hidden="true"
                             />
                             <span>{{ option.label }}</span>
-                        </li>
+                        </div>
                     </ListboxOption>
                 </ListboxOptions>
             </transition>

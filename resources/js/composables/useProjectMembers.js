@@ -5,10 +5,13 @@ export function useProjectMembers() {
     const addedUsers = ref([]);
     const searchRef = ref(null);
 
-    async function searchUsers(query) {
+    async function searchUsers(query, insideProjectId = null) {
         // 1. Ищем юзеров на бэке
         const { data } = await axios.get(route('projects.users.search'), {
-            params: { query },
+            params: {
+                query,
+                ...(insideProjectId ? { inside_project_id: insideProjectId } : {}),
+            },
         });
 
         // 2. Уже добавленных прячем

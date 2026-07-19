@@ -6,7 +6,7 @@ import Modal from '@/Components/Modal.vue';
 import Search from '@/Components/Search/Search.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import Avatar from '@/Components/Avatar.vue';
-import { useProjectMembers } from './useProjectMembers';
+import { useProjectMembers } from '@/composables/useProjectMembers';
 
 const page = usePage();
 const currentUserId = computed(() => page.props.auth?.user?.id);

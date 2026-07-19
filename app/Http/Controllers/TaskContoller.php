@@ -24,7 +24,7 @@ class TaskContoller extends Controller
             ->whereHas('project.memberships', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
             })
-            ->with(['project:id,title', 'workers:id,name'])
+            ->with(['project:id,title', 'workers:id,name,avatar'])
             ->withDepth()
             ->defaultOrder()
             ->get();
@@ -54,6 +54,8 @@ class TaskContoller extends Controller
             'status' => ['nullable', Rule::enum(TaskStatus::class)],
             'difficulty' => ['nullable', Rule::enum(TaskDifficulty::class)],
             'due_at' => 'nullable|date',
+            'worker_ids' => 'nullable|array',
+            'worker_ids.*' => 'integer|exists:users,id',
         ]);
 
         // 2. Проверяем, что юзер — участник проекта
@@ -95,10 +97,25 @@ class TaskContoller extends Controller
             'due_at' => $data['due_at'] ?? null,
         ], $parent);
 
-        // 6. Отдаём созданную задачу
+        // 6. Вешаем исполнителей (только участники проекта)
+        $workerIds = collect($data['worker_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($workerIds->isNotEmpty()) {
+            $allowedIds = Membership::query()
+                ->where('project_id', $data['project_id'])
+                ->whereIn('user_id', $workerIds)
+                ->pluck('user_id');
+
+            $task->workers()->sync($allowedIds);
+        }
+
+        // 7. Отдаём созданную задачу
         return response()->json([
             'result' => 'ok',
-            'task' => $task->load(['project:id,title', 'workers:id,name']),
+            'task' => $task->load(['project:id,title', 'workers:id,name,avatar']),
         ], 201);
     }
 }

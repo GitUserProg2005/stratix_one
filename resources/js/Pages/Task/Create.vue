@@ -4,6 +4,9 @@ import axios from 'axios';
 import { router } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
+import Search from '@/Components/Search/Search.vue';
+import Avatar from '@/Components/Avatar.vue';
+import { useProjectMembers } from '@/composables/useProjectMembers';
 
 const props = defineProps({
     projects: {
@@ -15,6 +18,15 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+const {
+    addedUsers,
+    searchRef,
+    searchUsers,
+    addUser,
+    removeUser,
+    clearMembers,
+} = useProjectMembers();
 
 const showModal = ref(false);
 const loading = ref(false);
@@ -34,6 +46,7 @@ const projectOptions = computed(() =>
 const statusOptions = [
     { value: 'started', label: 'К выполнению' },
     { value: 'in_progress', label: 'В работе' },
+    { value: 'review', label: 'На проверке' },
     { value: 'completed', label: 'Готово' },
 ];
 
@@ -60,6 +73,15 @@ const parentOptions = computed(() => {
     return options;
 });
 
+function searchProjectUsers(query) {
+    return searchUsers(query, projectId.value);
+}
+
+function onProjectChange() {
+    parentId.value = null;
+    clearMembers();
+}
+
 function openModal() {
     error.value = '';
     showModal.value = true;
@@ -79,6 +101,7 @@ function resetForm() {
     status.value = 'started';
     difficulty.value = 'normal';
     dueAt.value = '';
+    clearMembers();
     error.value = '';
 }
 
@@ -113,6 +136,10 @@ async function submit() {
             formData.append('due_at', dueAt.value);
         }
 
+        addedUsers.value.forEach((user) => {
+            formData.append('worker_ids[]', String(user.id));
+        });
+
         // 2. Шлём на бэкенд
         const { data } = await axios.post(route('tasks.store'), formData);
 
@@ -133,8 +160,8 @@ async function submit() {
 
 <template>
     <div>
-        <button type="button" class="primary-btn" @click="openModal">
-            Создать задачу
+        <button type="button" class="dashboard-icon-slot transition hover:bg-[color-mix(in_srgb,#ef4444_18%,transparent)] disabled:opacity-50" @click="openModal">
+            <i class="fa-solid fa-plus text-[var(--accent)]"></i>
         </button>
 
         <Modal :show="showModal" max-width="lg" @close="closeModal">
@@ -168,7 +195,7 @@ async function submit() {
                         class="mt-2"
                         :options="projectOptions"
                         placeholder="Выберите проект"
-                        @update:model-value="parentId = null"
+                        @update:model-value="onProjectChange"
                     />
                 </div>
 
@@ -209,6 +236,61 @@ async function submit() {
                         class="input mt-2 w-full"
                         type="date"
                     />
+                </div>
+
+                <div class="dashboard-inset">
+                    <h3 class="title-3">Исполнители</h3>
+                    <p v-if="!projectId" class="context mt-2">Сначала выберите проект</p>
+
+                    <Search
+                        v-else
+                        ref="searchRef"
+                        :search-fn="searchProjectUsers"
+                        search-label="Имя или email"
+                        class="mt-4"
+                    >
+                        <template #item="{ item }">
+                            <div class="flex items-center gap-3">
+                                <Avatar
+                                    :name="item.name"
+                                    :src="item.avatar_url"
+                                    :user-id="item.id"
+                                    :no-link="true"
+                                    size="sm"
+                                />
+                                <div class="min-w-0 flex-1">
+                                    <div class="title-3 truncate">{{ item.name }}</div>
+                                    <p class="t-mini truncate">{{ item.email }}</p>
+                                </div>
+                                <button type="button" class="dashboard-icon-slot" @click="addUser(item)">
+                                    <i class="fa-solid fa-plus" />
+                                </button>
+                            </div>
+                        </template>
+                    </Search>
+
+                    <div v-if="addedUsers.length" class="space-y-2 mt-4">
+                        <div
+                            v-for="user in addedUsers"
+                            :key="user.id"
+                            class="flex items-center gap-3"
+                        >
+                            <Avatar
+                                :name="user.name"
+                                :src="user.avatar_url"
+                                :user-id="user.id"
+                                :no-link="true"
+                                size="sm"
+                            />
+                            <div class="min-w-0 flex-1">
+                                <div class="title-3 truncate">{{ user.name }}</div>
+                                <p class="t-mini truncate">{{ user.email }}</p>
+                            </div>
+                            <button type="button" class="dashboard-icon-slot" @click="removeUser(user)">
+                                <i class="fa-solid fa-xmark" />
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <p v-if="error" class="context text-[var(--accent)]">{{ error }}</p>
