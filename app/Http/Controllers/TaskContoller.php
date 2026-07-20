@@ -8,6 +8,7 @@ use App\Models\Membership;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -24,16 +25,18 @@ class TaskContoller extends Controller
             ->whereHas('project.memberships', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
             })
-            ->with(['project:id,title', 'workers:id,name,avatar'])
+            ->with(['project:id,title', 'workers:id,name,email,avatar'])
             ->withDepth()
             ->defaultOrder()
-            ->get();
+            ->get()
+            ->toTree();
 
         // 2. Проекты юзера для формы создания
         $projects = Project::query()
             ->whereHas('memberships', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
             })
+            ->with('memberships.user:id,name,email,avatar')
             ->orderBy('title')
             ->get(['id', 'title']);
 
@@ -109,13 +112,177 @@ class TaskContoller extends Controller
                 ->whereIn('user_id', $workerIds)
                 ->pluck('user_id');
 
+            $allowedIds->push((int) $request->user()->id);
+
             $task->workers()->sync($allowedIds);
         }
 
         // 7. Отдаём созданную задачу
         return response()->json([
             'result' => 'ok',
-            'task' => $task->load(['project:id,title', 'workers:id,name,avatar']),
+            'task' => $task->load(['project:id,title', 'workers:id,name,email,avatar']),
         ], 201);
+    }
+
+    public function update(Request $request, Task $task): JsonResponse
+    {
+        // 1. Валидация
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'project_id' => 'required|exists:projects,id',
+            'parent_id' => 'nullable|exists:tasks,id',
+            'status' => ['nullable', Rule::enum(TaskStatus::class)],
+            'difficulty' => ['nullable', Rule::enum(TaskDifficulty::class)],
+            'due_at' => 'nullable|date',
+            'worker_ids' => 'nullable|array',
+            'worker_ids.*' => 'integer|exists:users,id',
+        ]);
+
+        // 2. Доступ к задаче (участник текущего проекта)
+        $isMember = Membership::query()
+            ->where('project_id', $task->project_id)
+            ->where('user_id', $request->user()->id)
+            ->exists();
+
+        if (! $isMember) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Нет доступа к задаче',
+            ], 403);
+        }
+
+        // 3. Если переносим в другой проект — проверяем доступ и туда
+        if ((int) $data['project_id'] !== (int) $task->project_id) {
+            $canAccessTarget = Membership::query()
+                ->where('project_id', $data['project_id'])
+                ->where('user_id', $request->user()->id)
+                ->exists();
+
+            if (! $canAccessTarget) {
+                return response()->json([
+                    'result' => 'error',
+                    'message' => 'Нет доступа к проекту',
+                ], 403);
+            }
+        }
+
+        $parent = null;
+
+        if (! empty($data['parent_id'])) {
+            // 4. Нельзя быть родителем самому себе
+            if ((int) $data['parent_id'] === (int) $task->id) {
+                return response()->json([
+                    'result' => 'error',
+                    'message' => 'Задача не может быть родителем самой себе',
+                ], 422);
+            }
+
+            // 5. Родитель из того же целевого проекта
+            $parent = Task::query()
+                ->where('project_id', $data['project_id'])
+                ->findOrFail($data['parent_id']);
+
+            // 6. Нельзя выбрать потомка как родителя
+            if ($task->descendants()->whereKey($parent->id)->exists()) {
+                return response()->json([
+                    'result' => 'error',
+                    'message' => 'Нельзя выбрать дочернюю задачу как родителя',
+                ], 422);
+            }
+
+            // 7. Лимит вложенности 3
+            if ($parent->ancestors()->count() >= 2) {
+                return response()->json([
+                    'result' => 'error',
+                    'message' => 'Максимальная вложенность — 3 уровня',
+                ], 422);
+            }
+        }
+
+        // 8. Обновляем поля
+        $task->fill([
+            'title' => $data['title'],
+            'project_id' => $data['project_id'],
+            'status' => $data['status'] ?? $task->status,
+            'difficulty' => $data['difficulty'] ?? $task->difficulty,
+            'due_at' => $data['due_at'] ?? null,
+        ]);
+
+        // 9. Двигаем в дереве (nested set)
+        if ($parent) {
+            $task->appendToNode($parent)->save();
+        } else {
+            $task->saveAsRoot();
+        }
+
+        // 10. Синхронизируем исполнителей (только участники проекта)
+        $workerIds = collect($data['worker_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $allowedIds = Membership::query()
+            ->where('project_id', $data['project_id'])
+            ->whereIn('user_id', $workerIds)
+            ->pluck('user_id');
+
+        $task->workers()->sync($allowedIds);
+
+        // 11. Отдаём задачу
+        return response()->json([
+            'result' => 'ok',
+            'task' => $task->fresh()->load(['project:id,title', 'workers:id,name,email,avatar']),
+        ]);
+    }
+
+    public function updateStatus(Request $request, Task $task): JsonResponse
+    {
+        // 1. Валидация статуса
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(TaskStatus::class)],
+        ]);
+
+        // 2. Юзер должен быть участником проекта задачи
+        $isMember = Membership::query()
+            ->where('project_id', $task->project_id)
+            ->where('user_id', $request->user()->id)
+            ->exists();
+
+        if (! $isMember) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Нет доступа к задаче',
+            ], 403);
+        }
+
+        // 3. Обновляем статус
+        $task->update([
+            'status' => $data['status'],
+        ]);
+
+        // 4. Отдаём задачу
+        return response()->json([
+            'result' => 'ok',
+            'task' => $task->fresh()->load(['project:id,title', 'workers:id,name,email,avatar']),
+        ]);
+    }
+
+    public function delete(Request $request, Task $task): RedirectResponse
+    {
+        // 1. Юзер должен быть участником проекта задачи
+        $isMember = Membership::query()
+            ->where('project_id', $task->project_id)
+            ->where('user_id', $request->user()->id)
+            ->exists();
+
+        if (! $isMember) {
+            abort(403, 'Нет доступа к задаче');
+        }
+
+        // 2. Удаляем через модель (nested set сам уберёт потомков и поправит дерево)
+        $task->delete();
+
+        // 3. Назад на список задач
+        return redirect()->route('tasks.index');
     }
 }

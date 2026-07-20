@@ -212,7 +212,7 @@ const hiddenMembersCount = (project, limit = 4) => Math.max(0, projectMembers(pr
                                 <button
                                     type="button"
                                     class="w-full whitespace-nowrap text-left text-sm"
-                                    @click="updateRef?.openModal(project); toggleOpen($event)"
+                                    @click="updateRef?.openModal(project, projectMembers(project)); toggleOpen($event)"
                                 >
                                     Редактировать проект
                                 </button>

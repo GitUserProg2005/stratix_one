@@ -16,7 +16,12 @@ class WorkflowController extends Controller
 {
     public function getWorkflows()
     {
-        $workflows = Workflow::all();
+        $workflows = Workflow::with('project:id,title')
+            ->whereHas('project.memberships', function ($query) {
+                $query->where('user_id', auth()->user()->id);
+            })
+            ->with('project:id,title')
+            ->get();
 
         return response()->json([
             'result' => 'ok',

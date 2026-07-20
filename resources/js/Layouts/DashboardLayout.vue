@@ -109,7 +109,7 @@ onBeforeUnmount(() => {
             <!-- Notifications + user -->
             <div class="flex items-center gap-2 sm:gap-3 shrink-0">
               <button
-                class="relative w-10 h-10 shrink-0 rounded-full bg-content-glass text-[#e97358] flex items-center justify-center"
+                class="relative w-10 h-10 shrink-0 rounded-full text-[#e97358] flex items-center justify-center"
                 aria-label="Notifications"
               >
                 <i class="fa-solid fa-bell text-sm" />
@@ -117,7 +117,7 @@ onBeforeUnmount(() => {
               </button>
 
               <button
-                class="w-10 h-10 shrink-0 rounded-full bg-content-glass text-[#e97358] flex items-center justify-center"
+                class="w-10 h-10 shrink-0 rounded-full text-[#e97358] flex items-center justify-center"
                 aria-label="Messages"
               >
                 <i class="fa-solid fa-envelope text-sm" />
@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
                 ref="mobileActionsWrap"
                 class="relative shrink-0"
               >
-                <div class="bg-content-glass rounded-full flex items-center gap-1 sm:gap-2 pl-1 pr-1.5 sm:pr-2 py-1">
+                <div class="backdrop-blur-xl rounded-full flex items-center gap-1 sm:gap-2 pl-1 pr-1.5 sm:pr-2 py-1">
                   <Link
                     :href="route('profile.edit')"
                     class="flex items-center gap-2 sm:gap-3 min-w-0"

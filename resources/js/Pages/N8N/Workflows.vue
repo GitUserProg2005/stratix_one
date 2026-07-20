@@ -188,7 +188,11 @@ getWorkflows();
                                 :href="route('show.workflow', workflow.id)"
                                 class="min-w-0 flex-1 truncate text-sm"
                             >
-                                <span class="dashboard-row-title truncate font-normal">{{ workflow.name }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span>{{ workflow.project.title }}</span>
+                                    <span>•</span>
+                                    <span class="dashboard-row-title truncate font-normal">{{ workflow.name }}</span>
+                                </div>
                             </Link>
 
                             <button
