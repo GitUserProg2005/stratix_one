@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import Avatar from '@/Components/Avatar.vue';
 import TaskCard from '@/Pages/Task/Card.vue';
@@ -17,7 +17,7 @@ const props = defineProps({
 
 const isOpened = ref(false);
 
-const emit = defineEmits(['edit']);
+const emit = defineEmits(['edit', 'confirm']);
 
 const difficultyLabel = {
     easy: 'Легкая',
@@ -27,6 +27,10 @@ const difficultyLabel = {
 
 function taskDifficulty(task) {
     return typeof task.difficulty === 'object' ? task.difficulty?.value : task.difficulty;
+}
+
+function taskStatus(task) {
+    return typeof task.status === 'object' ? task.status?.value : task.status;
 }
 
 function taskDifficultyColor(task) {
@@ -41,6 +45,9 @@ function taskDifficultyColor(task) {
             return '#6b7280';
     }
 }
+
+// Кнопка подтверждения только для completed (ещё не finalized)
+const needsConfirm = computed(() => taskStatus(props.task) === 'completed');
 
 function toggleOpened() {
     isOpened.value = !isOpened.value;
@@ -71,6 +78,17 @@ function toggleOpened() {
                     {{ difficultyLabel[taskDifficulty(task)] ?? taskDifficulty(task) }}
                 </span>
             </div>
+        </div>
+
+        <div v-if="needsConfirm" class="pt-2">
+            <button
+                type="button"
+                class="primary-btn-white-blur flex w-full items-center justify-center gap-2 text-sm"
+                @click.stop="emit('confirm', task)"
+            >
+                Подтвердить
+                <i class="fa-solid fa-check" />
+            </button>
         </div>
 
         <div v-if="task.workers?.length" class="flex flex-wrap items-center gap-2">
@@ -119,6 +137,7 @@ function toggleOpened() {
                         :task="child"
                         :current-user-id="currentUserId"
                         @edit="emit('edit', $event)"
+                        @confirm="emit('confirm', $event)"
                     />
                 </div>
             </div>

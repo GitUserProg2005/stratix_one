@@ -2,17 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NodeType;
 use App\Enums\TaskDifficulty;
 use App\Enums\TaskStatus;
+use App\Jobs\ExecuteWorkflow;
 use App\Models\Membership;
+use App\Models\Node;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\Workflow;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+
 
 class TaskContoller extends Controller
 {
@@ -267,6 +272,82 @@ class TaskContoller extends Controller
         ]);
     }
 
+    public function finalize(Request $request, Task $task): JsonResponse
+    {
+        // 1. Причина закрытия (опционально)
+        $data = $request->validate([
+            'reason' => 'nullable|string|max:5000',
+        ]);
+
+        // 2. Юзер должен быть участником проекта
+        $isMember = Membership::query()
+            ->where('project_id', $task->project_id)
+            ->where('user_id', $request->user()->id)
+            ->exists();
+
+        if (! $isMember) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Нет доступа к задаче',
+            ], 403);
+        }
+
+        // 3. Финализировать можно только из completed
+        if ($task->status !== TaskStatus::Completed) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Задача должна быть в статусе completed',
+            ], 422);
+        }
+
+        // 4. Ставим finalized
+        $task->update([
+            'status' => TaskStatus::Finalized,
+        ]);
+
+        $task->load(['project:id,title', 'workers:id,name,email,avatar']);
+
+        // 5. Payload по схеме task_trigger
+        $context = [
+            'data' => [
+                'status' => TaskStatus::Finalized->value,
+                'reason' => $data['reason'] ?? null,
+                
+                'task' => [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'difficulty' => $task->difficulty?->value,
+                    'due_at' => $task->due_at?->toIso8601String(),
+                ],
+            ],
+        ];
+
+        // 6. Ищем task_trigger ноды, привязанные к этой задаче
+        $triggerNodes = Node::query()
+            ->where('type', NodeType::TASK_TRIGGER->value)
+            ->where(function ($q) use ($task) {
+                $q->where('config->task_id', $task->id)
+                    ->orWhere('config->task_id', (string) $task->id);
+            })
+            ->get(['id', 'workflow_id']);
+
+        // 7. Запускаем каждый связанный workflow с task_trigger
+        foreach ($triggerNodes as $node) {
+            ExecuteWorkflow::dispatch(
+                (int) $node->workflow_id,
+                (int) $node->id,
+                $context,
+            );
+        }
+
+        // 8. Отдаём задачу
+        return response()->json([
+            'result' => 'ok',
+            'task' => $task,
+            'triggered' => $triggerNodes->count(),
+        ]);
+    }
+
     public function delete(Request $request, Task $task): RedirectResponse
     {
         // 1. Юзер должен быть участником проекта задачи
@@ -284,5 +365,44 @@ class TaskContoller extends Controller
 
         // 3. Назад на список задач
         return redirect()->route('tasks.index');
+    }
+
+    public function getTasks(Request $request, Workflow $workflow): JsonResponse
+    {
+        // Без проекта у workflow нечего выбирать
+        if (! $workflow->project_id) {
+            return response()->json([
+                'result' => 'ok',
+                'tasks' => [],
+            ]);
+        }
+
+        // Юзер должен быть участником проекта workflow
+        $isMember = Membership::query()
+            ->where('project_id', $workflow->project_id)
+            ->where('user_id', $request->user()->id)
+            ->exists();
+
+        if (! $isMember) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Нет доступа к проекту',
+            ], 403);
+        }
+
+        // Задачи только этого проекта
+        $tasks = Task::query()
+            ->where('project_id', $workflow->project_id)
+            ->orderBy('title')
+            ->get(['id', 'title'])
+            ->map(fn (Task $task) => [
+                'id' => $task->id,
+                'title' => $task->title,
+            ]);
+
+        return response()->json([
+            'result' => 'ok',
+            'tasks' => $tasks,
+        ]);
     }
 }

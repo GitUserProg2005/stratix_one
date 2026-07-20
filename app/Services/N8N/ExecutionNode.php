@@ -28,6 +28,8 @@ class ExecutionNode
         NodeType::MISTRAL_OCR->value => \App\Services\N8N\Handles\MistralOcr::class,
         NodeType::POINT_IN_POLYGON->value => \App\Services\N8N\Handles\PointInPolygon::class,
         NodeType::HTTP_CALLBACK->value => \App\Services\N8N\Handles\HttpCallback::class,
+        NodeType::TASK_TRIGGER->value => \App\Services\N8N\Handles\TaskTrigger::class,
+        NodeType::TO_STRING->value => \App\Services\N8N\Handles\ToString::class,
     ];
 
     protected $handler;

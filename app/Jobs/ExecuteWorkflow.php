@@ -17,6 +17,7 @@ class ExecuteWorkflow implements ShouldQueue
     public function __construct(
         public int $workflowId,
         public int $nodeId,
+        public array $context = [],
     ) {
     }
 
@@ -29,7 +30,7 @@ class ExecuteWorkflow implements ShouldQueue
             workflowId: $workflow->id,
             nodes: $workflow->nodes,
             edges: $edges,
-            context: []
+            context: $this->context,
         );
 
         $runner->startFromNode($this->nodeId);

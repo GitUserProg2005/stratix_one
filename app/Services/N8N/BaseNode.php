@@ -192,13 +192,13 @@ abstract class BaseNode {
                 }
             }
 
-            // if (isset($schema['data_type'])) {
-            //     if (! $this->validateType($value, $schema['data_type'])) {
-            //         throw new \RuntimeException(
-            //             "Input $path must be {$schema['data_type']}"
-            //         );
-            //     }
-            // }
+            if (isset($schema['data_type'])) {
+                if (! $this->validateType($value, $schema['data_type'])) {
+                    throw new \RuntimeException(
+                        "Input $path must be {$schema['data_type']}"
+                    );
+                }
+            }
 
             return;
         }

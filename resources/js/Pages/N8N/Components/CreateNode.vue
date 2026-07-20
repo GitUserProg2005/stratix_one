@@ -37,6 +37,7 @@ useNodeTypeWatcher({
     nodeType,
     config,
     backendOptions,
+    workflowId: () => workflowId,
     resetConfigOnChange: false,
 });
 
@@ -200,7 +201,7 @@ async function createNode() {
                                         />
                                     </template>
 
-                                    <template v-else-if="field.type === 'select'">
+                                    <template v-else-if="field.type === 'backend_select'">
                                         <HeadlessSelect
                                             v-model="config[field.name]"
                                             :options="backendOptions[field.name] || []"

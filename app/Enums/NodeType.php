@@ -22,4 +22,6 @@ enum NodeType: string
     case MISTRAL_OCR = 'mistral_ocr';
     case POINT_IN_POLYGON = 'point_in_polygon';
     case HTTP_CALLBACK = 'http_callback';
+    case TASK_TRIGGER = 'task_trigger';
+    case TO_STRING = 'to_string';
 }

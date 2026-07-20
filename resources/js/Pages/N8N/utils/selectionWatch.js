@@ -6,6 +6,7 @@ export function useNodeTypeWatcher({
     nodeType,
     config,
     backendOptions,
+    workflowId = null,
     immediate = true,
     resetConfigOnChange = true,
 }) {
@@ -21,16 +22,33 @@ export function useNodeTypeWatcher({
 
             const fields = nodeConfigFields[newType]?.fields ?? []
 
+            // Загрузка опций для backend_request
             for (const field of fields) {
                 if (!field.backend_request) continue
 
                 try {
-                    const res = await axios.get(
-                        route(field.backend_request.route)
-                    )
+                    const req = field.backend_request
+                    const routeConfig = req.route
+                    let routeName = null
+                    let params = []
 
-                    const map = field.backend_request.response_map
-                    const items = res.data?.[map.root] || []
+                    // Строка или объект { name, zoomable }
+                    if (typeof routeConfig === 'string') {
+                        routeName = routeConfig
+                    } else if (routeConfig && typeof routeConfig === 'object') {
+                        routeName = routeConfig.name ?? null
+                        if (routeConfig.zoomable) {
+                            const id = typeof workflowId === 'function' ? workflowId() : workflowId
+                            params = id ? [id] : []
+                        }
+                    }
+
+                    if (!routeName) continue
+
+                    const res = await axios.get(route(routeName, ...params))
+
+                    const map = req.response_map
+                    const items = map ? (res.data?.[map.root] || []) : []
 
                     backendOptions.value[field.name] = items.map(item => ({
                         label: item[map.label],
@@ -41,6 +59,7 @@ export function useNodeTypeWatcher({
                         `Ошибка загрузки опций для поля ${field.name}`,
                         e
                     )
+                    backendOptions.value[field.name] = []
                 }
             }
         },

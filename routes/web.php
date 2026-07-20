@@ -154,12 +154,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/tasks/{task}/status', [TaskContoller::class, 'updateStatus'])
         ->middleware(['verified', 'throttle:60,1'])
         ->name('tasks.update-status');
+    Route::post('/tasks/{task}/finalize', [TaskContoller::class, 'finalize'])
+        ->middleware(['verified', 'throttle:60,1'])
+        ->name('tasks.finalize');
     Route::put('/tasks/{task}', [TaskContoller::class, 'update'])
         ->middleware('verified')
         ->name('tasks.update');
     Route::delete('/tasks/{task}', [TaskContoller::class, 'delete'])
         ->middleware('verified')
         ->name('tasks.delete');
+    Route::get('/get-tasks/{workflow}', [TaskContoller::class, 'getTasks'])
+        ->middleware('verified')
+        ->name('get.tasks');
 
     Route::get('/projects', [ProjectController::class, 'index'])
         ->middleware('verified')

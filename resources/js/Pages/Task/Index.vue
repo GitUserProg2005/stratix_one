@@ -7,6 +7,7 @@ import axios from 'axios';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import CreateTask from '@/Pages/Task/Create.vue';
 import UpdateTask from '@/Pages/Task/Update.vue';
+import FinalizeTask from '@/Pages/Task/Finalize.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import Members from '@/Components/Members.vue';
 import TaskCard from '@/Pages/Task/Card.vue';
@@ -41,6 +42,7 @@ const tasks = ref([...props.tasks]);
 const tasksFlat = computed(() => flattenTasks(tasks.value));
 const selectedProject = ref(null);
 const updateRef = ref(null);
+const finalizeRef = ref(null);
 
 const projectOptions = computed(() => [
     { value: null, label: 'Все проекты' },
@@ -124,6 +126,14 @@ function correlateTasks() {
     const list = filterTasks();
 
     columns.value.forEach((column) => {
+        // finalized остаётся в колонке «Готово»
+        if (column.status === 'completed') {
+            column.tasks = list.filter((task) =>
+                ['completed', 'finalized'].includes(taskStatus(task)),
+            );
+            return;
+        }
+
         column.tasks = list.filter((task) => taskStatus(task) === column.status);
     });
 }
@@ -131,7 +141,14 @@ function correlateTasks() {
 // После DnD синхронизируем status задачи со статусом колонки
 function syncTaskStatusToColumn(column) {
     column.tasks.forEach((task) => {
-        if (taskStatus(task) === column.status) return;
+        const current = taskStatus(task);
+
+        // finalized в колонке Готово не трогаем
+        if (column.status === 'completed' && current === 'finalized') {
+            return;
+        }
+
+        if (current === column.status) return;
 
         task.status = column.status;
 
@@ -148,12 +165,27 @@ async function updateTaskStatus(task, status) {
     try {
         await axios.post(route('tasks.update-status', task.id), { status });
     } catch (error) {
-        toast.error('Не удалось обновить статус задачи');
+        console.error('Не удалось обновить статус задачи', error);
     }
 }
 
 function openEditModal(task) {
     updateRef.value?.openModal(task);
+}
+
+function openFinalizeModal(task) {
+    finalizeRef.value?.openModal(task);
+}
+
+// После подтверждения обновляем статус в дереве и колонках
+function onTaskFinalized(updatedTask) {
+    const master = findTaskInTree(tasks.value, updatedTask.id);
+
+    if (master) {
+        master.status = updatedTask.status;
+    }
+
+    correlateTasks();
 }
 
 watch(selectedProject, () => {
@@ -193,6 +225,7 @@ onMounted(() => {
 
                 <CreateTask :projects="projects" :tasks="tasksFlat" />
                 <UpdateTask ref="updateRef" :projects="projects" :tasks="tasksFlat" />
+                <FinalizeTask ref="finalizeRef" @finalized="onTaskFinalized" />
             </div>
 
             <!--1fr - левый column; 2fr - основной контент-->
@@ -231,6 +264,7 @@ onMounted(() => {
                                 :task="task"
                                 :current-user-id="currentUserId"
                                 @edit="openEditModal"
+                                @confirm="openFinalizeModal"
                             />
                         </VueDraggable>
                     </div>

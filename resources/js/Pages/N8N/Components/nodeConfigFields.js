@@ -186,7 +186,7 @@ export const nodeConfigFields = {
                     // Multi mode
                     {
                         name: 'target_point',
-                        label: 'Координаты цели (x, y)',
+                        label: 'Координаты цели (x, y)', 
                         type: 'input',
                         from_input: true,
                         displayIf: { mode: 'multi' }
@@ -201,5 +201,35 @@ export const nodeConfigFields = {
                 ]
             },
         ]
-    }
+    },
+
+    // Триггер по смене статуса задачи (запуск workflow из Kanban)
+    task_trigger: {
+        fields: [
+            {
+                name: 'task_id',
+                label: 'Задача',
+                type: 'backend_select',
+                required: true,
+                backend_request: {
+                    route: {
+                        name: 'get.tasks',
+                        zoomable: true,
+                    },
+                    response_map: {
+                        root: 'tasks',
+                        label: 'title',
+                        value: 'id',
+                    },
+                },
+            },
+        ],
+        buttons: [],
+    },
+
+    // Весь входной payload → одна строка result
+    to_string: {
+        fields: [],
+        buttons: [],
+    },
 };

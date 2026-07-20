@@ -28,6 +28,8 @@ class NodeTypeSeeder extends Seeder
             ['name' => 'Mistral OCR', 'type' => 'mistral_ocr', 'description' => 'OCR документов через Mistral'],
             ['name' => 'Point In Polygon', 'type' => 'point_in_polygon', 'description' => 'Проверка нахождения точки в полигоне (PostGIS)'],
             ['name' => 'HTTP Callback', 'type' => 'http_callback', 'description' => 'Отправка результата workflow на внешний URL'],
+            ['name' => 'Task Trigger', 'type' => 'task_trigger', 'description' => 'Триггер по смене статуса задачи'],
+            ['name' => 'To String', 'type' => 'to_string', 'description' => 'Превращает весь вход в одну строку'],
         ];
 
         foreach ($types as $row) {
