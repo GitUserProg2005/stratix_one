@@ -51,6 +51,7 @@
         "ngeohash": "^0.6.3",
         "swiper": "^12.1.0",
         "v-network-graph": "^0.9.23",
+        "vue-draggable-plus": "^0.6.1",
         "vue3-ts-jsoneditor": "^3.4.1",
         "wavify": "^1.0.0"
     }

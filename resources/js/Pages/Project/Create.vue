@@ -5,7 +5,7 @@ import { router } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import Search from '@/Components/Search/Search.vue';
 import Avatar from '@/Components/Avatar.vue';
-import { useProjectMembers } from './useProjectMembers';
+import { useProjectMembers } from '@/composables/useProjectMembers';
 
 const {
     addedUsers,

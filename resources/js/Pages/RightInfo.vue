@@ -16,7 +16,7 @@ const flowId = computed(() =>
     <aside class="flex h-full min-h-0 w-full flex-col overflow-hidden">
         <section
             v-if="flowId"
-            class="h-1/2 min-h-0 w-full bg-content-glass rounded-2xl shrink-0 overflow-hidden"
+            class="h-1/2 min-h-0 w-full rounded-2xl shrink-0 overflow-hidden"
         >
             <Graph3D :key="flowId" :flow-id="flowId" class="size-full" />
         </section>

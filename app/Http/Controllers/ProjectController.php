@@ -201,20 +201,93 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function assignOwner(Request $request, Project $project): JsonResponse
+    {
+        // 1. Только owner может назначать владельца
+        $isOwner = Membership::query()
+            ->where('project_id', $project->id)
+            ->where('user_id', $request->user()->id)
+            ->whereHas('role', fn ($q) => $q->where('name', ProjectRoleName::Owner->value))
+            ->exists();
+
+        if (! $isOwner) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Только создатель может назначать владельца',
+            ], 403);
+        }
+
+        // 2. Валидация выбранного участника
+        $data = $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $ownerRoleId = Role::query()->where('name', ProjectRoleName::Owner->value)->value('id');
+        $memberRoleId = Role::query()->where('name', ProjectRoleName::Member->value)->value('id');
+
+        $targetMembership = Membership::query()
+            ->where('project_id', $project->id)
+            ->where('user_id', $data['user_id'])
+            ->first();
+
+        if (! $targetMembership) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Выбранный пользователь не является участником проекта',
+            ], 422);
+        }
+
+        if ((int) $targetMembership->role_id === (int) $ownerRoleId) {
+            return response()->json([
+                'result' => 'error',
+                'message' => 'Этот пользователь уже является владельцем',
+            ], 422);
+        }
+
+        // 3. Передаём владение: старый owner -> member, выбранный участник -> owner
+        DB::transaction(function () use ($project, $data, $ownerRoleId, $memberRoleId) {
+            Membership::query()
+                ->where('project_id', $project->id)
+                ->where('role_id', $ownerRoleId)
+                ->update(['role_id' => $memberRoleId]);
+
+            Membership::query()
+                ->where('project_id', $project->id)
+                ->where('user_id', $data['user_id'])
+                ->update(['role_id' => $ownerRoleId]);
+        });
+
+        return response()->json([
+            'result' => 'ok',
+            'project' => $project->fresh()->load(['memberships.role', 'memberships.user:id,name,email']),
+        ]);
+    }
+
     public function searchUsers(Request $request): JsonResponse
     {
         // 1. Валидация поиска
         $data = $request->validate([
             'query' => 'required|string|min:2|max:100',
+            'inside_project_id' => 'nullable|integer|exists:projects,id',
         ]);
 
-        // 2. Ищем юзеров через Meilisearch, себя исключаем
-        $users = User::search($data['query'])
-            ->query(fn ($q) => $q->where('id', '!=', $request->user()->id))
-            ->take(10)
-            ->get();
+        // 2. Ищем юзеров через Meilisearch
+        $builder = User::search($data['query']);
 
-        // 3. Отдаём список (avatar_url через appends модели)
+        // 3. Если передан inside_project_id — только участники проекта
+        if (! empty($data['inside_project_id'])) {
+            $projectId = (int) $data['inside_project_id'];
+            $builder->query(fn ($q) => $q->whereHas(
+                'projects',
+                fn ($q) => $q->where('projects.id', $projectId)
+            ));
+        } else {
+            $builder->query(fn ($q) => $q->where('id', '!=', $request->user()->id));
+        }
+
+        // 4. Отдаём список (avatar_url через appends модели)
+        $users = $builder->take(10)->get();
+
         return response()->json($users);
     }
 

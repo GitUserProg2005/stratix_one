@@ -6,7 +6,7 @@ import Modal from '@/Components/Modal.vue';
 import Search from '@/Components/Search/Search.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import Avatar from '@/Components/Avatar.vue';
-import { useProjectMembers } from './useProjectMembers';
+import { useProjectMembers } from '@/composables/useProjectMembers';
 
 const page = usePage();
 const currentUserId = computed(() => page.props.auth?.user?.id);
@@ -26,8 +26,10 @@ const loading = ref(false);
 const error = ref('');
 const title = ref('');
 const status = ref('');
+const ownerUserId = ref(null);
 const projectId = ref(null);
 const project = ref(null);
+const members = ref([]);
 
 const isAllowedToEdit = computed(() => {
     if (!project.value || !currentUserId.value) return false;
@@ -37,13 +39,20 @@ const isAllowedToEdit = computed(() => {
     );
 });
 
+const memberOptions = computed(() => {
+    return members.value.map((user) => ({
+        value: user.id,
+        label: user.name,
+    }));
+});
+
 const statusOptions = [
     { value: 'started', label: 'Начатый' },
     { value: 'in_progress', label: 'В процессе' },
     { value: 'completed', label: 'Завершён' },
 ];
 
-function openModal(projectData) {
+function openModal(projectData, projectMembers = []) {
     if (!projectData?.id) return;
 
     // 1. Подгружаем данные проекта в форму
@@ -53,7 +62,9 @@ function openModal(projectData) {
     status.value = typeof projectData.status === 'object'
         ? (projectData.status?.value ?? 'started')
         : (projectData.status ?? 'started');
-    setMembers((projectData.users ?? []).filter((u) => !u.is_owner));
+    members.value = projectMembers;
+    ownerUserId.value = null;
+    setMembers(projectMembers);
     error.value = '';
     showModal.value = true;
 }
@@ -67,6 +78,8 @@ function resetForm() {
     projectId.value = null;
     title.value = '';
     status.value = '';
+    ownerUserId.value = null;
+    members.value = [];
     clearMembers();
     error.value = '';
 }
@@ -94,17 +107,26 @@ async function submit() {
     loading.value = true;
 
     try {
-        // 1. Собираем FormData
+        // 1. Сначала передаём владение, пока выбранный участник ещё в проекте
+        if (ownerUserId.value) {
+            await axios.put(route('projects.assign-owner', projectId.value), {
+                user_id: ownerUserId.value,
+            });
+        }
+
+        // 2. Собираем FormData
         const formData = new FormData();
         formData.append('title', title.value.trim());
         formData.append('status', status.value);
         formData.append('_method', 'PUT');
 
-        addedUsers.value.forEach((user) => {
-            formData.append('member_ids[]', String(user.id));
-        });
+        addedUsers.value
+            .filter((user) => user.id !== ownerUserId.value)
+            .forEach((user) => {
+                formData.append('member_ids[]', String(user.id));
+            });
 
-        // 2. Обновляем проект
+        // 3. Обновляем проект
         const { data } = await axios.post(route('projects.update', projectId.value), formData);
 
         if (data.result === 'ok') {
@@ -169,6 +191,18 @@ defineExpose({ openModal, closeModal });
                         class="mt-2"
                         :options="statusOptions"
                         placeholder="Выберите статус"
+                    />
+                </div>
+
+                <div class="my-2">
+                    <h3 class="title-3">Назначить владельцем</h3>
+                    <p class="text-red-500 text-sm">Владелец проекта будет иметь доступ к всем задачам и проектам.</p>
+
+                    <HeadlessSelect
+                        v-model="ownerUserId"
+                        class="mt-2"
+                        :options="memberOptions"
+                        placeholder="Выберите участника"
                     />
                 </div>
 

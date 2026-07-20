@@ -151,6 +151,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/tasks', [TaskContoller::class, 'store'])
         ->middleware('verified')
         ->name('tasks.store');
+    Route::post('/tasks/{task}/status', [TaskContoller::class, 'updateStatus'])
+        ->middleware(['verified', 'throttle:60,1'])
+        ->name('tasks.update-status');
+    Route::put('/tasks/{task}', [TaskContoller::class, 'update'])
+        ->middleware('verified')
+        ->name('tasks.update');
+    Route::delete('/tasks/{task}', [TaskContoller::class, 'delete'])
+        ->middleware('verified')
+        ->name('tasks.delete');
 
     Route::get('/projects', [ProjectController::class, 'index'])
         ->middleware('verified')
@@ -161,6 +170,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/projects/{project}', [ProjectController::class, 'update'])
         ->middleware('verified')
         ->name('projects.update');
+    Route::put('/projects/{project}/assign-owner', [ProjectController::class, 'assignOwner'])
+        ->middleware('verified')
+        ->name('projects.assign-owner');
     Route::get('/projects/users/search', [ProjectController::class, 'searchUsers'])
         ->middleware('verified')
         ->name('projects.users.search');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Workflow;
 use App\Enums\UserRole;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -24,7 +25,16 @@ Broadcast::channel('workflow-presence.{workflowId}', function ($user, $workflowI
 });
 
 Broadcast::channel('workflow-updated.{workflowId}', function ($user, $workflowId) {
-    return $user !== null;
+    if ($user === null) {
+        return false;
+    }
+
+    return Workflow::query()
+        ->whereKey($workflowId)
+        ->whereHas('project.memberships', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })
+        ->exists();
 });
 
 Broadcast::channel('ai-chat-states.{roomId}', function ($user, $roomId) {

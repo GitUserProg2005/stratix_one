@@ -215,7 +215,7 @@ watch(graphSignature, () => {
 </script>
 
 <template>
-    <div class="graph-root relative size-full min-h-0 overflow-hidden rounded-bl-2xl">
+    <div class="graph-root relative size-full min-h-0 overflow-hidden rounded-bl-2xl backdrop-blur-xl">
         <div ref="graphContainer" class="size-full min-h-0 touch-none" />
     </div>
 </template>
