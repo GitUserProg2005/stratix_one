@@ -15,6 +15,14 @@ export function flattenSchema(schema, prefix = '') {
 
     const name = schema.name || schema.key;
 
+    if (schema.type === 'field') {
+        const path = resolvePrefix(prefix, name);
+
+        if (path) {
+            result.push(path);
+        }
+    }
+
     if (schema.type === 'group') {
         const newPrefix = resolvePrefix(prefix, name);
 
@@ -33,14 +41,6 @@ export function flattenSchema(schema, prefix = '') {
 
         const itemPrefix = arrayPath ? `${arrayPath}[]` : `${name}[]`;
         result.push(...flattenSchema(schema.items, itemPrefix));
-    }
-
-    if (schema.type === 'field') {
-        const path = resolvePrefix(prefix, name);
-
-        if (path) {
-            result.push(path);
-        }
     }
 
     return result;

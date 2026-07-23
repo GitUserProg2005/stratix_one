@@ -11,6 +11,7 @@ import FinalizeTask from '@/Pages/Task/Finalize.vue';
 import HeadlessSelect from '@/Components/HeadlessSelect.vue';
 import Members from '@/Components/Members.vue';
 import TaskCard from '@/Pages/Task/Card.vue';
+import Charts from '@/Pages/Task/Charts.vue';
 
 const props = defineProps({
     tasks: {
@@ -230,8 +231,12 @@ onMounted(() => {
 
             <!--1fr - левый column; 2fr - основной контент-->
             <div class="grid min-h-0 flex-1 grid-cols-1 items-start gap-4 lg:grid-cols-[16rem_2fr]">
-                <!--Участники проекта-->
-                <Members :members="selectedProjectMembers" class="h-fit w-full" />
+                <div class="h-full">
+                    <!--Участники проекта-->
+                    <Members :members="selectedProjectMembers" class="h-fit w-full" />
+
+                    <Charts :tasks="tasksFlat" />
+                </div>
 
                 <!--Колонки задач-->
                 <div class="h-full grid min-h-0 grid-cols-4 gap-4">

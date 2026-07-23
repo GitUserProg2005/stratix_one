@@ -134,7 +134,17 @@ function isLoadingForButton(buttonConfig) {
             <img v-if="data.type === 'condition'" src="/img/nodes/condition.png"
                 class="w-12 h-12 object-contain select-none pointer-events-none" alt="Mistral OCR"
             >
-            
+            <i
+                v-if="data.type === 'task_trigger'"
+                class="fa-solid fa-bars-progress text-xl mt-1 select-none pointer-events-none"
+                style="color: #e97358"
+            />
+            <i
+                v-if="data.type === 'to_string'"
+                class="fa-solid fa-align-left text-xl mt-1 select-none pointer-events-none"
+                style="color: #e97358"
+            />
+
             <div class="flex min-w-0 flex-col gap-1">
                 <div class="flex flex-wrap items-center gap-2">
                     <h3 class="truncate text-sm font-semibold">{{ data.label }}</h3>

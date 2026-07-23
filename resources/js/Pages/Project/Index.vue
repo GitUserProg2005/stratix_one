@@ -7,6 +7,7 @@ import UpdateProject from '@/Pages/Project/Update.vue';
 import Avatar from '@/Components/Avatar.vue';
 import BackButton from '@/Components/BackButton.vue';
 import ContextMenu from '@/Components/ContextMenu.vue';
+import Filter from '@/Pages/Project/Filter.vue';
 
 const props = defineProps({
     projects: {
@@ -16,6 +17,8 @@ const props = defineProps({
 });
 
 const updateRef = ref(null);
+
+const filteredProjects = ref(props.projects);
 
 function projectOwner(project) {
     return project.users?.find((u) => u.is_owner) ?? null;
@@ -90,7 +93,10 @@ const hiddenMembersCount = (project, limit = 4) => Math.max(0, projectMembers(pr
                     <h1 class="title">Проекты</h1>
                 </div>
 
-                <CreateProject />
+                <div class="flex items-center gap-4">
+                    <Filter :projects="projects" @update:filteredProjects="filteredProjects = $event" />
+                    <CreateProject />
+                </div>
             </div>
 
             <UpdateProject ref="updateRef" />
@@ -133,9 +139,13 @@ const hiddenMembersCount = (project, limit = 4) => Math.max(0, projectMembers(pr
                         <p class="context">Проектов пока нет — создайте первый</p>
                     </div>
 
+                    <div v-else-if="!filteredProjects.length" class="dashboard-inset">
+                        <p class="context">Нет проектов с таким статусом</p>
+                    </div>
+
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                         <ContextMenu
-                            v-for="project in projects"
+                            v-for="project in filteredProjects"
                             :key="project.id"
                         >
                             <article class="flex h-full flex-col dashboard-inset space-y-6">
